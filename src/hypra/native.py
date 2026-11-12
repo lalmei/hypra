@@ -36,7 +36,7 @@ class NativeConfig:
 class NativeInfo:
     available: bool = True
     backend: str = "native-sympy"
-    algorithm_version: str = "hpl-twof1-v1"
+    algorithm_version: str = "native-contiguous-nested-sums-v3"
     sympy_version: str = s.__version__
     error: str | None = None
 
@@ -105,9 +105,59 @@ def expand_atom(h, eps, order, assumptions=s.true):
         raise UnsupportedExpressionError(
             "Native hypergeometric expansion requires 0 < argument < 1"
         )
+    if len(h.ap) == 1 and not h.bq:
+        return s.series((1 - z) ** (-h.ap[0]), eps, 0, order + 1).removeO()
+    # Preserve compact classical forms for two common half-integer subfamilies.
+    if len(h.ap) == 2 and len(h.bq) == 1:
+        upper, lower = tuple(h.ap), h.bq[0]
+        if s.S.One in upper:
+            other = upper[1] if upper[0] == 1 else upper[0]
+            b = _linear(other, eps, s.Rational(1, 2))
+            c = _linear(lower, eps, s.Rational(3, 2))
+            if b is not None and b == c:
+                return _half_telescoping(b, z, eps, order)
+        if lower == s.Rational(1, 2):
+            for first, second in (upper, upper[::-1]):
+                a = _linear(first, eps, s.S.Zero)
+                b = _linear(second, eps, s.Rational(1, 2))
+                if a is not None and a == b:
+                    return _half_even(a, z, eps, order)
+    from .canonical import build_canonical, canonical_bases, use_contiguous
+    from .contiguous import expand_contiguous
+    from .matched_half import half_parameters
+
+    parsed = half_parameters(h, eps)
+    if parsed is not None and use_contiguous(*parsed):
+        ap, bq = parsed
+        ca, cb = canonical_bases(ap, bq)
+        coordinate = s.Dummy("argument", positive=True)
+        result = expand_contiguous(ap, bq, ca, cb, coordinate, eps, order, build_canonical)
+        return reduce_known_hpl(result).xreplace({coordinate: z})
+    from .integer import expand_integer_hyper
+
+    integer_result = expand_integer_hyper(h, eps, order)
+    if integer_result is not None:
+        return integer_result
+    from .matched_half import expand_matched_half
+
+    matched_result = expand_matched_half(h, eps, order)
+    if matched_result is not None:
+        return matched_result
     if len(h.ap) != 2 or len(h.bq) != 1:
+        from .half_system import canonical_half_series
+        from .matched_half import half_parameters
+
+        parsed = half_parameters(h, eps)
+        if parsed is not None:
+            ap, bq = parsed
+            result = canonical_half_series(
+                [a for a, _ in ap], [a for _, a in ap],
+                [b for b, _ in bq], [b for _, b in bq], z, eps, order,
+            )
+            if result is not None:
+                return result
         raise UnsupportedExpressionError(
-            "Native port currently supports documented 2F1 families only"
+            "Unsupported noninteger parameter pattern or shifts"
         )
     upper, lower = tuple(h.ap), h.bq[0]
     if s.S.One in upper:
@@ -125,6 +175,28 @@ def expand_atom(h, eps, order, assumptions=s.true):
             b = _linear(second, eps, s.Rational(1, 2))
             if a is not None and a == b:
                 return _half_even(a, z, eps, order)
+    from .twof1_shift import expand_shifted_twof1
+
+    shifted = expand_shifted_twof1(h, eps, order)
+    if shifted is not None:
+        return shifted
+    from .half_system import canonical_half_series
+    from .matched_half import half_parameters
+
+    parsed = half_parameters(h, eps)
+    if parsed is not None:
+        ap, bq = parsed
+        canonical = canonical_half_series(
+            [a for a, _ in ap],
+            [a for _, a in ap],
+            [b for b, _ in bq],
+            [b for _, b in bq],
+            z,
+            eps,
+            order,
+        )
+        if canonical is not None:
+            return reduce_known_hpl(canonical)
     raise UnsupportedExpressionError(
         "Native port does not yet support this parameter family; no external fallback was used"
     )
@@ -141,7 +213,22 @@ class NativeBackend:
 
     def _fingerprint(self):
         digest = hashlib.sha256()
-        for name in ("native.py", "planning.py", "serialization.py", "symbolic.py"):
+        for name in (
+            "native.py",
+            "planning.py",
+            "serialization.py",
+            "symbolic.py",
+            "integer.py",
+            "nested_sums.py",
+            "hpl_algebra.py",
+            "colored_sums.py",
+            "matched_half.py",
+            "half_system.py",
+            "twof1_shift.py",
+            "endpoints.py",
+            "canonical.py",
+            "contiguous.py",
+        ):
             digest.update(Path(__file__).with_name(name).read_bytes())
         return digest.hexdigest()
 
@@ -152,11 +239,28 @@ class NativeBackend:
         order = request["internal_order"]
         if type(order) is not int or order < plan.internal_order:
             raise IncompleteExpansionError("Insufficient native internal order")
-        if order > self.config.max_internal_order:
+        from .canonical import canonical_bases, use_contiguous
+        from .contiguous import plan_contiguous
+        from .integer import expansion_depth
+        from .matched_half import half_parameters
+
+        def atom_depth(h):
+            parsed = half_parameters(h, eps)
+            if parsed is not None and use_contiguous(*parsed):
+                return order + plan_contiguous(*parsed, *canonical_bases(*parsed)).extra_order
+            return expansion_depth(h, eps, order)
+
+        canonical_order = max(
+            [order, *(atom_depth(h) for h in expr.atoms(s.hyper))]
+        )
+        if canonical_order > self.config.max_internal_order:
             raise UnsupportedExpressionError(
-                f"Internal order {order} exceeds configured native limit {self.config.max_internal_order}"
+                f"Internal order {canonical_order} exceeds configured native limit {self.config.max_internal_order}"
             )
-        meta = self.info().as_dict() | {"source_fingerprint": self._fingerprint()}
+        meta = self.info().as_dict() | {
+            "source_fingerprint": self._fingerprint(),
+            "canonical_order_max": canonical_order,
+        }
         payload = json.dumps(
             {"request": request, "backend": meta}, sort_keys=True, separators=(",", ":")
         )

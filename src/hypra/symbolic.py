@@ -11,8 +11,8 @@ otherwise. It does not encode a separate continuation path.
 
 from __future__ import annotations
 
-from sympy import Basic, Function, Integer, Tuple, factorial, log, polylog
-from sympy.core.function import ArgumentIndexError
+from sympy import Basic, Dummy, Function, Integer, Order, Tuple, ceiling, factorial, log, polylog
+from sympy.core.function import ArgumentIndexError, PoleError
 
 
 class HPL(Function):
@@ -75,9 +75,7 @@ class HPL(Function):
             return Integer(0)
         z = self.argument
         letter = self.word[0]
-        kernel = {Integer(0): 1 / z, Integer(1): 1 / (1 - z), Integer(-1): 1 / (1 + z)}[
-            letter
-        ]
+        kernel = {Integer(0): 1 / z, Integer(1): 1 / (1 - z), Integer(-1): 1 / (1 + z)}[letter]
         tail = HPL(self.word[1:], z) if len(self.word) > 1 else Integer(1)
         return kernel * tail
 
@@ -86,10 +84,86 @@ class HPL(Function):
         # but the letters are discrete constants. Only the argument varies.
         return self.fdiff(2) * self.argument.diff(symbol)
 
+    def _zero_germ_argument(self, x, logx=None, cdir=0):
+        """Return a leading argument and its positive rational valuation."""
+        from .errors import UnsupportedExpressionError
+
+        try:
+            leading = self.argument.as_leading_term(x, logx=logx, cdir=cdir)
+            coefficient, power = leading.as_coeff_exponent(x)
+        except (AttributeError, NotImplementedError, ValueError, TypeError, PoleError) as exc:
+            raise UnsupportedExpressionError(
+                "Could not establish a zero-centered HPL argument germ"
+            ) from exc
+        if (
+            coefficient.has(x)
+            or coefficient.is_nonzero is not True
+            or power.is_Rational is not True
+            or power <= 0
+        ):
+            raise UnsupportedExpressionError(
+                "HPL series requires an argument tending to zero with a known "
+                "nonzero coefficient and positive rational power"
+            )
+        return leading, power
+
+    def _eval_nseries(self, x, n, logx, cdir=0):
+        """Exact zero-germ composition for analytic words and pure log words.
+
+        SymPy's generic Function implementation differentiates the discrete
+        Tuple word and cannot be used. The kernel-derived local series is used
+        only where its omitted powers give a valid Order term after composition.
+        """
+        from .errors import UnsupportedExpressionError
+        from .hpl_algebra import hpl_series
+
+        if not self.word:
+            return Integer(1)
+        if not self.argument.has(x):
+            return self
+        if all(letter == 0 for letter in self.word):
+            exact = log(self.argument) ** len(self.word) / factorial(len(self.word))
+            return exact._eval_nseries(x, n, logx, cdir=cdir)
+        if self.word[-1] == 0:
+            raise UnsupportedExpressionError(
+                "Mixed trailing-zero HPL words have logarithmic germs; use "
+                "hypra.hpl_algebra.hpl_series for explicit local terms"
+            )
+        _, power = self._zero_germ_argument(x, logx, cdir)
+        # Expand strictly deeper than required: omitted analytic argument powers
+        # have valuation > n, so appending O(x**n) cannot overstate accuracy.
+        local_order = int(ceiling(max(n, 0) / power)) + 1
+        local_variable = Dummy("hpl_germ", positive=True)
+        germ = hpl_series(HPL(self.word, local_variable), local_variable, local_order)
+        composed = germ.subs(local_variable, self.argument)
+        return composed._eval_nseries(x, n, logx, cdir=cdir) + Order(x**n, x)
+
+    def _eval_as_leading_term(self, x, logx=None, cdir=0):
+        from .errors import UnsupportedExpressionError
+        from .hpl_algebra import hpl_series
+
+        if not self.word:
+            return Integer(1)
+        if not self.argument.has(x):
+            return self
+        if all(letter == 0 for letter in self.word):
+            exact = log(self.argument) ** len(self.word) / factorial(len(self.word))
+            return exact.as_leading_term(x, logx=logx, cdir=cdir)
+        if self.word[-1] == 0:
+            raise UnsupportedExpressionError(
+                "Mixed trailing-zero HPL leading terms require explicit hpl_series"
+            )
+        leading, _ = self._zero_germ_argument(x, logx, cdir)
+        # Each nonzero kernel increases the first analytic power by one; zero
+        # kernels preserve it. Its coefficient comes from the exact germ engine.
+        degree = sum(letter != 0 for letter in self.word)
+        local_variable = Dummy("hpl_germ", positive=True)
+        germ = hpl_series(HPL(self.word, local_variable), local_variable, degree + 1)
+        return germ.as_leading_term(local_variable).subs(local_variable, leading)
+
     def _latex(self, printer):
         word = ",".join(printer._print(letter) for letter in self.word)
         return rf"H_{{{word}}}\!\left({printer._print(self.argument)}\right)"
-
 
 
 def reduce_known_hpl(expression):

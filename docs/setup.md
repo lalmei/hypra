@@ -46,3 +46,23 @@ explicitly and configure trusted local software:
 `HYPRA_RUN_REAL=1 uv run pytest -m real_backend` requires real execution and
 fails rather than skipping missing setup. This path is for future comparison
 work, not a prerequisite to use the native package.
+
+## Native modules and verification
+
+No additional system software is needed for integer reductions, matched-half
+colored sums, canonical half-integer ODE systems, rational-HPL integration or
+endpoint rewriting. They are Python modules in the same package. Their exact
+contracts and remaining gaps are listed in [scope](scope.md); roadmap items
+are not silently treated as supported requests.
+
+For focused offline mathematical regressions:
+
+```sh
+uv run pytest tests/test_integer_shift_math.py tests/test_half_system.py \
+  tests/test_endpoints.py tests/test_hpl_algebra.py tests/test_nested_sums.py -q
+```
+
+The broader test suite should still be run before accepting a change: kernel
+checks alone do not establish public dispatch, cache invalidation or complete
+Laurent-prefactor behavior. Compiling documentation LaTeX to PDF is optional
+and separate from running the package; `result.latex()` needs no TeX install.

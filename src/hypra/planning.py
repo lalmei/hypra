@@ -202,3 +202,21 @@ def plan_expansion(expr, epsilon, through, assumptions=s.true):
     # At least Taylor order zero is needed even for a negative requested order.
     internal = max(0, through + negative_budget)
     return ExpansionPlan(through, negative_budget, internal, lower)
+
+
+def laurent_coefficient(expr, epsilon, power):
+    """Extract a Laurent coefficient without assuming epsilon is factored visually.
+
+    SymPy expand may put epsilon inside a rational denominator; its Expr.coeff
+    then misses poles. as_coeff_exponent separates those powers exactly.
+    """
+    result = s.S.Zero
+    for term in s.Add.make_args(s.expand(expr)):
+        if term == 0:
+            continue
+        coefficient, exponent = term.as_coeff_exponent(epsilon)
+        if coefficient.has(epsilon) or not exponent.is_Integer:
+            raise UnsupportedExpressionError("Expression is not an explicit Laurent polynomial")
+        if exponent == power:
+            result += coefficient
+    return result

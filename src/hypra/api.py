@@ -6,7 +6,7 @@ from typing import Any
 import sympy as s
 
 from .errors import IncompleteExpansionError, UnsupportedExpressionError
-from .planning import plan_expansion
+from .planning import laurent_coefficient, plan_expansion
 
 
 @dataclass(frozen=True)
@@ -32,7 +32,7 @@ class ExpansionResult:
             raise TypeError("power must be an integer")
         if power > self.through:
             raise ValueError("Coefficient is beyond the certified truncation order")
-        return s.expand(self.polynomial).coeff(self.epsilon, power)
+        return laurent_coefficient(self.polynomial, self.epsilon, power)
 
     def latex(self, *, include_order: bool = True) -> str:
         """Render exact mathematics, including symbolic HPL words, as LaTeX."""
@@ -94,7 +94,7 @@ def _checked_polynomial(expr, epsilon, through, lower_bound):
 def expand_epsilon(expr, epsilon, through=3, assumptions=None, *, config=None, backend=None):
     """Expand the complete expression through the inclusive Laurent order.
 
-    The default backend is native Python/SymPy and supports documented 2F1
+    The default backend is native Python/SymPy and supports documented integer and half-integer
     parameter families. Every prefactor is included; atoms are expanded deeper
     when poles require it. Unsupported cases fail closed without fallback.
     Set backend="wolfram" explicitly to use the experimental external bridge.
@@ -154,6 +154,12 @@ def expand_epsilon(expr, epsilon, through=3, assumptions=None, *, config=None, b
                 "Symbols with the same name and different assumptions are ambiguous"
             )
         declared[symbol.name] = symbol
+    original_ast = expression_ast
+    if backend is None or backend == "native":
+        from .endpoints import rewrite_endpoints
+
+        expr = rewrite_endpoints(expr, epsilon, assumptions)
+        expression_ast = encode_expr(expr)
     plan = plan_expansion(expr, epsilon, through, assumptions)
     injected = backend is not None and not isinstance(backend, str)
     if backend is None or backend == "native":
@@ -205,7 +211,8 @@ def expand_epsilon(expr, epsilon, through=3, assumptions=None, *, config=None, b
     provenance = {
         "hypra_version": "0.1.0a0",
         "sympy_version": s.__version__,
-        "input": expression_ast,
+        "input": original_ast,
+        "planned_input": expression_ast,
         "epsilon": epsilon_ast,
         "assumptions": assumption_ast,
         "plan": asdict(plan),

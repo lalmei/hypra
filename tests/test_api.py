@@ -156,3 +156,10 @@ def test_same_name_different_symbol_assumptions_rejected():
 def test_nonscalar_result_is_explicit_incomplete_failure(invalid):
     with pytest.raises(IncompleteExpansionError, match="scalar"):
         expand_epsilon(P, E, backend=FakeBackend(1, result=invalid))
+
+
+def test_coefficient_extracts_poles_inside_rational_denominators():
+    f = s.hyper([1 + E, 1 - 2 * E], [E], W)
+    value = W**2 / (E * W**2 - 2 * E * W + E) + W / (-E * W + E)
+    result = expand_epsilon(f, E, through=1, backend=FakeBackend(value))
+    assert s.simplify(result.coefficient(-1) - W / (1 - W) ** 2) == 0

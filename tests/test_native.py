@@ -86,8 +86,13 @@ def test_half_integer_even_binomial_family():
 def test_native_domain_and_unsupported_families_fail():
     with pytest.raises(UnsupportedExpressionError, match="0 <"):
         expand_epsilon(s.hyper([1, -E], [1 - 2 * E], W), E, config=NO_CACHE)
-    with pytest.raises(UnsupportedExpressionError, match="family"):
-        expand_epsilon(s.hyper([2, E], [1 - E], W), E, assumptions=DOMAIN, config=NO_CACHE)
+    with pytest.raises(UnsupportedExpressionError, match="Unsupported"):
+        expand_epsilon(
+            s.hyper([s.Rational(1, 2)+E]*3, [s.Rational(1, 2)-E]*2, W),
+            E,
+            assumptions=DOMAIN,
+            config=NO_CACHE,
+        )
     with pytest.raises(UnsupportedExpressionError, match="limit"):
         expand_epsilon(s.hyper([1, E], [1 - E], W), E, through=13, assumptions=DOMAIN)
 

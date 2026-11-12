@@ -3,19 +3,33 @@
 **Native Python/SymPy hypergeometric epsilon expansions, inspired by HypExp 2.**
 
 No Mathematica installation is required. Hypra is an academic **partial native
-port**, not yet a full replacement for HypExp/HPL. It computes exact symbolic
+implementation**, not yet a full replacement for HypExp/HPL. It computes exact symbolic
 coefficients using recurrence relations and preserves unevaluated HPL words.
 Unsupported cases fail explicitly; there is no silent external fallback.
 
 ## What works now
 
-For rational slopes and real `0 < z < 1`, the native engine supports these
-families to any requested finite order within the configured complexity limit:
+The implementation now has general-purpose native components, rather than a
+list of hard-coded low-order answers:
 
-- `2F1(1, b*eps; 1+c*eps; z)`: an all-order differential-equation/HPL recursion.
-  This includes both the requested **P and Q** cases, not just their first terms.
-- `2F1(1, 1/2+b*eps; 3/2+b*eps; z)`: an exact odd-polylogarithm expansion.
-- `2F1(a*eps, 1/2+a*eps; 1/2; z)`: an exact even-binomial/logarithm expansion.
+- Integer-base `pF(p-1)` with rational regulator slopes: strict nested sums,
+  contiguous parameter shifts, and finite-prefix/tail reindexing for moving
+  negative upper bases. Moving singular lower parameters retain their poles.
+- Matched-half `pF(p-1)`: equal counts of half-integer upper/lower parameters,
+  colored strict sums and HPLs at `sqrt(z)`, with integer-offset reductions.
+- Three canonical half-integer differential systems, including unmatched
+  half-integer patterns. Their rationalized variables and branch conventions
+  are documented separately; this is not every HypExp 2 class.
+- Exact fixed terminating sums and convergent Gauss `2F1` unit-endpoint
+  rewriting, with explicit rejection when convergence cannot be established.
+- HPL shuffle products, rational-HPL integration with a verified finite origin
+  constant, and exact local HPL series for independent coefficient checks.
+
+The main nonterminating argument domain is real `0 < z < 1`; use exact
+rational slopes. See the [capability map](docs/scope.md) for module contracts,
+public-dispatch distinctions and restrictions. The P/Q recurrence and two
+special half-integer closed forms remain useful optimized cases, not the
+extent of the native algorithms.
 
 The complete expression may include Gamma functions, rational singular
 prefactors, products and sums. Pole-aware order planning expands each
@@ -98,13 +112,14 @@ and compiled [PDF](docs/mathematics.pdf). Runnable examples include
 
 ## Boundaries
 
-- General `pFq`, general integer parameter shifts, most half-integer classes,
-  full HPL reduction/analytic continuation, and generic integration remain to
-  be ported. See [roadmap](docs/roadmap.md).
+- Nonterminating general `pFq` outside `pF(p-1)`, uncovered half-integer
+  patterns, full HPL reduction/analytic continuation, and generic integration
+  remain unsupported. See [roadmap](docs/roadmap.md).
 - Hypergeometric arguments must be regulator-independent and in the documented
-  real domain. `z=0` is handled directly. Endpoint `z=1`, complex continuation,
-  unknown valuations and essential/fractional-power regulator singularities
-  fail closed.
+  real domain. `z=0` is handled directly. Only documented terminating/Gauss
+  identities cover `z=1`; arbitrary unit endpoints and complex continuation
+  are not supported. Unknown valuations and essential/fractional-power
+  regulator singularities fail closed.
 - Use exact `Rational` values, never binary floats. Unknown functions, invalid
   identifiers and contradictory/unsupported domain assumptions are rejected.
 - `NativeConfig(max_internal_order=12)` is the default complexity limit; it can
