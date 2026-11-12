@@ -64,9 +64,35 @@ def dual_indices(indices):
     return _indices_from_word(tuple(1 - letter for letter in reversed(word)))
 
 
-def reduce_mzv(expression):
-    """Apply proved duality, depth-one and weight-four identities, opt-in.
+@lru_cache(maxsize=256)
+def _height_one(first, depth):
+    """Coefficient of x^(first-1)y^depth in 1-Gamma(1-x)Gamma(1-y)/Gamma(1-x-y).
 
+    The convergent height-one MZV generating identity follows from the Euler
+    beta integral. Sparse bivariate truncation is exact; every logarithm term
+    contains both x and y, so only min(first-1, depth) powers can contribute.
+    """
+    nx, ny = first - 1, depth
+    logarithm = {(i, j): -s.binomial(i + j, i) * s.zeta(i + j) / (i + j)
+                 for i in range(1, nx + 1) for j in range(1, ny + 1)}
+    power = {(0, 0): s.S.One}
+    coefficient = s.S.Zero
+    for k in range(1, min(nx, ny) + 1):
+        product = {}
+        for (i, j), left in power.items():
+            for (a, b), right in logarithm.items():
+                if i + a <= nx and j + b <= ny:
+                    key = (i + a, j + b)
+                    product[key] = product.get(key, s.S.Zero) + left * right
+        power = product
+        coefficient -= power.get((nx, ny), s.S.Zero) / s.factorial(k)
+    return s.expand(coefficient)
+
+
+def reduce_mzv(expression):
+    """Apply proved duality, height-one and weight-four identities, opt-in.
+
+    Height-one beta-generating reductions are bounded at weight twelve.
     General irreducible MZVs remain exact symbolic objects. Duality selects the
     representative with smaller depth (then lexicographic order); it does not
     make unproved basis-completeness or transcendence claims.
@@ -86,8 +112,8 @@ def reduce_mzv(expression):
         indices = min((indices, dual), key=lambda word: (len(word), word))
         if len(indices) == 1:
             return s.zeta(indices[0])
-        if indices == (3, 1):
-            return s.zeta(4) / 4
+        if sum(indices) <= 12 and all(index == 1 for index in indices[1:]):
+            return _height_one(indices[0], len(indices))
         if indices == (2, 2):
             return 3 * s.zeta(4) / 4
         return MZV(indices)

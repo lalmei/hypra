@@ -14,19 +14,20 @@ The reference source is read only; no upstream reduction tables are copied.
 | Product expansion | `shuffle_expand`, `shuffle_product` | Same-argument shuffle algebra |
 | Logarithm extraction | `extract_hpl_logs` | Leading 1 and trailing 0; retains branch data |
 | Shuffle basis reduction | `lyndon_reduce` | Table-free Lyndon basis through weight eight, not upstream's particular chosen basis |
-| Elementary/classical conversion | `reduce_known_hpl`; `classical_hpl` | Standard all-weight simple words; all weight-two words; higher mixed words retained |
+| Elementary/classical conversion | `reduce_known_hpl`; `classical_hpl` | Standard all-weight simple words; all weight-two and binary weight-three words; other mixed words retained |
 | Argument transformations | Negation, reflection, Möbius, inversion, square, fractional maps | Explicit alphabet/domain/boundary/weight contracts |
 | Expression argument unification | `transform_hpl_arguments` | Dispatches supported maps; unknown arguments rejected |
 | Rational-HPL integration | `primitive_hpl`, `integrate_from_zero` | Poles only 0,±1; definite origin limit must exist |
 | Series around zero | `hpl_series`, supported SymPy `.series()` | Explicit logarithmic local-series conventions |
 | Values at one | `hpl_at_one`, `hpl_alternating_at_one` | Convergent values only; exact MZV/EulerSum remainder constants |
+| Explicit shuffle regularization | `hpl_endpoint_polynomial`, `shuffle_regularized_hpl_at_one` | Real endpoint polynomial in T=−log(1−z); not an ordinary finite limit |
 | Numerical endpoint constants | `evaluate_mzv`, `evaluate_euler_sum`, `.evalf()` | Through weight six; guarded precision evidence, not interval certification |
 | Values at i | Exact `HPL(word,I)`, numerical `continue_hpl` | No copied special-value tables; explicit radial path |
 | Numerical HPL evaluation | `hpl_evalf`, `evaluate_hpl`, `continue_hpl` | Real interval, explicit slit disk, or explicit off-cut radial path |
 
 ## Remaining distinctions
 
-Generic mixed words above weight two are not all converted into classical
+Generic mixed words are not all converted into classical
 functions. Named higher-weight constant tables and unrestricted winding paths
 are not imported. Numerical stability checks do not certify floating-point
 roundoff. Resource limits are deliberate failures, not silent truncations.

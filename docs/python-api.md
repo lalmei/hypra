@@ -14,3 +14,9 @@ are not a claim of additional parameter or branch coverage.
 ::: hypra.native.NativeConfig
 
 ::: hypra.symbolic.HPL
+
+::: hypra.hpl_classical.classical_hpl
+
+::: hypra.hpl_regularized.hpl_endpoint_polynomial
+
+::: hypra.hpl_regularized.shuffle_regularized_hpl_at_one

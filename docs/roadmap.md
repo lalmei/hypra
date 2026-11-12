@@ -30,16 +30,20 @@ prerequisite.
    endpoint preprocessing and complete-expression pole budgets. Include mixed
    families and cancellation-sensitive products, not only isolated functions.
 2. Complete exceptional-parameter and branch coverage within the supported
-   HypExp class patterns. The exact hypergeometric API remains real `0<z<1`;
-   broader numerical HPL domains do not automatically widen that contract.
+   HypExp class patterns. The exact hypergeometric API has explicit real-interval and
+   restricted principal-complex domains; broader numerical HPL domains do not
+   automatically widen that contract.
 3. Expand independent exact coefficient benchmarks, higher-rank cases and
    complexity/performance measurements. Optimize algebra without weakening
    fail-closed checks or origin-limit verification.
-4. Extend HPL special values beyond binary endpoints, including alternating
-   constants, and additional symbolic transformations beyond negation/reflection.
+4. Extend the existing alternating endpoint, height-one MZV and symbolic-map
+   implementations with independently proved higher-weight reductions. Binary
+   weight-three classical reduction and explicit real shuffle regularization
+   are now available; neither is full upstream special-value-table parity.
 5. Add explicit boundary/winding-path continuation where needed; the numerical
    API currently supports only its stated off-cut radial path. Broader contour
-   integration and regularized divergent endpoints are not silently inferred.
+   integration is not inferred. Divergent endpoint regularization is available
+   only through explicitly named shuffle-regularization APIs, never as a limit.
 
 Full HypExp 2/HPL parity is incomplete. A future comparison oracle may help,
 but the retained external adapter is experimental, unvalidated and optional.

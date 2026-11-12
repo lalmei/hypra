@@ -76,3 +76,31 @@ claim is implemented. Endpoint/duality combinatorics are limited to weight 24;
 higher-weight MZVs remain exact symbolic objects. Depth-one reduction is not
 subject to that combinatorial limit. The optional Wolfram comparison bridge
 does not transport MZV heads; this is a native-port feature.
+
+## Height-one multiple zeta values
+
+`reduce_mzv` also reduces height-one values
+$\zeta(a,\underbrace{1,\ldots,1}_{d-1})$ through weight twelve. The Euler
+beta integral gives the generating identity
+
+$$
+\sum_{a\ge2,\ d\ge1}\zeta(a,\{1\}^{d-1})x^{a-1}y^d
+=1-\frac{\Gamma(1-x)\Gamma(1-y)}{\Gamma(1-x-y)}.
+$$
+
+Expanding its logarithm gives
+
+$$
+\log\frac{\Gamma(1-x)\Gamma(1-y)}{\Gamma(1-x-y)}
+=-\sum_{i,j\ge1}\frac{1}{i+j}\binom{i+j}{i}\zeta(i+j)x^iy^j.
+$$
+
+Hypra extracts the requested coefficient with sparse bivariate polynomial
+arithmetic. Every logarithm term contains both variables, so only
+$\min(a-1,d)$ exponential powers contribute. This is an exact finite
+calculation, not a special-value lookup table or numerical fit. For example,
+$\zeta(4,1)=2\zeta(5)-\zeta(2)\zeta(3)$ and
+$\zeta(5,1)=3\zeta(6)/4-\zeta(3)^2/2$.
+Higher-weight or non-height-one constants remain exact `MZV` objects unless
+another proved reduction applies. This does not assign values to divergent
+multiple zeta series.

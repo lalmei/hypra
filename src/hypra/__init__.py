@@ -34,6 +34,7 @@ from .hpl_numeric import (
     hpl_evalf,
 )
 from .hpl_reduce import extract_hpl_logs, lyndon_factors, lyndon_reduce
+from .hpl_regularized import hpl_endpoint_polynomial, shuffle_regularized_hpl_at_one
 from .hpl_transform import negate_hpl, reflect_hpl
 from .native import NativeBackend, NativeConfig
 from .serialization import SerializationError, decode_expr, encode_expr
@@ -88,6 +89,7 @@ __all__ = [
     "fractional_hpl",
     "hpl_alternating_at_one",
     "hpl_at_one",
+    "hpl_endpoint_polynomial",
     "hpl_evalf",
     "hpl_pm",
     "hpl_series",
@@ -105,6 +107,7 @@ __all__ = [
     "reduce_mzv",
     "reflect_hpl",
     "shuffle_expand",
+    "shuffle_regularized_hpl_at_one",
     "square_hpl",
     "transform_hpl_arguments",
 ]
