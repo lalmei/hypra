@@ -33,6 +33,7 @@ by `integrate_from_zero`; a divergent primitive is not accepted.
  \theta=\frac{t(1-t^2)}2\partial_t,\quad
  B=(1-z)\theta-\frac12,
 \]
+
 \[
  B^{-1}g=t\int_0^t\frac{2g(u)}{u^2}\,du,\qquad
  \theta^{-1}f=\int_0^t\frac{2f(u)}{u(1-u^2)}\,du.
@@ -46,6 +47,7 @@ The rank restriction is essential: at rank one F_0 would not equal 1.
  \theta=\frac{t(1+t)}{1-t}\partial_t,\quad
  B=(1-z)\theta-\frac z2,
 \]
+
 \[
  B^{-1}g=\frac{1+t}{1-t}\int_0^t\frac{g(u)}u\,du,\qquad
  \theta^{-1}f=\int_0^t\frac{1-u}{u(1+u)}f(u)\,du.
@@ -57,6 +59,7 @@ The rank restriction is essential: at rank one F_0 would not equal 1.
  z=t^2,\quad \theta=\frac t2\partial_t,\quad
  B=(1-z)\theta-\frac{1+z}2,
 \]
+
 \[
  B^{-1}g=\frac{t}{1-t^2}\int_0^t\frac{2g(u)}{u^2}\,du,\qquad
  \theta^{-1}f=\int_0^t\frac{2f(u)}u\,du.

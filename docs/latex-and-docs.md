@@ -1,4 +1,4 @@
-# How the expansion works
+# Epsilon Expansions
 
 Hypra expands the regulator $\varepsilon$ while keeping the argument and
 coefficients symbolic. The generalized hypergeometric function is

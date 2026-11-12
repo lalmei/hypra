@@ -2,13 +2,14 @@
 
 ## Scope and provenance
 
-Hypra is a **partial native Python/SymPy port** for exact regulator expansions,
-with three mathematically proved hypergeometric families: an integer-parameter
-HPL-recursion family, an even-binomial half-integer family, and a telescoping
-half-integer family. The native backend is the default and **requires no
-Mathematica installation or setup**. The derivations and limits of these three
-families are given below; unsupported families must fail explicitly rather
-than be presented as complete expansions.
+Hypra is a **partial native Python/SymPy implementation** for exact regulator
+expansions. This chapter gives detailed proofs for three illustrative families
+and the P/Q/J4 acceptance calculation, followed by the general integer and
+half-integer kernels. These examples are not the package's full supported
+scope; consult the [capability map](scope.md) for current coverage and limits.
+The native backend is the default and **requires no Mathematica installation
+or setup**. Unsupported cases must fail explicitly rather than be presented
+as complete expansions.
 
 HypExp [1] expands generalized hypergeometric functions around integer-valued
 parameters. HypExp 2 [2] adds certain half-integer classes. Hypra does not yet
@@ -16,12 +17,45 @@ match their full coverage. An optional external HypExp adapter is retained as
 an experimental, **unverified** alternative; it is neither required by the
 native implementation nor evidence that a real Wolfram/HypExp run succeeded.
 
-The calculations below independently derive the requested example. The NNLO
-script at `reports/infrared-consistency-review/derive_identical_two_denominator.py`
-was read as context only; its files were not changed and its table of logarithmic
-integrals is **not** imported. `scripts/validate_integral.py` derives the moments
-by convergent sums, a beta-function derivative and the dilogarithm reflection
-identity. Its offline success does not verify a Mathematica/HypExp installation.
+The calculations below independently derive the requested example. Earlier
+private project material was context only: no private code or integral lookup
+table is reproduced or imported here. The reproducible evidence is Hypra's
+public Python validation source, not a private file reference.
+
+### Public implementation excerpt
+
+[`derive_moments()`, lines 20–45](https://github.com/lalmei/hypra/blob/4b2904aa1163f9e47f2f497cd0b9a9be5c719b59/scripts/validate_integral.py#L20-L45)
+derives the five logarithmic moments using convergent sums, beta-function
+coefficients and a dilogarithm reflection identity. The excerpt below is copied
+verbatim apart from indentation from
+[lines 26–38](https://github.com/lalmei/hypra/blob/4b2904aa1163f9e47f2f497cd0b9a9be5c719b59/scripts/validate_integral.py#L26-L38) of the pinned published revision
+`4b2904a`. Here `s` is SymPy, and `a` and `t` are formal expansion variables.
+
+```python
+n = s.Symbol("n", integer=True, positive=True)
+a, t = s.symbols("a t")
+log_gamma_ratio = s.expand(
+    sum((-1) ** k * s.zeta(k) * (a**k + t**k - (a + t) ** k) / k for k in range(2, 5))
+)
+# Beta(a, 1+t) = exp(log_gamma_ratio)/a. Taking d_a d_t^2
+# means twice the a^2*t^2 coefficient before division by a.
+beta_mixed = s.expand(log_gamma_ratio + log_gamma_ratio**2 / 2)
+b = s.simplify(2 * beta_mixed.coeff(a, 2).coeff(t, 2))
+zeta2_from_series = s.summation(n**-2, (n, 1, s.oo))
+# Li2(1-w) = zeta(2)-Li2(w)-log(w)log(1-w), and
+# integral Li2(w)log(1-w) dw/w = -Li2(1)^2/2.
+c = s.simplify(-(zeta2_from_series**2) / 2 - b)
+```
+
+The mixed coefficient `b` gives
+\(\int_0^1 \log(w)\log^2(1-w)\,dw/w\); `c` is the moment containing
+\(\log(1-w)\operatorname{Li}_2(1-w)\). The mathematical justification for
+extracting these coefficients is developed below. The subsequent
+[returned moment dictionary](https://github.com/lalmei/hypra/blob/4b2904aa1163f9e47f2f497cd0b9a9be5c719b59/scripts/validate_integral.py#L39-L45) uses exact convergent zeta sums,
+and [`derive_j4()`](https://github.com/lalmei/hypra/blob/4b2904aa1163f9e47f2f497cd0b9a9be5c719b59/scripts/validate_integral.py#L48-L89) combines the resulting moments into the
+quadratic and cubic regulator coefficients. No fitted or hard-coded J4
+coefficient is inserted. This Python validation does not claim that an external
+Mathematica/HypExp installation was run.
 
 ## Conventions
 

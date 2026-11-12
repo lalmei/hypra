@@ -38,10 +38,39 @@ def main():
             if url.startswith(('http://', 'https://', '//')):
                 raise SystemExit(f'External rendering dependency in {self.page}')
 
+    class MathMarkup(HTMLParser):
+        """Catch TeX accidentally consumed by Markdown, outside literal code."""
+        def __init__(self):
+            super().__init__()
+            self.stack = []
+
+        def handle_starttag(self, tag, attrs):
+            if tag not in ('br', 'hr', 'img', 'input', 'meta', 'link', 'wbr', 'source'):
+                self.stack.append((tag, dict(attrs)))
+
+        def handle_endtag(self, tag):
+            for i in range(len(self.stack) - 1, -1, -1):
+                if self.stack[i][0] == tag:
+                    del self.stack[i:]
+                    break
+
+        def handle_data(self, data):
+            if not any(tag == 'article' for tag, _ in self.stack):
+                return
+            if any(tag in ('code', 'pre', 'script', 'style') or
+                   'arithmatex' in attrs.get('class', '').split()
+                   for tag, attrs in self.stack):
+                return
+            if re.search(r'\\(?:frac|sum|prod|theta|epsilon|varepsilon|int|log|operatorname)\b', data):
+                raise SystemExit(f'Unparsed LaTeX outside math/code in {self.page}: {data[:100]!r}')
+
     for path in SITE.rglob('*.html'):
         parser = Assets()
         parser.page = path.relative_to(SITE)
         parser.feed(path.read_text())
+        math = MathMarkup()
+        math.page = path.relative_to(SITE)
+        math.feed(path.read_text())
     print('Generated references and offline rendering asset checks passed.')
 
 

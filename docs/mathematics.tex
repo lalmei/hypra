@@ -93,6 +93,8 @@
 \author{}
 \date{}
 
+\usepackage{fvextra}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\},breaklines,fontsize=\small}
 \begin{document}
 
 \section{Mathematical contract and exact acceptance
@@ -100,14 +102,15 @@ derivation}\label{mathematical-contract-and-exact-acceptance-derivation}
 
 \subsection{Scope and provenance}\label{scope-and-provenance}
 
-Hypra is a \textbf{partial native Python/SymPy port} for exact regulator
-expansions, with three mathematically proved hypergeometric families: an
-integer-parameter HPL-recursion family, an even-binomial half-integer
-family, and a telescoping half-integer family. The native backend is the
-default and \textbf{requires no Mathematica installation or setup}. The
-derivations and limits of these three families are given below;
-unsupported families must fail explicitly rather than be presented as
-complete expansions.
+Hypra is a \textbf{partial native Python/SymPy implementation} for exact
+regulator expansions. This chapter gives detailed proofs for three
+illustrative families and the P/Q/J4 acceptance calculation, followed by
+the general integer and half-integer kernels. These examples are not the
+package's full supported scope; consult the \href{scope.md}{capability
+map} for current coverage and limits. The native backend is the default
+and \textbf{requires no Mathematica installation or setup}. Unsupported
+cases must fail explicitly rather than be presented as complete
+expansions.
 
 HypExp {[}1{]} expands generalized hypergeometric functions around
 integer-valued parameters. HypExp 2 {[}2{]} adds certain half-integer
@@ -116,15 +119,54 @@ external HypExp adapter is retained as an experimental,
 \textbf{unverified} alternative; it is neither required by the native
 implementation nor evidence that a real Wolfram/HypExp run succeeded.
 
-The calculations below independently derive the requested example. The
-NNLO script at
-\texttt{reports/infrared-consistency-review/derive\_identical\_two\_denominator.py}
-was read as context only; its files were not changed and its table of
-logarithmic integrals is \textbf{not} imported.
-\texttt{scripts/validate\_integral.py} derives the moments by convergent
-sums, a beta-function derivative and the dilogarithm reflection
-identity. Its offline success does not verify a Mathematica/HypExp
-installation.
+The calculations below independently derive the requested example.
+Earlier private project material was context only: no private code or
+integral lookup table is reproduced or imported here. The reproducible
+evidence is Hypra's public Python validation source, not a private file
+reference.
+
+\subsubsection{Public implementation
+excerpt}\label{public-implementation-excerpt}
+
+\href{https://github.com/lalmei/hypra/blob/4b2904aa1163f9e47f2f497cd0b9a9be5c719b59/scripts/validate_integral.py\#L20-L45}{\texttt{derive\_moments()},
+lines 20--45} derives the five logarithmic moments using convergent
+sums, beta-function coefficients and a dilogarithm reflection identity.
+The excerpt below is copied verbatim apart from indentation from
+\href{https://github.com/lalmei/hypra/blob/4b2904aa1163f9e47f2f497cd0b9a9be5c719b59/scripts/validate_integral.py\#L26-L38}{lines
+26--38} of the pinned published revision \texttt{4b2904a}. Here
+\texttt{s} is SymPy, and \texttt{a} and \texttt{t} are formal expansion
+variables.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{n }\OperatorTok{=}\NormalTok{ s.Symbol(}\StringTok{"n"}\NormalTok{, integer}\OperatorTok{=}\VariableTok{True}\NormalTok{, positive}\OperatorTok{=}\VariableTok{True}\NormalTok{)}
+\NormalTok{a, t }\OperatorTok{=}\NormalTok{ s.symbols(}\StringTok{"a t"}\NormalTok{)}
+\NormalTok{log\_gamma\_ratio }\OperatorTok{=}\NormalTok{ s.expand(}
+    \BuiltInTok{sum}\NormalTok{((}\OperatorTok{{-}}\DecValTok{1}\NormalTok{) }\OperatorTok{**}\NormalTok{ k }\OperatorTok{*}\NormalTok{ s.zeta(k) }\OperatorTok{*}\NormalTok{ (a}\OperatorTok{**}\NormalTok{k }\OperatorTok{+}\NormalTok{ t}\OperatorTok{**}\NormalTok{k }\OperatorTok{{-}}\NormalTok{ (a }\OperatorTok{+}\NormalTok{ t) }\OperatorTok{**}\NormalTok{ k) }\OperatorTok{/}\NormalTok{ k }\ControlFlowTok{for}\NormalTok{ k }\KeywordTok{in} \BuiltInTok{range}\NormalTok{(}\DecValTok{2}\NormalTok{, }\DecValTok{5}\NormalTok{))}
+\NormalTok{)}
+\CommentTok{\# Beta(a, 1+t) = exp(log\_gamma\_ratio)/a. Taking d\_a d\_t\^{}2}
+\CommentTok{\# means twice the a\^{}2*t\^{}2 coefficient before division by a.}
+\NormalTok{beta\_mixed }\OperatorTok{=}\NormalTok{ s.expand(log\_gamma\_ratio }\OperatorTok{+}\NormalTok{ log\_gamma\_ratio}\OperatorTok{**}\DecValTok{2} \OperatorTok{/} \DecValTok{2}\NormalTok{)}
+\NormalTok{b }\OperatorTok{=}\NormalTok{ s.simplify(}\DecValTok{2} \OperatorTok{*}\NormalTok{ beta\_mixed.coeff(a, }\DecValTok{2}\NormalTok{).coeff(t, }\DecValTok{2}\NormalTok{))}
+\NormalTok{zeta2\_from\_series }\OperatorTok{=}\NormalTok{ s.summation(n}\OperatorTok{**{-}}\DecValTok{2}\NormalTok{, (n, }\DecValTok{1}\NormalTok{, s.oo))}
+\CommentTok{\# Li2(1{-}w) = zeta(2){-}Li2(w){-}log(w)log(1{-}w), and}
+\CommentTok{\# integral Li2(w)log(1{-}w) dw/w = {-}Li2(1)\^{}2/2.}
+\NormalTok{c }\OperatorTok{=}\NormalTok{ s.simplify(}\OperatorTok{{-}}\NormalTok{(zeta2\_from\_series}\OperatorTok{**}\DecValTok{2}\NormalTok{) }\OperatorTok{/} \DecValTok{2} \OperatorTok{{-}}\NormalTok{ b)}
+\end{Highlighting}
+\end{Shaded}
+
+The mixed coefficient \texttt{b} gives
+\(\int_0^1 \log(w)\log^2(1-w)\,dw/w\); \texttt{c} is the moment
+containing \(\log(1-w)\operatorname{Li}_2(1-w)\). The mathematical
+justification for extracting these coefficients is developed below. The
+subsequent
+\href{https://github.com/lalmei/hypra/blob/4b2904aa1163f9e47f2f497cd0b9a9be5c719b59/scripts/validate_integral.py\#L39-L45}{returned
+moment dictionary} uses exact convergent zeta sums, and
+\href{https://github.com/lalmei/hypra/blob/4b2904aa1163f9e47f2f497cd0b9a9be5c719b59/scripts/validate_integral.py\#L48-L89}{\texttt{derive\_j4()}}
+combines the resulting moments into the quadratic and cubic regulator
+coefficients. No fitted or hard-coded J4 coefficient is inserted. This
+Python validation does not claim that an external Mathematica/HypExp
+installation was run.
 
 \subsection{Conventions}\label{conventions}
 
@@ -346,6 +388,7 @@ terms gives
 
 \[\int LM=\sum_{n\geq1}\frac1{n^3}=\zeta_3,\qquad
 \int L\operatorname{Li}_2(w)=-\sum_{n\geq1}\frac1{n^4}=-\zeta_4,\]
+
 \[\int L^2M=-2\sum_{n\geq1}\frac1{n^4}=-2\zeta_4.\]
 
 Here \(\int_0^1w^{n-1}\log w\,dw=-1/n^2\) and
@@ -382,6 +425,7 @@ Expand the weight as \(w^{-1}[1+\epsilon(-2L-M)+O(\epsilon^2)]\).
 Multiplying the derived series gives
 
 \[[\epsilon^2]J_4=\int 2LM=2\zeta_3,\]
+
 \[[\epsilon^3]J_4=\int[-4L\operatorname{Li}_2(w)-3LM^2
 -4M\operatorname{Li}_2(1-w)-4L^2M]
 =\left(4+\frac32+3+8\right)\zeta_4=\frac{33}{2}\zeta_4.\]

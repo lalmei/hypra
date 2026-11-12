@@ -47,7 +47,13 @@ site as a short-lived Actions artifact. It has read-only repository permissions.
 It does **not** enable GitHub Pages, deploy publicly, push a `gh-pages` branch,
 or change repository settings.
 
-`check_docs_build.py` checks generated structure and local dependency files.
+Keep a blank line between consecutive display-math blocks. Without it, Markdown
+can consume `\[` / `\]` as ordinary punctuation before KaTeX sees the equation.
+Code fences remain literal examples; put equations outside fences when they
+should render.
+
+`check_docs_build.py` checks generated structure and local dependency files,
+and rejects common unparsed LaTeX commands outside math wrappers or code.
 It is not a browser-layout or JavaScript execution test. Browser smoke checks
 should additionally confirm rendered `.katex` elements and Mermaid SVGs when
 changing the theme or frontend libraries. Keep a mathematical fallback visible

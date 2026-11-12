@@ -57,13 +57,13 @@ nav:
       - API examples: api-examples.md
       - Python API reference: python-api.md
       - Command-line reference: cli-reference.md
-      - LaTeX and documentation: latex-and-docs.md
       - Architecture: architecture.md
       - Setup: setup.md
       - Capabilities and limits: scope.md
       - Roadmap: roadmap.md
       - Native parity map: parity-map.md
-  - Exact expansion algorithms:
+  - Mathematical Background:
+      - Epsilon Expansions: latex-and-docs.md
       - Mathematical derivation: mathematics.md
       - Integer parameter reductions: integer-port.md
       - Half-integer systems: half-system.md
