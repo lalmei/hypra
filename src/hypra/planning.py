@@ -85,6 +85,13 @@ def plan_expansion(expr, epsilon, through, assumptions=s.true):
     if not isinstance(through, int) or isinstance(through, bool):
         raise TypeError("through must be an integer inclusive Laurent order")
     negative_budget = 0
+    # Validate even regulator-independent subexpressions, which valuation
+    # recursion legitimately treats as constants but must not define at poles.
+    if any(
+        not b.has(epsilon) and b.is_integer is True and b.is_nonpositive is True
+        for atom in expr.atoms(s.hyper) for b in atom.bq
+    ):
+        raise UnsupportedExpressionError("Fixed singular lower hypergeometric parameter")
 
     def visit(node):
         nonlocal negative_budget

@@ -26,8 +26,15 @@ class NativeConfig:
     max_internal_order: int = 12
     use_cache: bool = True
     cache_dir: str | None = None
+    timeout_seconds: float | None = None
 
     def __post_init__(self):
+        if self.timeout_seconds is not None and (
+            isinstance(self.timeout_seconds, bool)
+            or not isinstance(self.timeout_seconds, (int, float))
+            or not 0 < self.timeout_seconds < float("inf")
+        ):
+            raise ValueError("timeout_seconds must be a finite positive number or None")
         if type(self.max_internal_order) is not int or self.max_internal_order < 0:
             raise ValueError("max_internal_order must be a nonnegative integer")
 
@@ -233,6 +240,13 @@ class NativeBackend:
         return digest.hexdigest()
 
     def expand(self, request):
+        if self.config.timeout_seconds is not None:
+            from .native_worker import run_bounded
+
+            return run_bounded(request, self.config)
+        return self._expand(request)
+
+    def _expand(self, request):
         expr, eps = decode_expr(request["expression"]), decode_expr(request["epsilon"])
         assumptions = decode_expr(request["assumptions"])
         plan = plan_expansion(expr, eps, request["through"], assumptions)

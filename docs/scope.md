@@ -87,3 +87,14 @@ Integer shifts are implemented with finite-sum, integral, or contiguous
 reductions subject to exactness/resource guards. This correspondence is a
 coverage map, not exhaustive validation of every parameter choice or parity
 with all upstream special cases, continuation rules, or HPL operations.
+
+## Preserving exceptional input parameters
+
+Use `hypra.hypergeometric(...)` (or `sympy.hyper(..., evaluate=False)`) when
+validation must inspect every supplied parameter. SymPy's default constructor
+may cancel equal upper/lower entries before Hypra receives the expression;
+removed fixed-singular parameters cannot be reconstructed. Visible fixed
+nonpositive integer lower parameters are rejected even at zero argument or
+with a terminating numerator. Identical moving parameters can be canceled
+meromorphically in the regulator; original and planned expressions are both
+recorded in provenance.

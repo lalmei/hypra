@@ -68,7 +68,10 @@ Laurent-prefactor behavior. Compiling documentation LaTeX to PDF is optional
 and separate from running the package; `result.latex()` needs no TeX install.
 
 Native resource guards bound regulator depth, shift count and selected algebraic
-sizes. They are not a hard wall-clock timeout: a difficult SymPy simplification
-can still take a long time. Run long academic jobs in a separately managed
-process if an operating-system execution deadline is required. The optional
-external adapter's timeout does not apply to native computations.
+sizes. For an execution deadline, use `NativeConfig(timeout_seconds=30)`.
+This runs the exact JSON request in a separate Python process and terminates it
+on timeout; no partial expansion is returned. Process startup counts toward the
+deadline. Without this option, native calculations run in-process without a
+wall-clock deadline. Native and optional external-adapter timeouts are separate.
+The deadline covers the native backend calculation, not earlier input validation,
+assumption checks or endpoint preprocessing in the public API.

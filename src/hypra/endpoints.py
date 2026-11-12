@@ -59,14 +59,23 @@ def rewrite_endpoints(expr, epsilon, assumptions=s.true):
         raise UnsupportedExpressionError("Contradictory endpoint assumptions")
     replacements = {}
     for atom in expr.atoms(s.hyper):
-        upper, lower, argument = tuple(atom.ap), tuple(atom.bq), atom.argument
+        upper, lower, argument = list(atom.ap), list(atom.bq), atom.argument
+        # Check before simplification or z=0 shortcuts: cancellation at a fixed
+        # singular parameter selects a limiting convention we do not assume.
+        if any(_fixed_nonpositive_integer(b, epsilon) for b in lower):
+            raise UnsupportedExpressionError("Fixed nonpositive lower parameter has an ambiguous singular definition")
+        for b in tuple(lower):
+            if b in upper:
+                upper.remove(b)
+                lower.remove(b)
+        reduced = s.hyper(upper, lower, argument, evaluate=False)
         terminating = [u for u in upper if _fixed_nonpositive_integer(u, epsilon)]
         if not terminating and argument != 1:
+            if reduced != atom:
+                replacements[atom] = reduced
             continue
         if atom.has(s.Float, s.oo, -s.oo, s.zoo, s.nan):
             raise UnsupportedExpressionError("Endpoint and terminating inputs must be exact and finite")
-        if any(_fixed_nonpositive_integer(b, epsilon) for b in lower):
-            raise UnsupportedExpressionError("Fixed nonpositive lower parameter has an ambiguous singular definition")
         if terminating:
             if any(not isinstance(u, s.Integer) for u in terminating):
                 raise UnsupportedExpressionError("Termination degree must be an explicit integer")
@@ -77,6 +86,13 @@ def rewrite_endpoints(expr, epsilon, assumptions=s.true):
                                          (s.factorial(n)*s.prod(s.rf(b, n) for b in lower))
                                          for n in range(degree+1)))
             continue
+        if len(upper) == 1 and not lower:
+            # Binomial theorem at its convergent endpoint; often obtained by
+            # exact cancellation in a Gauss sum. This is not continuation.
+            if _convergent(-upper[0], epsilon, assumptions):
+                replacements[atom] = s.S.Zero
+                continue
+            raise UnsupportedExpressionError("Binomial z=1 convergence is not proven")
         if len(upper) != 2 or len(lower) != 1:
             raise UnsupportedExpressionError("Nonterminating z=1 currently requires convergent Gauss 2F1")
         a, b = upper
