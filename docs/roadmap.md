@@ -8,9 +8,12 @@
 - Four canonical half-integer rationalized ODE patterns, plus specialized
   elementary/polylogarithmic identities.
 - Rational-HPL integration, definite origin constants, shuffle log extraction,
-  binary endpoints/MZVs, branch-explicit negation/reflection and exact local series.
-- Real-interval arbitrary-word numerical HPL evaluation with analytic truncation
-  majorants and high-precision stability checks.
+  binary endpoints/MZVs, branch-explicit negation/reflection, table-free Lyndon
+  shuffle-basis reduction and exact local series.
+- Arbitrary-word numerical HPL evaluation on the real interval and explicit
+  principal slit disk; off-cut radial Taylor continuation with propagated
+  truncation estimates and separate high-precision stability checks.
+- Real-domain SymPy `HPL.evalf()` integration without eager branch changes.
 - Optional hard native-backend deadline and exceptional-parameter validation.
 - Exact terminating sums and condition-checked Gauss endpoint rewriting.
 - Whole-expression Laurent prefactors, exact serialization, LaTeX, provenance,
@@ -26,17 +29,17 @@ prerequisite.
 1. Consolidate dispatch/regression coverage across all implemented kernels,
    endpoint preprocessing and complete-expression pole budgets. Include mixed
    families and cancellation-sensitive products, not only isolated functions.
-2. Extend half-integer class reductions beyond matched-half patterns and the
-   four canonical ODE patterns. Derive missing shifts with explicit boundary
-   conditions and branch choices; reject unsupported patterns in the meantime.
+2. Complete exceptional-parameter and branch coverage within the supported
+   HypExp class patterns. The exact hypergeometric API remains real `0<z<1`;
+   broader numerical HPL domains do not automatically widen that contract.
 3. Expand independent exact coefficient benchmarks, higher-rank cases and
    complexity/performance measurements. Optimize algebra without weakening
    fail-closed checks or origin-limit verification.
-4. Add justified endpoint/special-value identities beyond Gauss and termination.
-   Do not reuse a meromorphic continuation as a divergent endpoint value.
-5. Extend HPL reductions and explicit continuation domains/paths beyond current
-   negation and binary reflection; extend numerical evaluation beyond its real interval. General
-   contour continuation and generic integration remain separate projects.
+4. Extend HPL special values beyond binary endpoints, including alternating
+   constants, and additional symbolic transformations beyond negation/reflection.
+5. Add explicit boundary/winding-path continuation where needed; the numerical
+   API currently supports only its stated off-cut radial path. Broader contour
+   integration and regularized divergent endpoints are not silently inferred.
 
 Full HypExp 2/HPL parity is incomplete. A future comparison oracle may help,
 but the retained external adapter is experimental, unvalidated and optional.
