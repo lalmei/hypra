@@ -9,12 +9,13 @@ from __future__ import annotations
 import sympy as s
 
 from .errors import UnsupportedExpressionError
+from .nested_sums import _slope
 from .planning import laurent_coefficient
 from .symbolic import reduce_known_hpl
 
 
 def integer_parameters(h, eps):
-    """Return exact integer bases/rational slopes, or None for a noninteger family."""
+    """Return integer bases/exact polynomial slopes, or None for unsupported data."""
     result = []
     for parameters in (h.ap, h.bq):
         row = []
@@ -23,9 +24,13 @@ def integer_parameters(h, eps):
                 poly = s.Poly(parameter, eps)
             except s.PolynomialError:
                 return None
-            if poly.degree() > 1 or not poly.nth(0).is_Integer or not poly.nth(1).is_Rational:
+            if poly.degree() > 1 or not poly.nth(0).is_Integer:
                 return None
-            row.append((int(poly.nth(0)), poly.nth(1)))
+            try:
+                slope = _slope(poly.nth(1), eps)
+            except (TypeError, ValueError):
+                return None
+            row.append((int(poly.nth(0)), slope))
         result.append(row)
     return tuple(result)
 

@@ -136,9 +136,33 @@ def expand_epsilon(expr, epsilon, through=3, assumptions=None, *, config=None, b
     except (AssertionError, ValueError, NotImplementedError) as exc:
         if isinstance(exc, UnsupportedExpressionError):
             raise
-        raise UnsupportedExpressionError(
-            "Assumption consistency is unsupported; use linear real-domain relations"
-        ) from exc
+        # Isolated complex-symbol nonzero guards need no ordering theory.
+        # Remove only Ne(symbol,0) guards whose symbols occur nowhere else in
+        # the assumption formula; all remaining domain relations still pass LRA.
+        clauses = list(assumptions.args) if isinstance(assumptions, s.And) else [assumptions]
+        independent = []
+        for clause in clauses:
+            if not isinstance(clause, s.Unequality):
+                continue
+            symbol = clause.lhs if clause.rhs == 0 else clause.rhs if clause.lhs == 0 else None
+            if isinstance(symbol, s.Symbol) and all(
+                other == clause or not other.has(symbol) for other in clauses
+            ):
+                independent.append(clause)
+        if not independent:
+            raise UnsupportedExpressionError(
+                "Assumption consistency is unsupported; use linear real-domain relations"
+            ) from exc
+        remaining = s.And(*(clause for clause in clauses if clause not in independent))
+        try:
+            if s.satisfiable(remaining, use_lra_theory=True) is False:
+                raise UnsupportedExpressionError("Contradictory assumptions are not a valid domain")
+        except (AssertionError, ValueError, NotImplementedError) as remainder_error:
+            if isinstance(remainder_error, UnsupportedExpressionError):
+                raise
+            raise UnsupportedExpressionError(
+                "Assumption consistency is unsupported beyond isolated nonzero guards"
+            ) from remainder_error
     if expr.has(s.Float, s.nan, s.zoo, s.oo, -s.oo):
         raise UnsupportedExpressionError(
             "Input must be exact and finite; use Rational instead of Float"

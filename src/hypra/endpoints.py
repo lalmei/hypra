@@ -42,6 +42,22 @@ def _convergent(excess, epsilon, assumptions):
         return False
 
 
+def convergent_integer_unit(hyper, epsilon):
+    """Strict positive integer-base excess for uniform unit-endpoint series.
+
+    Moving lower poles are permitted meromorphically; fixed poles are not.
+    This deliberately excludes zero base excess and all half-integer patterns.
+    """
+    from .integer import integer_parameters
+    parsed = integer_parameters(hyper, epsilon)
+    if parsed is None or len(hyper.ap) != len(hyper.bq)+1:
+        return False
+    upper, lower = parsed
+    if any(base <= 0 and slope == 0 for base,slope in lower):
+        return False
+    return sum(base for base,_ in lower)-sum(base for base,_ in upper)>0
+
+
 def rewrite_endpoints(expr, epsilon, assumptions=s.true):
     """Rewrite fixed terminating hypergeometric sums and convergent 2F1(1).
 
@@ -94,7 +110,10 @@ def rewrite_endpoints(expr, epsilon, assumptions=s.true):
                 continue
             raise UnsupportedExpressionError("Binomial z=1 convergence is not proven")
         if len(upper) != 2 or len(lower) != 1:
-            raise UnsupportedExpressionError("Nonterminating z=1 currently requires convergent Gauss 2F1")
+            if convergent_integer_unit(reduced, epsilon):
+                replacements[atom] = reduced
+                continue
+            raise UnsupportedExpressionError("Nonterminating z=1 requires Gauss or integer parameters with strictly positive base excess")
         a, b = upper
         c = lower[0]
         for parameter in (a, b, c):

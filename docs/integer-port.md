@@ -196,3 +196,19 @@ half-integer differential systems. This is a Python-native implementation of
 mathematical reduction ideas described by Huber and Maître,
 [hep-ph/0507094](https://arxiv.org/abs/hep-ph/0507094) and
 [0708.2443](https://arxiv.org/abs/0708.2443), not copied Mathematica source.
+
+## Symbolic regulator slopes
+
+Affine parameters may use exact polynomial slopes in independent symbols,
+for example `1+a*epsilon` or `(a*b+1)*epsilon`. Slopes must not depend on the
+hypergeometric argument. For a moving nonpositive integer lower parameter
+`-m+b*epsilon`, an explicit nonzero assumption on `b` is required.
+
+At every summation index, its Pochhammer product has at most one zero-base
+factor, namely `b*epsilon`. Consequently the product D of these lower slopes
+(including multiplicities) clears every genuine parameter denominator in the
+regulator coefficients. Hypra checks that each HPL-basis coefficient becomes
+polynomial in all slope symbols after multiplication by D. Other contiguous
+operator denominators must cancel, so equality/zero specializations of regular
+parameters do not inherit spurious singularities. This is a mathematical guard,
+not an assumption that arbitrary slope differences are nonzero.

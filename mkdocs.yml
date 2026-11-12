@@ -3,7 +3,7 @@ site_description: Native exact epsilon expansions and harmonic polylogarithms in
 site_url: http://127.0.0.1:8000/
 use_directory_urls: true
 theme:
-  name: material
+  name: materialx
   font: false
   palette:
     scheme: default
@@ -15,13 +15,34 @@ theme:
     - content.code.copy
 plugins:
   - search
+  - mkdocstrings:
+      handlers:
+        python:
+          paths: [src]
+          options:
+            docstring_style: numpy
+            show_source: false
+            show_signature_annotations: true
+            separate_signature: true
+  - mkdocs-typer2:
+      engine: native
+      pretty: true
+  - mermaid2:
+      version: 10.9.4
+      javascript: assets/mermaid/mermaid.esm.min.mjs
+      arguments:
+        securityLevel: strict
 markdown_extensions:
   - admonition
   - tables
   - toc:
       permalink: true
   - pymdownx.highlight
-  - pymdownx.superfences
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:mermaid2.fence_mermaid
   - pymdownx.arithmatex:
       generic: true
 extra_css:
@@ -34,9 +55,14 @@ nav:
   - Overview: index.md
   - Start here:
       - API examples: api-examples.md
+      - Python API reference: python-api.md
+      - Command-line reference: cli-reference.md
+      - LaTeX and documentation: latex-and-docs.md
+      - Architecture: architecture.md
       - Setup: setup.md
       - Capabilities and limits: scope.md
       - Roadmap: roadmap.md
+      - Native parity map: parity-map.md
   - Exact expansion algorithms:
       - Mathematical derivation: mathematics.md
       - Integer parameter reductions: integer-port.md
@@ -54,7 +80,9 @@ nav:
       - Binary argument maps: hpl-binary-maps.md
       - Mobius transformation: hpl-mobius.md
       - Inversion: hpl-inversion.md
+      - Real-region continuation: hpl-real-continuation.md
   - Reference:
       - Exact transport protocol: protocol.md
       - Upstream sources and attribution: upstream-source.md
+      - Documentation maintenance: docs-maintenance.md
       - Mathematics PDF: mathematics.pdf

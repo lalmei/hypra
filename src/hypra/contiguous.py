@@ -46,14 +46,16 @@ class ContiguousPlan:
 
 def _rational(value):
     if isinstance(value, bool) or not isinstance(value, (int, s.Rational)):
-        raise UnsupportedExpressionError("Contiguous bases and slopes must be exact rationals")
+        raise UnsupportedExpressionError("Contiguous bases must be exact rationals")
     return s.Rational(value)
 
 
 def _parameters(upper_pairs, lower_pairs, canonical_upper_bases, canonical_lower_bases):
+    from .nested_sums import _slope
+
     try:
-        upper = tuple((_rational(base), _rational(slope)) for base, slope in upper_pairs)
-        lower = tuple((_rational(base), _rational(slope)) for base, slope in lower_pairs)
+        upper = tuple((_rational(base), _slope(slope)) for base, slope in upper_pairs)
+        lower = tuple((_rational(base), _slope(slope)) for base, slope in lower_pairs)
         canonical_upper = tuple(map(_rational, canonical_upper_bases))
         canonical_lower = tuple(map(_rational, canonical_lower_bases))
     except (TypeError, ValueError) as exc:
@@ -275,6 +277,7 @@ def expand_contiguous(
     canonical_builder: Callable,
     *,
     max_internal_order: int = _MAX_DEPTH,
+    assumptions=s.true,
 ) -> s.Expr:
     """Shift a canonical pF(p-1) expansion to exact rational target parameters.
 
@@ -286,7 +289,10 @@ def expand_contiguous(
                         z, epsilon, inclusive_depth)
 
     and must return its complete exact polynomial through that depth. Slopes
-    are rational unless a zero divisor requires one formal polynomial delta.
+    are exact polynomials in independent formal symbols; a zero divisor may
+    require one additional polynomial delta. Moving singular lower slopes must be
+    provably nonzero under assumptions. Multiplication by their product must
+    clear all final slope denominators; unexplained parameter poles fail.
     The result has no Order term; the caller owns external prefactors and final
     expansion provenance. ``plan_contiguous`` exposes the required extra depth.
     """
@@ -305,8 +311,18 @@ def expand_contiguous(
         raise UnsupportedExpressionError(
             f"Canonical depth {depth} exceeds contiguous limit {max_internal_order}"
         )
+    slope_symbols = set().union(*(slope.free_symbols for _, slope in upper + lower))
+    if {z, epsilon} & slope_symbols:
+        raise UnsupportedExpressionError("Slopes must be independent of argument and regulator")
+    from .planning import _facts
+
+    singular_slopes = [slope for base, slope in lower if base.is_Integer and base <= 0]
+    for slope in singular_slopes:
+        if s.ask(s.Q.nonzero(slope), _facts(assumptions)) is not True:
+            raise UnsupportedExpressionError("Moving lower pole slope must be provably nonzero")
+    source_denominator = s.prod(singular_slopes)
     delta_name = "_hypra_slope_delta"
-    while delta_name in (z.name, epsilon.name):
+    while delta_name in {symbol.name for symbol in slope_symbols | {z, epsilon}}:
         delta_name += "_"
     delta = s.Symbol(delta_name)
     slopes = tuple(slope for _, slope in upper + lower)
@@ -359,6 +375,10 @@ def expand_contiguous(
                     for word, value in _hpl_pieces(coefficient).items()
                 )
             )
+        if slope_symbols:
+            for value in _hpl_pieces(coefficient).values():
+                if s.cancel(source_denominator * value).is_polynomial(*slope_symbols) is not True:
+                    raise IncompleteExpansionError("Uncanceled symbolic slope denominator")
         if coefficient.has(delta, s.nan, s.zoo, s.oo, -s.oo, epsilon):
             raise IncompleteExpansionError(
                 "Contiguous result retained invalid or unresolved parameters"

@@ -6,6 +6,7 @@ import sympy as s
 
 from .errors import UnsupportedExpressionError
 from .integer import _truncate
+from .nested_sums import _slope
 from .planning import _exact_rational_valuation, laurent_coefficient
 from .symbolic import reduce_known_hpl
 
@@ -24,8 +25,11 @@ def half_parameters(h, eps):
                 p.degree() > 1
                 or not base.is_Rational
                 or base.q not in (1, 2)
-                or not slope.is_Rational
             ):
+                return None
+            try:
+                slope = _slope(slope, eps)
+            except (TypeError, ValueError):
                 return None
             row.append((base, slope))
         rows.append(row)

@@ -39,16 +39,22 @@ def _affine_rational(expr, epsilon):
         poly = s.Poly(expr, epsilon)
     except s.PolynomialError as exc:
         raise UnsupportedExpressionError(
-            "Hypergeometric parameters must be rational affine in epsilon"
+            "Hypergeometric parameters must be affine in epsilon with rational bases"
         ) from exc
-    if poly.degree() > 1 or not all(c.is_Rational for c in poly.all_coeffs()):
+    if poly.degree() > 1 or not poly.nth(0).is_Rational:
         raise UnsupportedExpressionError(
-            "Hypergeometric parameters must be rational affine in epsilon"
+            "Hypergeometric parameters must be affine in epsilon with rational bases"
         )
     base = poly.nth(0)
     if base.q not in (1, 2):
         raise UnsupportedExpressionError("Only integer/half-integer parameter bases are supported")
-    return base, poly.nth(1)
+    from .nested_sums import _slope
+
+    try:
+        slope = _slope(poly.nth(1), epsilon)
+    except (TypeError, ValueError) as exc:
+        raise UnsupportedExpressionError("Slopes must be exact algebraic polynomials") from exc
+    return base, slope
 
 
 def _exact_rational_valuation(expr, epsilon, assumptions):
@@ -175,8 +181,10 @@ def plan_expansion(expr, epsilon, through, assumptions=s.true):
                 raise UnsupportedExpressionError(
                     "Hypergeometric argument must be epsilon-independent"
                 )
-            for a in node.ap:
-                _affine_rational(a, epsilon)
+            pairs = [_affine_rational(a, epsilon) for a in (*node.ap, *node.bq)]
+            slope_symbols = set().union(*(slope.free_symbols for _, slope in pairs))
+            if slope_symbols & node.argument.free_symbols:
+                raise UnsupportedExpressionError("Symbolic slopes must be independent of the argument")
             poles = 0
             for b in node.bq:
                 c, slope = _affine_rational(b, epsilon)
@@ -185,6 +193,8 @@ def plan_expansion(expr, epsilon, through, assumptions=s.true):
                         raise UnsupportedExpressionError(
                             "Fixed singular lower hypergeometric parameter"
                         )
+                    if s.ask(s.Q.nonzero(slope), _facts(assumptions)) is not True:
+                        raise UnsupportedExpressionError("Moving lower pole slope must be provably nonzero")
                     poles += 1
             negative_budget += poles
             return -poles

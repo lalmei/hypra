@@ -12,7 +12,7 @@ Unsupported cases fail explicitly; there is no silent external fallback.
 The implementation now has general-purpose native components, rather than a
 list of hard-coded low-order answers:
 
-- Integer-base `pF(p-1)` with rational regulator slopes: strict nested sums,
+- Integer-base `pF(p-1)` with exact rational or guarded symbolic polynomial slopes: strict nested sums,
   contiguous parameter shifts, and finite-prefix/tail reindexing for moving
   negative upper bases. Moving singular lower parameters retain their poles.
 - Matched-half `pF(p-1)`: equal counts of half-integer upper/lower parameters,
@@ -28,7 +28,7 @@ list of hard-coded low-order answers:
   binary endpoints/MZVs, and branch-explicit negation/reflection transforms.
 
 The main nonterminating argument domain is real `0 < z < 1`; use exact
-rational slopes. See the [capability map](docs/scope.md) for module contracts,
+affine exact parameters; singular symbolic lower slopes need explicit nonzero assumptions. See the [capability map](docs/scope.md) for module contracts,
 public-dispatch distinctions and restrictions. The P/Q recurrence and two
 special half-integer closed forms remain useful optimized cases, not the
 extent of the native algorithms.

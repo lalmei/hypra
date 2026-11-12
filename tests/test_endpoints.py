@@ -42,7 +42,7 @@ def test_gauss_boundary_requires_proven_side_and_reveals_pole():
 
 
 @pytest.mark.parametrize('expr', [s.hyper([1,1],[2],1), s.hyper([2,2],[3+e],1),
-                                      s.hyper([1,1,1],[2,3],1)])
+                                      s.hyper([2,2,2],[3,3],1)])
 def test_no_analytic_continuation_of_divergent_or_unsupported_endpoint(expr):
     with pytest.raises(UnsupportedExpressionError):
         rewrite_endpoints(expr,e)

@@ -8,16 +8,25 @@ version = "0.1.0a0"
 description = "Native exact hypergeometric epsilon expansions in SymPy, inspired by HypExp2"
 readme = "README.md"
 requires-python = ">=3.12"
-dependencies = ["sympy>=1.13,<2", "mpmath>=1.3,<2"]
+dependencies = [
+    "sympy>=1.13,<2",
+ "mpmath>=1.3,<2",
+ "typer>=0.16,<0.17",
+]
 
 [project.scripts]
 hypra = "hypra.__main__:main"
 
 [dependency-groups]
 dev = [
-    "mkdocs-material>=9.6,<10",
     "pytest>=8",
     "ruff>=0.8",
+]
+docs = [
+    "mkdocs-materialx==10.2.2",
+    "mkdocs-mermaid2-plugin==1.2.3",
+    "mkdocs-typer2[mkdocs]==0.4.1",
+    "mkdocstrings-python==2.0.11",
 ]
 
 [tool.pytest.ini_options]
@@ -27,3 +36,6 @@ markers = ["real_backend: requires licensed Wolfram plus external HypExp/HPL (op
 [tool.ruff]
 line-length = 100
 target-version = "py312"
+
+[tool.uv]
+default-groups = ["dev", "docs"]

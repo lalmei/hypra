@@ -18,7 +18,9 @@ from .errors import HypraError, IncompleteExpansionError, UnsupportedExpressionE
 from .hpl_algebra import hpl_series, integrate_from_zero, primitive_hpl, shuffle_expand
 from .hpl_alternating import hpl_alternating_at_one, reduce_euler_sum
 from .hpl_arguments import transform_hpl_arguments
+from .hpl_classical import classical_hpl
 from .hpl_constants import ConstantNumericResult, evaluate_euler_sum, evaluate_mzv
+from .hpl_continuation import analytic_continue_hpl
 from .hpl_continue import HPLContinuationResult, continue_hpl
 from .hpl_endpoints import hpl_at_one, reduce_mzv
 from .hpl_inversion import invert_hpl
@@ -70,7 +72,9 @@ __all__ = [
     "SerializationError",
     "UnsupportedExpressionError",
     "__version__",
+    "analytic_continue_hpl",
     "backend_info",
+    "classical_hpl",
     "compress_indices",
     "continue_hpl",
     "decode_expr",

@@ -111,6 +111,19 @@ def expand_atom(h, eps, order, assumptions=s.true, argument_domain="real-interva
     if h.argument == 0:
         return s.S.One
     z = h.argument
+    if z == 1:
+        from .endpoints import convergent_integer_unit
+        from .hpl_limits import hpl_limit_at_one
+        from .planning import laurent_coefficient
+
+        if not convergent_integer_unit(h, eps):
+            raise UnsupportedExpressionError("Unit endpoint requires strictly positive integer-base excess")
+        regular_z = s.Dummy("unit_argument", positive=True)
+        regular_h = s.hyper(h.ap, h.bq, regular_z, evaluate=False)
+        regular = expand_atom(regular_h, eps, order, s.And(assumptions, regular_z < 1), "real-interval")
+        poles = plan_expansion(h, eps, order, assumptions).pole_bound
+        return s.Add(*(eps**k * hpl_limit_at_one(laurent_coefficient(regular, eps, k), regular_z)
+                       for k in range(-poles, order+1)))
     if argument_domain == "principal-disk":
         # This increment admits exact numerical complex points only. Symbolic
         # disk constraints require a separate assumption proof, not a guess.
@@ -159,7 +172,9 @@ def expand_atom(h, eps, order, assumptions=s.true, argument_domain="real-interva
         ap, bq = parsed
         ca, cb = canonical_bases(ap, bq)
         coordinate = s.Dummy("argument", positive=True)
-        result = expand_contiguous(ap, bq, ca, cb, coordinate, eps, order, build_canonical)
+        result = expand_contiguous(
+            ap, bq, ca, cb, coordinate, eps, order, build_canonical, assumptions=assumptions
+        )
         return reduce_known_hpl(result).xreplace({coordinate: z})
     from .integer import expand_integer_hyper
 
@@ -249,6 +264,9 @@ class NativeBackend:
             "integer.py",
             "nested_sums.py",
             "hpl_algebra.py",
+            "hpl_limits.py",
+            "hpl_transform.py",
+            "hpl_endpoints.py",
             "colored_sums.py",
             "matched_half.py",
             "half_system.py",
@@ -322,8 +340,34 @@ class NativeBackend:
                     return response
             except (OSError, ValueError, KeyError, TypeError):
                 pass
-        replacements = {h: expand_atom(h, eps, order, assumptions, self.config.argument_domain)
-                        for h in expr.atoms(s.hyper)}
+        def checked_atom(h):
+            result = expand_atom(h, eps, order, assumptions, self.config.argument_domain)
+            slope_symbols = set().union(*(
+                s.diff(parameter, eps).free_symbols for parameter in (*h.ap, *h.bq)
+            )) if h.ap or h.bq else set()
+            if slope_symbols:
+                # Each nonpositive integer lower base contributes at most one
+                # genuine inverse slope factor. Other parameter denominators
+                # from contiguous operators must cancel exactly.
+                source_poles = s.prod(
+                    s.diff(parameter, eps) for parameter in h.bq
+                    if parameter.subs(eps, 0).is_Integer
+                    and parameter.subs(eps, 0) <= 0
+                )
+                from .contiguous import _hpl_pieces, _normalize_coefficient
+
+                result = _normalize_coefficient(result)
+                if any(
+                    s.cancel(source_poles * coefficient).is_polynomial(*slope_symbols) is not True
+                    for coefficient in _hpl_pieces(result).values()
+                ):
+                    raise IncompleteExpansionError(
+                        "Symbolic regulator slopes left an unresolved parameter denominator"
+                    )
+                result = s.expand(result)
+            return result
+
+        replacements = {h: checked_atom(h) for h in expr.atoms(s.hyper)}
         expanded = expr.xreplace(replacements)
         try:
             if request["through"] < plan.valuation_lower_bound:

@@ -219,6 +219,7 @@ integrable terms gives
 
 $$\int LM=\sum_{n\geq1}\frac1{n^3}=\zeta_3,\qquad
 \int L\operatorname{Li}_2(w)=-\sum_{n\geq1}\frac1{n^4}=-\zeta_4,$$
+
 $$\int L^2M=-2\sum_{n\geq1}\frac1{n^4}=-2\zeta_4.$$
 
 Here $\int_0^1w^{n-1}\log w\,dw=-1/n^2$ and
@@ -252,6 +253,7 @@ Expand the weight as $w^{-1}[1+\epsilon(-2L-M)+O(\epsilon^2)]$.
 Multiplying the derived series gives
 
 $$[\epsilon^2]J_4=\int 2LM=2\zeta_3,$$
+
 $$[\epsilon^3]J_4=\int[-4L\operatorname{Li}_2(w)-3LM^2
 -4M\operatorname{Li}_2(1-w)-4L^2M]
 =\left(4+\frac32+3+8\right)\zeta_4=\frac{33}{2}\zeta_4.$$
