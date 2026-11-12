@@ -19,7 +19,9 @@ from .hpl_alternating import hpl_alternating_at_one, reduce_euler_sum
 from .hpl_continue import HPLContinuationResult, continue_hpl
 from .hpl_endpoints import hpl_at_one, reduce_mzv
 from .hpl_inversion import invert_hpl
+from .hpl_maps import fractional_hpl, square_hpl
 from .hpl_mobius import mobius_hpl
+from .hpl_notation import compress_indices, expand_indices, hpl_pm, letters_to_pm, pm_to_letters
 from .hpl_numeric import (
     HPLNumericalConvergenceError,
     HPLNumericResult,
@@ -65,22 +67,29 @@ __all__ = [
     "UnsupportedExpressionError",
     "__version__",
     "backend_info",
+    "compress_indices",
     "continue_hpl",
     "decode_expr",
     "encode_expr",
     "evaluate_hpl",
     "expand_epsilon",
+    "expand_indices",
     "extract_hpl_logs",
+    "fractional_hpl",
     "hpl_alternating_at_one",
     "hpl_at_one",
     "hpl_evalf",
+    "hpl_pm",
     "hypergeometric",
     "invert_hpl",
+    "letters_to_pm",
     "lyndon_factors",
     "lyndon_reduce",
     "mobius_hpl",
     "negate_hpl",
+    "pm_to_letters",
     "reduce_euler_sum",
     "reduce_mzv",
     "reflect_hpl",
+    "square_hpl",
 ]
