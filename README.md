@@ -164,3 +164,10 @@ Transformations use explicit domains and reject unsupported branches. General
 MZVs remain exact rather than being reduced with unverified tables. See
 [HPL endpoints](docs/hpl-endpoints.md), [log extraction](docs/hpl-reduction.md),
 and [argument transformations](docs/hpl-transforms.md).
+
+For numerical HPL values, `hpl_evalf(word, z, dps=50)` defaults to the real
+interval. Select `domain="principal-disk"` explicitly for complex points inside
+the slit unit disk. `continue_hpl(word, z, domain="principal-cut-plane",
+path="radial", dps=50)` continues numerically along the specified off-cut
+radial path; it reports propagated truncation and precision-stability diagnostics.
+These numerical diagnostics do not certify floating-point roundoff.

@@ -15,6 +15,7 @@ from .backend import (
 )
 from .config import BackendConfig
 from .errors import HypraError, IncompleteExpansionError, UnsupportedExpressionError
+from .hpl_continue import HPLContinuationResult, continue_hpl
 from .hpl_endpoints import hpl_at_one, reduce_mzv
 from .hpl_numeric import (
     HPLNumericalConvergenceError,
@@ -49,6 +50,7 @@ __all__ = [
     "BackendTimeoutError",
     "BackendUnavailableError",
     "ExpansionResult",
+    "HPLContinuationResult",
     "HPLNumericResult",
     "HPLNumericalConvergenceError",
     "HypraError",
@@ -59,6 +61,7 @@ __all__ = [
     "UnsupportedExpressionError",
     "__version__",
     "backend_info",
+    "continue_hpl",
     "decode_expr",
     "encode_expr",
     "evaluate_hpl",

@@ -98,6 +98,26 @@ class HPL(Function):
         # but the letters are discrete constants. Only the argument varies.
         return self.fdiff(2) * self.argument.diff(symbol)
 
+    def _eval_evalf(self, prec):
+        """Explicit SymPy evalf on the real interval only, with guarded digits."""
+        import mpmath as mp
+        from sympy import Float
+        from sympy.core.evalf import prec_to_dps
+
+        from .hpl_numeric import hpl_evalf
+
+        z = self.argument
+        if (z.is_number is not True or z.is_real is not True
+                or z.is_finite is not True or z.is_positive is not True
+                or (1 - z).is_positive is not True):
+            return self
+        digits = max(2, prec_to_dps(prec) + 8)
+        if digits > 1000 or len(self.word) > 24:
+            return self
+        value = hpl_evalf(tuple(self.word), z, dps=digits)
+        # str(mpf) uses the global context and would discard guarded digits.
+        return Float(mp.nstr(value, n=digits), precision=prec)
+
     def _zero_germ_argument(self, x, logx=None, cdir=0):
         """Return a leading argument and its positive rational valuation."""
         from .errors import UnsupportedExpressionError
