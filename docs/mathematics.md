@@ -304,3 +304,64 @@ established by these examples.
 
 The abstract pages were checked for these scope statements. No source code from
 these packages is redistributed with this derivation.
+
+## Native general-parameter kernels
+
+The implementation now constructs canonical integer coefficients by strict
+nested-sum algebra and their HPL generating functions. Matched half-integer
+parameters use even-index projections and colored strict sums. Parameter
+shifts act with the hypergeometric differential operator
+
+\[
+ L=\theta\prod_j(\theta+b_j-1)-z\prod_i(\theta+a_i),
+ \qquad \theta=z\frac{d}{dz}.
+\]
+
+For example, raising an upper parameter applies
+\(F(a_i+1)=(\theta+a_i)F/a_i\), and lowering a lower parameter applies
+\(F(b_j-1)=(\theta+b_j-1)F/(b_j-1)\).
+The inverse shifts follow polynomial division of the same operator.
+Each zero-base divisor increases the canonical regulator depth before any
+truncation. Apparent Laurent poles must cancel exactly below the proven
+pole bound. An identically zero shift divisor is resolved by a single formal
+slope perturbation only when its finite limit can be established algebraically.
+
+For all-half bases at rank \(p\),
+
+\[
+ L_0=(\theta-\tfrac12)^{p-1}B,
+ \qquad B=(1-z)\theta-\tfrac z2.
+\]
+
+The order of these operators is essential. Set
+\(F=(1-z)^{-1/2}Y\), \(t=i\sqrt{z/(1-z)}\), so
+\(z=t^2/(t^2-1)\). The gauge-conjugated operators are
+
+\[
+ \widetilde\theta=\frac{t(1-t^2)}2\partial_t-\frac{t^2}2,
+ \quad \widetilde D=\frac{t(1-t^2)}2\partial_t-\frac{1+t^2}2,
+ \quad \widetilde B=\frac t2\partial_t.
+\]
+
+Their origin-normalized inverses are
+
+\[
+ \widetilde D^{-1}g(t)=\frac{t}{1-t^2}\int_0^t\frac{2g(u)}{u^2}\,du,
+ \qquad
+ \widetilde B^{-1}g(t)=\int_0^t\frac{2g(u)}u\,du.
+\]
+
+At each regulator order apply \(\widetilde D^{-1}\) \(p-1\) times and
+then \(\widetilde B^{-1}\). The initial coefficient is \(Y_0=1\);
+correction sources and solutions are \(O(t^2)\), making these integrals
+convergent. The odd homogeneous solution of \(\widetilde D\) is excluded
+by analyticity in \(z\), and the constant homogeneous solution of
+\(\widetilde B\) is fixed by \(F(0)=1\). Only HPL letters \(0,\pm1\)
+are required. For real \(0<z<1\), continuation follows the positive imaginary
+\(t\) axis with principal square roots. This does not assert arbitrary
+complex-argument continuation or permission to interchange integrals and limits.
+
+These are independent Python-native mathematical implementations inspired
+by the two cited HypExp papers. The detailed capability map and resource
+restrictions are in `scope.md`; canonical class coverage is not a claim of
+complete HypExp/HPL API parity.

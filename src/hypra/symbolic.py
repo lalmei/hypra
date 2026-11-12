@@ -26,6 +26,20 @@ class HPL(Function):
 
     nargs = 2
 
+    def __new__(cls, word, argument, **options):
+        # Validate before Function's cache: Python (1.0,) compares equal to
+        # (1,), and otherwise a cached exact object can bypass eval validation.
+        if not isinstance(word, (tuple, list, Tuple)):
+            raise TypeError("HPL word must be a tuple/list of exact letters")
+        if any(
+            isinstance(letter, bool)
+            or not isinstance(letter, (int, Integer))
+            or letter not in (-1, 0, 1)
+            for letter in word
+        ):
+            raise ValueError("HPL requires exact expanded letters -1, 0, or 1")
+        return super().__new__(cls, Tuple(*word), argument, **options)
+
     @classmethod
     def eval(cls, word, argument):
         if not isinstance(word, Tuple):
@@ -164,6 +178,58 @@ class HPL(Function):
     def _latex(self, printer):
         word = ",".join(printer._print(letter) for letter in self.word)
         return rf"H_{{{word}}}\!\left({printer._print(self.argument)}\right)"
+
+
+class MZV(Function):
+    """An exact convergent multiple zeta value in strict descending convention.
+
+    MZV((s1,...,sd)) = sum_{n1>...>nd>=1} prod(nj**(-sj)), where every
+    index is a positive integer and s1 >= 2. The empty word evaluates to one.
+    No divergent regularization or numerical fitting is implied. Reduction to
+    ordinary zeta values is opt-in through ``hypra.hpl_endpoints.reduce_mzv``.
+    """
+
+    nargs = 1
+
+    def __new__(cls, indices, **options):
+        if not isinstance(indices, (tuple, list, Tuple)):
+            raise TypeError("MZV indices must be a tuple/list of exact integers")
+        if any(
+            isinstance(index, bool) or not isinstance(index, (int, Integer)) or index <= 0
+            for index in indices
+        ):
+            raise ValueError("MZV indices must be exact positive integers")
+        if indices and indices[0] < 2:
+            raise ValueError("A convergent MZV requires first index >= 2")
+        return super().__new__(cls, Tuple(*indices), **options)
+
+    @classmethod
+    def eval(cls, indices):
+        if not isinstance(indices, Tuple):
+            raise TypeError("MZV indices must be a tuple of positive integers")
+        if not indices:
+            return Integer(1)
+        if any(not isinstance(index, Integer) or index <= 0 for index in indices):
+            raise ValueError("MZV indices must be exact positive integers")
+        if indices[0] < 2:
+            raise ValueError("A convergent MZV requires first index >= 2")
+
+    @property
+    def indices(self):
+        return self.args[0]
+
+    def _eval_derivative(self, symbol):
+        return Integer(0)
+
+    def _eval_is_real(self):
+        return True
+
+    def _eval_is_positive(self):
+        return True
+
+    def _latex(self, printer):
+        indices = ",".join(printer._print(index) for index in self.indices)
+        return rf"\zeta\!\left({indices}\right)"
 
 
 def reduce_known_hpl(expression):

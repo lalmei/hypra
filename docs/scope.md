@@ -75,3 +75,15 @@ unverified comparison infrastructure and is not a native dependency.
 No equation number from the papers is asserted without an independently
 verified match. The module derivations document the identities actually used.
 No upstream Mathematica source or lookup tables are redistributed.
+
+## HypExp 2 class correspondence
+
+The upstream base-pattern whitelist uses `(p, half-upper-count, half-lower-count)`.
+Native kernel selection now covers its listed classes:
+`(2,0,1)`, `(2,1,1)`, `(2,2,1)`, `(2,1,0)`,
+`(3,0,1)`, `(3,1,0)`, `(3,1,1)`, `(3,2,2)`, `(3,3,2)`,
+`(4,1,1)`, `(4,3,3)`, and all-integer `pF(p−1)`.
+Integer shifts are implemented with finite-sum, integral, or contiguous
+reductions subject to exactness/resource guards. This correspondence is a
+coverage map, not exhaustive validation of every parameter choice or parity
+with all upstream special cases, continuation rules, or HPL operations.

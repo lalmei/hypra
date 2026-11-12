@@ -16,7 +16,7 @@ from sympy.core.assumptions import _assume_defined
 from sympy.core.relational import Relational
 from sympy.logic.boolalg import Boolean
 
-from .symbolic import HPL
+from .symbolic import HPL, MZV
 
 
 class SerializationError(ValueError):
@@ -29,24 +29,54 @@ MAX_DIGITS = 10000
 _NAME = re.compile(r"[A-Za-z][A-Za-z0-9_]{0,255}\Z")
 _INTEGER = re.compile(r"(?:0|-[1-9][0-9]*|[1-9][0-9]*)\Z")
 _CONSTANTS = {
-    sp.pi: "Pi", sp.E: "E", sp.I: "ImaginaryUnit",
-    sp.EulerGamma: "EulerGamma", sp.Catalan: "Catalan",
-    sp.true: "True", sp.false: "False",
+    sp.pi: "Pi",
+    sp.E: "E",
+    sp.I: "ImaginaryUnit",
+    sp.EulerGamma: "EulerGamma",
+    sp.Catalan: "Catalan",
+    sp.true: "True",
+    sp.false: "False",
 }
 _CONSTANTS_BY_HEAD = {head: value for value, head in _CONSTANTS.items()}
 _FUNCTIONS = {
-    sp.Add: "Add", sp.Mul: "Mul", sp.Pow: "Pow", sp.gamma: "Gamma",
-    sp.log: "Log", sp.polylog: "PolyLog", sp.zeta: "Zeta", sp.exp: "Exp",
-    sp.polygamma: "PolyGamma", sp.And: "And", sp.Or: "Or", sp.Not: "Not",
-    sp.Eq: "Equal", sp.Ne: "Unequal", sp.Lt: "Less", sp.Le: "LessEqual",
-    sp.Gt: "Greater", sp.Ge: "GreaterEqual",
+    sp.Add: "Add",
+    sp.Mul: "Mul",
+    sp.Pow: "Pow",
+    sp.gamma: "Gamma",
+    sp.log: "Log",
+    sp.polylog: "PolyLog",
+    sp.zeta: "Zeta",
+    sp.exp: "Exp",
+    sp.polygamma: "PolyGamma",
+    sp.And: "And",
+    sp.Or: "Or",
+    sp.Not: "Not",
+    sp.Eq: "Equal",
+    sp.Ne: "Unequal",
+    sp.Lt: "Less",
+    sp.Le: "LessEqual",
+    sp.Gt: "Greater",
+    sp.Ge: "GreaterEqual",
 }
 _FUNCTIONS_BY_HEAD = {head: fn for fn, head in _FUNCTIONS.items()}
 _ARITY = {
-    "Pow": (2,), "Gamma": (1,), "Log": (1, 2), "PolyLog": (2,),
-    "Zeta": (1, 2), "Exp": (1,), "PolyGamma": (2,), "Not": (1,),
-    "Equal": (2,), "Unequal": (2,), "Less": (2,), "LessEqual": (2,),
-    "Greater": (2,), "GreaterEqual": (2,), "HypergeometricPFQ": (3,), "HPL": (2,),
+    "Pow": (2,),
+    "Gamma": (1,),
+    "Log": (1, 2),
+    "PolyLog": (2,),
+    "Zeta": (1, 2),
+    "Exp": (1,),
+    "PolyGamma": (2,),
+    "Not": (1,),
+    "Equal": (2,),
+    "Unequal": (2,),
+    "Less": (2,),
+    "LessEqual": (2,),
+    "Greater": (2,),
+    "GreaterEqual": (2,),
+    "HypergeometricPFQ": (3,),
+    "HPL": (2,),
+    "MZV": (1,),
 }
 _RELATIONS = {"Equal", "Unequal", "Less", "LessEqual", "Greater", "GreaterEqual"}
 _LOGIC = {"And", "Or", "Not"}
@@ -72,7 +102,9 @@ def _number(value):
     try:
         return int(value)
     except ValueError as exc:
-        raise SerializationError("Exact integer exceeds this Python runtime's supported size") from exc
+        raise SerializationError(
+            "Exact integer exceeds this Python runtime's supported size"
+        ) from exc
 
 
 def encode_expr(expression):
@@ -114,6 +146,8 @@ def encode_expr(expression):
             head = "HypergeometricPFQ"
         elif expr.func == HPL:
             head = "HPL"
+        elif expr.func == MZV:
+            head = "MZV"
         else:
             head = _FUNCTIONS.get(expr.func)
         if head is None:
@@ -159,7 +193,12 @@ def decode_expr(payload):
         if head in _CONSTANTS_BY_HEAD:
             _keys(node, {"head"})
             return _CONSTANTS_BY_HEAD[head]
-        if head not in _FUNCTIONS_BY_HEAD and head not in {"List", "HypergeometricPFQ", "HPL"}:
+        if head not in _FUNCTIONS_BY_HEAD and head not in {
+            "List",
+            "HypergeometricPFQ",
+            "HPL",
+            "MZV",
+        }:
             raise SerializationError(f"Unsupported AST head: {head}")
         _keys(node, {"head", "args"})
         if not isinstance(node["args"], list):
@@ -183,7 +222,18 @@ def decode_expr(payload):
             try:
                 return HPL(args[0], args[1])
             except (TypeError, ValueError) as exc:
-                raise SerializationError("HPL word must contain expanded letters -1, 0, or 1") from exc
+                raise SerializationError(
+                    "HPL word must contain expanded letters -1, 0, or 1"
+                ) from exc
+        if head == "MZV":
+            if not isinstance(args[0], sp.Tuple):
+                raise SerializationError("MZV indices must be a List")
+            try:
+                return MZV(args[0])
+            except (TypeError, ValueError) as exc:
+                raise SerializationError(
+                    "MZV requires positive indices with first index >= 2"
+                ) from exc
         if head in _LOGIC:
             if any(not isinstance(arg, Boolean) for arg in args):
                 raise SerializationError("Logical operators require Boolean arguments")
@@ -192,8 +242,10 @@ def decode_expr(payload):
                 _scalar(arg)
         try:
             # Unevaluated relations avoid dropping assumptions during transport.
-            result = _FUNCTIONS_BY_HEAD[head](*args, evaluate=False) if head in _RELATIONS else (
-                _FUNCTIONS_BY_HEAD[head](*args)
+            result = (
+                _FUNCTIONS_BY_HEAD[head](*args, evaluate=False)
+                if head in _RELATIONS
+                else (_FUNCTIONS_BY_HEAD[head](*args))
             )
         except (TypeError, ValueError, AttributeError) as exc:
             raise SerializationError(f"Invalid arguments to {head}") from exc

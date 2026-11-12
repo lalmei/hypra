@@ -5,7 +5,7 @@
 - Integer `pF(p-1)` canonical nested sums and contiguous reductions, including
   moving negative-upper reindexing and singular-lower pole budgeting.
 - Matched-half colored nested sums and integer-offset reductions.
-- Three canonical half-integer rationalized ODE systems, plus specialized
+- Four canonical half-integer rationalized ODE patterns, plus specialized
   elementary/polylogarithmic identities.
 - Rational-HPL integration, definite origin constants, shuffle algebra and
   independent local-series checks.
