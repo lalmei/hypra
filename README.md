@@ -17,13 +17,15 @@ list of hard-coded low-order answers:
   negative upper bases. Moving singular lower parameters retain their poles.
 - Matched-half `pF(p-1)`: equal counts of half-integer upper/lower parameters,
   colored strict sums and HPLs at `sqrt(z)`, with integer-offset reductions.
-- Three canonical half-integer differential systems, including unmatched
-  half-integer patterns. Their rationalized variables and branch conventions
-  are documented separately; this is not every HypExp 2 class.
+- Four canonical half-integer differential patterns, including unmatched
+  and all-half families. Combined with the sum kernels, their canonical
+  parameter-count coverage matches the HypExp 2 whitelist; this is not a
+  claim of complete upstream API or analytic-continuation parity.
 - Exact fixed terminating sums and convergent Gauss `2F1` unit-endpoint
   rewriting, with explicit rejection when convergence cannot be established.
 - HPL shuffle products, rational-HPL integration with a verified finite origin
-  constant, and exact local HPL series for independent coefficient checks.
+  constant, exact local HPL series, shuffle logarithm extraction, convergent
+  binary endpoints/MZVs, and branch-explicit negation/reflection transforms.
 
 The main nonterminating argument domain is real `0 < z < 1`; use exact
 rational slopes. See the [capability map](docs/scope.md) for module contracts,
@@ -144,3 +146,21 @@ The NNLO project was read only and remains unchanged.
 
 References: [HypExp](https://arxiv.org/abs/hep-ph/0507094),
 [HypExp 2](https://arxiv.org/abs/0708.2443).
+
+## HPL tools and bounded jobs
+
+```python
+from hypra import (HPL, hpl_at_one, extract_hpl_logs, negate_hpl, reflect_hpl,
+                   NativeConfig)
+
+extract_hpl_logs(HPL((1, 0), w))
+hpl_at_one((0, 0, 1))  # zeta(3)
+reflect_hpl((0, 1), w, domain="0<z<1")
+negate_hpl((1, 0), w, domain="0<z<1")
+config = NativeConfig(timeout_seconds=30)  # killable backend process
+```
+
+Transformations use explicit domains and reject unsupported branches. General
+MZVs remain exact rather than being reduced with unverified tables. See
+[HPL endpoints](docs/hpl-endpoints.md), [log extraction](docs/hpl-reduction.md),
+and [argument transformations](docs/hpl-transforms.md).

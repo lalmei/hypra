@@ -16,6 +16,12 @@ from .backend import (
 from .config import BackendConfig
 from .errors import HypraError, IncompleteExpansionError, UnsupportedExpressionError
 from .hpl_endpoints import hpl_at_one, reduce_mzv
+from .hpl_numeric import (
+    HPLNumericalConvergenceError,
+    HPLNumericResult,
+    evaluate_hpl,
+    hpl_evalf,
+)
 from .hpl_reduce import extract_hpl_logs
 from .hpl_transform import negate_hpl, reflect_hpl
 from .native import NativeBackend, NativeConfig
@@ -43,6 +49,8 @@ __all__ = [
     "BackendTimeoutError",
     "BackendUnavailableError",
     "ExpansionResult",
+    "HPLNumericResult",
+    "HPLNumericalConvergenceError",
     "HypraError",
     "IncompleteExpansionError",
     "NativeBackend",
@@ -53,9 +61,11 @@ __all__ = [
     "backend_info",
     "decode_expr",
     "encode_expr",
+    "evaluate_hpl",
     "expand_epsilon",
     "extract_hpl_logs",
     "hpl_at_one",
+    "hpl_evalf",
     "hypergeometric",
     "negate_hpl",
     "reduce_mzv",

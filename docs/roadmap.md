@@ -7,8 +7,11 @@
 - Matched-half colored nested sums and integer-offset reductions.
 - Four canonical half-integer rationalized ODE patterns, plus specialized
   elementary/polylogarithmic identities.
-- Rational-HPL integration, definite origin constants, shuffle algebra and
-  independent local-series checks.
+- Rational-HPL integration, definite origin constants, shuffle log extraction,
+  binary endpoints/MZVs, branch-explicit negation/reflection and exact local series.
+- Real-interval arbitrary-word numerical HPL evaluation with analytic truncation
+  majorants and high-precision stability checks.
+- Optional hard native-backend deadline and exceptional-parameter validation.
 - Exact terminating sums and condition-checked Gauss endpoint rewriting.
 - Whole-expression Laurent prefactors, exact serialization, LaTeX, provenance,
   cache and native API/CLI.
@@ -31,7 +34,8 @@ prerequisite.
    fail-closed checks or origin-limit verification.
 4. Add justified endpoint/special-value identities beyond Gauss and termination.
    Do not reuse a meromorphic continuation as a divergent endpoint value.
-5. Extend HPL reductions and explicit continuation domains/paths. General
+5. Extend HPL reductions and explicit continuation domains/paths beyond current
+   negation and binary reflection; extend numerical evaluation beyond its real interval. General
    contour continuation and generic integration remain separate projects.
 
 Full HypExp 2/HPL parity is incomplete. A future comparison oracle may help,
