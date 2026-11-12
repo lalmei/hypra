@@ -27,8 +27,11 @@ class NativeConfig:
     use_cache: bool = True
     cache_dir: str | None = None
     timeout_seconds: float | None = None
+    argument_domain: str = "real-interval"
 
     def __post_init__(self):
+        if self.argument_domain not in ("real-interval", "principal-disk"):
+            raise ValueError("argument_domain must be real-interval or principal-disk")
         if self.timeout_seconds is not None and (
             isinstance(self.timeout_seconds, bool)
             or not isinstance(self.timeout_seconds, (int, float))
@@ -103,12 +106,22 @@ def _half_even(a, z, eps, order):
     )
 
 
-def expand_atom(h, eps, order, assumptions=s.true):
+def expand_atom(h, eps, order, assumptions=s.true, argument_domain="real-interval"):
     """Exact coefficient recursion in the explicit real domain 0<z<1."""
     if h.argument == 0:
         return s.S.One
     z = h.argument
-    if not _inside_interval(z, assumptions):
+    if argument_domain == "principal-disk":
+        # This increment admits exact numerical complex points only. Symbolic
+        # disk constraints require a separate assumption proof, not a guess.
+        if z.free_symbols or not _positive(1-s.Abs(z), s.true) or not (
+            z.is_real is False or _positive(z, s.true)
+        ):
+            raise UnsupportedExpressionError(
+                "Principal-disk expansion requires an exact numeric argument with "
+                "0 < |z| < 1 off the negative real axis"
+            )
+    elif not _inside_interval(z, assumptions):
         raise UnsupportedExpressionError(
             "Native hypergeometric expansion requires 0 < argument < 1"
         )
@@ -274,6 +287,7 @@ class NativeBackend:
         meta = self.info().as_dict() | {
             "source_fingerprint": self._fingerprint(),
             "canonical_order_max": canonical_order,
+            "argument_domain": self.config.argument_domain,
         }
         payload = json.dumps(
             {"request": request, "backend": meta}, sort_keys=True, separators=(",", ":")
@@ -300,7 +314,8 @@ class NativeBackend:
                     return response
             except (OSError, ValueError, KeyError, TypeError):
                 pass
-        replacements = {h: expand_atom(h, eps, order, assumptions) for h in expr.atoms(s.hyper)}
+        replacements = {h: expand_atom(h, eps, order, assumptions, self.config.argument_domain)
+                        for h in expr.atoms(s.hyper)}
         expanded = expr.xreplace(replacements)
         try:
             if request["through"] < plan.valuation_lower_bound:

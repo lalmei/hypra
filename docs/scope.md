@@ -98,3 +98,14 @@ nonpositive integer lower parameters are rejected even at zero argument or
 with a terminating numerator. Identical moving parameters can be canceled
 meromorphically in the regulator; original and planned expressions are both
 recorded in provenance.
+
+## Exact complex points inside the disk
+
+`NativeConfig(argument_domain="principal-disk")` explicitly permits exact
+numerical complex hypergeometric arguments with `0<|z|<1`, off the negative
+real axis. Both the radius bound and non-cut condition must be provable.
+The identities are analytic continuations of their regular origin germs;
+principal square roots/logarithms are used consistently on this slit disk.
+The default remains the real interval. Symbolic complex-domain assertions,
+unit-circle endpoints and points outside the disk are still rejected by this
+mode; numerical HPL continuation does not silently authorize them.
