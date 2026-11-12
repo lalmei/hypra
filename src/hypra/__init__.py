@@ -17,6 +17,7 @@ from .config import BackendConfig
 from .errors import HypraError, IncompleteExpansionError, UnsupportedExpressionError
 from .hpl_endpoints import hpl_at_one, reduce_mzv
 from .hpl_reduce import extract_hpl_logs
+from .hpl_transform import negate_hpl, reflect_hpl
 from .native import NativeBackend, NativeConfig
 from .serialization import SerializationError, decode_expr, encode_expr
 from .symbolic import HPL, MZV
@@ -56,5 +57,7 @@ __all__ = [
     "extract_hpl_logs",
     "hpl_at_one",
     "hypergeometric",
+    "negate_hpl",
     "reduce_mzv",
+    "reflect_hpl",
 ]
