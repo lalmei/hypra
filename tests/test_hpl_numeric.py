@@ -126,3 +126,57 @@ def test_public_numeric_exports():
     result = public_evaluate((0,), "0.5", dps=20)
     assert isinstance(result, HPLNumericResult)
     assert result.method == "logarithm"
+
+
+@pytest.mark.parametrize("argument", [s.I / 3, -s.I / 3, s.Rational(-1, 4) + s.I / 5])
+def test_explicit_complex_disk_against_classical_identities(argument):
+    with mp.workdps(80):
+        a, b = argument.as_real_imag()
+        z = mp.mpc(str(s.N(a, 80)), str(s.N(b, 80)))
+        expected = {
+            (0,): mp.log(z),
+            (1, 1): mp.log1p(-z) ** 2 / 2,
+            (-1, -1): mp.log1p(z) ** 2 / 2,
+            (0, 0, 1): mp.polylog(3, z),
+            (0, -1): -mp.polylog(2, -z),
+            (1, 0): -mp.log(z) * mp.log1p(-z) - mp.polylog(2, z),
+            (0, 1, 0): mp.log(z) * mp.polylog(2, z) - 2 * mp.polylog(3, z),
+            (-1, 0): mp.log(z) * mp.log1p(z) + mp.polylog(2, -z),
+        }
+        for word, value in expected.items():
+            result = evaluate_hpl(word, argument, domain="principal-disk", dps=55)
+            close_to(result.value, value, 50)
+            assert result.tail_bound >= 0
+            assert "principal slit disk" in result.domain
+            assert abs(result.value - value) <= result.tail_bound + mp.mpf("1e-75")
+
+
+def test_complex_mixed_integral_and_shuffle():
+    with mp.workdps(70):
+        argument = s.Rational(1, 4) + s.I / 5
+        z = mp.mpc(mp.mpf(1) / 4, mp.mpf(1) / 5)
+        # Integrate along the straight radial path; no branch cut is crossed.
+        expected = mp.quad(lambda t: z * mp.log1p(z * t) / (1 - z * t), [0, 1])
+        close_to(hpl_evalf((1, -1), argument, domain="principal-disk", dps=55), expected, 50)
+        left, right = (0, -1), (1, 0)
+        def value(word):
+            return hpl_evalf(word, argument, domain="principal-disk", dps=55)
+        close_to(sum(count * value(word) for word, count in shuffle_words(left, right).items()),
+                 value(left) * value(right), 50)
+
+
+@pytest.mark.parametrize("argument", [0, 1, s.I, -s.Rational(1, 2), -0.5 + 0j,
+                                       1 + 1j, complex(float("nan"), 0)])
+def test_complex_disk_endpoints_boundary_cut_and_nonfinite_rejected(argument):
+    with pytest.raises((UnsupportedExpressionError, ValueError)):
+        hpl_evalf((0, 1), argument, domain="principal-disk")
+
+
+def test_complex_stored_inputs_and_explicit_domain():
+    with mp.workdps(70):
+        for point in [0.25 + 0.125j, mp.mpc("0.25", "0.125")]:
+            close_to(hpl_evalf((0,), point, domain="principal-disk", dps=50), mp.log(point))
+        with pytest.raises(HPLNumericalConvergenceError):
+            hpl_evalf((1, 0), s.I * s.Rational(99, 100), domain="principal-disk", max_terms=10)
+    with pytest.raises(ValueError, match="domain"):
+        hpl_evalf((0,), "0.5", domain="automatic")

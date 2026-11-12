@@ -47,7 +47,7 @@ precision. Numeric strings are parsed only as decimal numbers, not as code.
 
 ## Coefficient recurrence and tail bound
 
-Write the real germ as
+Write the germ, with the declared principal logarithm, as
 
 \[
 H_w(z)=\sum_{n\ge0}z^nP_{w,n}(\log z).
@@ -80,7 +80,7 @@ satisfies the mathematical bound
 
 \[
 \left|\sum_{n>N}z^nP_{w,n}(\log z)\right|
-\le B\frac{z^{N+1}}{1-z}.
+\le B\frac{|z|^{N+1}}{1-|z|}.
 \]
 
 The implementation includes extra numerical slack when computing this
@@ -90,9 +90,44 @@ majorant; it still makes no claim of rigorous interval-rounded arithmetic.
 
 - Weight at most 24; requested `dps` from 2 to 1000.
 - Default `max_terms=100000`; configurable up to one million.
-- General words near one may need many terms and can exhaust that budget.
-- Endpoints, complex arguments and other branches are rejected. Use
-  `hpl_at_one` for the supported exact endpoint cases.
+- General words near the unit circle may need many terms and can exhaust that budget.
+- Endpoints and other branches are rejected. The default mode rejects complex
+  arguments. Use `hpl_at_one` for supported exact endpoint cases.
 - There is no automatic `.evalf()` hook on the symbolic HPL class yet.
-- Complex unit-disk continuation is a separate future increment, not silently
-  enabled by this API.
+- No continuation outside the selected domain is performed.
+
+## Explicit principal complex disk
+
+Pass `domain="principal-disk"` to either numerical function to admit
+`0 < abs(z) < 1` off the negative real axis. The logarithm has
+`-pi < arg(z) < pi`; the HPL germ is evaluated on this principal slit disk.
+This is an explicit branch choice, **not automatic analytic continuation**.
+The default `domain="real"` remains unchanged, including rejection of complex
+inputs with zero imaginary component.
+
+```python
+from sympy import I, Rational
+from hypra import evaluate_hpl
+
+check = evaluate_hpl((1, 0, -1), Rational(1, 4) + I/5,
+                     domain="principal-disk", dps=70)
+```
+
+The same coefficient recurrence applies. The mathematical tail majorant uses
+`abs(z)` and `abs(log(z))`, so it remains nonnegative and bounds every omitted
+complex term. The precision-stability check compares complex values in
+absolute norm. Metadata records the selected slit-disk branch. No interval
+roundoff certification is claimed.
+
+Exact finite SymPy complex numbers and stored Python `complex` or mpmath
+`mpc` values are accepted in this mode. Decimal strings remain real decimal
+numbers only, never expression strings. For exact intended complex points,
+prefer SymPy rational real and imaginary parts. The origin, unit circle,
+negative real axis and exterior are rejected even when a particular word
+could individually be continued there. The routine does not silently select
+a side of a branch cut.
+
+Validation includes independent principal logarithm/polylogarithm identities
+in both half planes, mixed trailing-zero words, a radial single-integral
+check, and complex shuffle identities. These are numerical checks, not a
+substitute for the recurrence and majorant derivation.
