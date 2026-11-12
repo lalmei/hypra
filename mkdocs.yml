@@ -77,8 +77,10 @@ nav:
       - Radial numerical continuation: hpl-continuation.md
       - Shuffle and logarithm reduction: hpl-reduction.md
       - Classical polylogarithms: hpl-classical-binary-three.md
+      - Negative-letter classical reduction: hpl-classical-negative-three.md
       - Explicit shuffle regularization: hpl-regularization.md
       - Binary endpoints and MZVs: hpl-endpoints.md
+      - Endpoint constant products: hpl-stuffle.md
       - Alternating endpoints and Euler sums: hpl-alternating-endpoints.md
       - Numerical endpoint constants: hpl-constant-numerics.md
       - Negation and reflection: hpl-transforms.md

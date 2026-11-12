@@ -3,12 +3,12 @@
 import sympy as s
 
 from .errors import UnsupportedExpressionError
-from .hpl_reduce import extract_hpl_logs
+from .hpl_reduce import _extract, extract_hpl_logs
 from .symbolic import HPL, reduce_known_hpl
 
 
 def classical_hpl(expression, z, *, domain):
-    """Reduce all weight-two and binary weight-three HPLs at z.
+    """Reduce weight two and weight three over {0,1} or {0,-1} at z.
 
     Requires the declared real interval 0<z<1. Higher mixed words remain HPLs;
     this does not claim a complete high-weight classical-function basis.
@@ -35,6 +35,13 @@ def classical_hpl(expression, z, *, domain):
         - s.polylog(3, 1 - z)
         + s.zeta(3)
     )
+    # A real formula from u=1/(1+z), rather than substitution across the
+    # Li_n(1+z) cuts in the positive-letter formula.
+    u = 1 / (1 + z)
+    L = s.log(1 + z)
+    negative_011 = (
+        s.zeta(3) - s.polylog(3, u) - L * s.polylog(2, u) + L**2 * s.log(z) / 2 - L**3 / 3
+    )
     changes = {}
     for atom in result.atoms(HPL):
         if atom.argument != z:
@@ -45,6 +52,18 @@ def classical_hpl(expression, z, *, domain):
         if len(word) == 3 and all(letter in (0, 1) for letter in word):
             extracted = extract_hpl_logs(atom)
             changes[atom] = extracted.xreplace({HPL((0, 1, 1), z): binary_011})
+        elif len(word) == 3 and all(letter in (0, -1) for letter in word):
+            # Relabel only the abstract shuffle alphabet, not the argument.
+            # This extracts leading -1 and trailing zero factors without any
+            # complex negation or logarithmic branch substitution.
+            binary = tuple(-letter for letter in word)
+            extracted = _extract(binary, z, True, True)
+            relabeled = extracted.xreplace(
+                {h: HPL(tuple(-letter for letter in h.word), z) for h in extracted.atoms(HPL)}
+            )
+            changes[atom] = reduce_known_hpl(relabeled).xreplace(
+                {HPL((0, -1, -1), z): negative_011}
+            )
         elif word in formulas:
             changes[atom] = formulas[word]
     return result.xreplace(changes)

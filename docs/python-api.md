@@ -20,3 +20,7 @@ are not a claim of additional parameter or branch coverage.
 ::: hypra.hpl_regularized.hpl_endpoint_polynomial
 
 ::: hypra.hpl_regularized.shuffle_regularized_hpl_at_one
+
+::: hypra.hpl_stuffle.stuffle_expand_constants
+
+::: hypra.hpl_regularized.hpl_expression_endpoint_polynomial

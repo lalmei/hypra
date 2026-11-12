@@ -64,3 +64,42 @@ and the project's [source and algorithm map](upstream-source.md).
 The constant-term convention above is specified explicitly rather than
 claiming equivalence to every upstream regularization or analytic-continuation
 option.
+
+## Polynomial expressions, including cancellations
+
+`hpl_expression_endpoint_polynomial(expression, variable, T)` extends the word
+map to the polynomial ring in HPLs at exactly the same argument. For example:
+
+```python
+from hypra import HPL
+from hypra.hpl_regularized import hpl_expression_endpoint_polynomial
+z, T, a = s.symbols("z T a")
+hpl_expression_endpoint_polynomial(
+    HPL((1,), z)**2 - 2*HPL((1, 1), z), z, T
+)  # 0, after cancellation of the divergent polynomials
+hpl_expression_endpoint_polynomial(a*HPL((1,), z)**2, z, T)  # a*T**2
+```
+
+Coefficients must be exact commutative constants independent of both `variable`
+and `T`, treated as finite at the chosen parameter specialization. The API
+accepts a SymPy expression, not source text. All HPL arguments must be exactly
+`variable`; it does not transform composite arguments or infer equivalence of
+arguments. Unknown variable-dependent functions, inverse HPLs, and every
+argument-dependent coefficient are rejected, including regular polynomials in
+`variable` and apparent removable rational poles. This narrow contract avoids
+quietly discarding information needed to multiply endpoint remainders by poles.
+
+For each word `H_w=P_w+r_w`, the remainder satisfies `T^N*r_w -> 0` for every
+fixed integer `N`. A finite sum or product preserves this property: expanding
+products leaves polynomial times remainder terms and products of remainders,
+all vanishing. Hence substitution of the endpoint polynomials is a ring
+homomorphism, and performing sums/products before the final expansion retains
+cancellation of divergent logarithms. No limits are moved through infinite
+sums or integrals.
+
+Resource limits apply before substitution: total HPL weight per monomial at
+most twelve, at most 4096 input operations, and a conservative 4096-term
+pre-expansion bound. Expressions beyond this bound can be rejected even if a
+later algebraic cancellation would make them small. The result is a polynomial
+in `T`; evaluating it at zero is the explicitly chosen shuffle constant term,
+not a generic finite-limit operation.

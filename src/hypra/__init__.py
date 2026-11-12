@@ -34,7 +34,12 @@ from .hpl_numeric import (
     hpl_evalf,
 )
 from .hpl_reduce import extract_hpl_logs, lyndon_factors, lyndon_reduce
-from .hpl_regularized import hpl_endpoint_polynomial, shuffle_regularized_hpl_at_one
+from .hpl_regularized import (
+    hpl_endpoint_polynomial,
+    hpl_expression_endpoint_polynomial,
+    shuffle_regularized_hpl_at_one,
+)
+from .hpl_stuffle import stuffle_expand_constants
 from .hpl_transform import negate_hpl, reflect_hpl
 from .native import NativeBackend, NativeConfig
 from .serialization import SerializationError, decode_expr, encode_expr
@@ -91,6 +96,7 @@ __all__ = [
     "hpl_at_one",
     "hpl_endpoint_polynomial",
     "hpl_evalf",
+    "hpl_expression_endpoint_polynomial",
     "hpl_pm",
     "hpl_series",
     "hypergeometric",
@@ -109,5 +115,6 @@ __all__ = [
     "shuffle_expand",
     "shuffle_regularized_hpl_at_one",
     "square_hpl",
+    "stuffle_expand_constants",
     "transform_hpl_arguments",
 ]
