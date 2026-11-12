@@ -25,6 +25,25 @@ $$
 
 The convention is $H_1(z)=-\log(1-z)$ and $H_{0,1}(z)=\operatorname{Li}_2(z)$.
 
+### Compute this expansion
+
+```python title="Expand the hypergeometric function through epsilon squared" linenums="1" hl_lines="6-8 10"
+import sympy as s
+from hypra import expand_epsilon
+
+eps, z = s.symbols("eps z")
+P = s.hyper([1, -eps], [1 - 2*eps], z)
+result = expand_epsilon(
+    P, eps, through=2, assumptions=s.And(z > 0, z < 1)
+)
+print(result.expression)
+print(result.latex())
+```
+
+The highlighted call fixes the inclusive regulator order and real argument
+domain. `result.latex()` produces the exact symbolic result for a manuscript;
+it does not fit the displayed coefficients numerically.
+
 ## Poles require deeper internal orders
 
 If an external prefactor starts at $\varepsilon^{-r}$, a requested result

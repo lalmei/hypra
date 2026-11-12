@@ -31,7 +31,7 @@ verbatim apart from indentation from
 [lines 26–38](https://github.com/lalmei/hypra/blob/4b2904aa1163f9e47f2f497cd0b9a9be5c719b59/scripts/validate_integral.py#L26-L38) of the pinned published revision
 `4b2904a`. Here `s` is SymPy, and `a` and `t` are formal expansion variables.
 
-```python
+```python title="scripts/validate_integral.py · derive_moments() · published lines 26–38" linenums="26" hl_lines="8-9 13"
 n = s.Symbol("n", integer=True, positive=True)
 a, t = s.symbols("a t")
 log_gamma_ratio = s.expand(

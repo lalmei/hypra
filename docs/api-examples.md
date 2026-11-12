@@ -2,7 +2,7 @@
 
 ## Exact epsilon expansion
 
-```python
+```python title="Exact expansion with an explicit real domain" linenums="1" hl_lines="6-8 11"
 import sympy as s
 from hypra import expand_epsilon
 
@@ -24,7 +24,7 @@ insufficient depth.
 
 ## Exact HPL objects and endpoint constants
 
-```python
+```python title="Lossless HPL transport and exact endpoint constants" linenums="1" hl_lines="5 7-8"
 from hypra import HPL, encode_expr, decode_expr
 from hypra import hpl_at_one, hpl_alternating_at_one
 
@@ -41,7 +41,7 @@ reductions are separate operations with documented domains.
 
 ## High-precision numerical values
 
-```python
+```python title="Explicit complex branch and numerical accuracy metadata" linenums="1" hl_lines="6 8"
 from hypra import evaluate_hpl
 
 real = evaluate_hpl((1, 0), s.Rational(1, 3), dps=60)

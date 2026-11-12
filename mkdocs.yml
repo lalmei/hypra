@@ -37,7 +37,10 @@ markdown_extensions:
   - tables
   - toc:
       permalink: true
-  - pymdownx.highlight
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
   - pymdownx.superfences:
       custom_fences:
         - name: mermaid
@@ -73,6 +76,8 @@ nav:
       - Numerical evaluation: hpl-numerics.md
       - Radial numerical continuation: hpl-continuation.md
       - Shuffle and logarithm reduction: hpl-reduction.md
+      - Classical polylogarithms: hpl-classical-binary-three.md
+      - Explicit shuffle regularization: hpl-regularization.md
       - Binary endpoints and MZVs: hpl-endpoints.md
       - Alternating endpoints and Euler sums: hpl-alternating-endpoints.md
       - Numerical endpoint constants: hpl-constant-numerics.md
