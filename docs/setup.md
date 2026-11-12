@@ -1,7 +1,7 @@
 # Native Python setup
 
 ```sh
-cd ~/project/hypra
+cd ~/projects/hypra
 uv sync
 uv run hypra backend-info
 uv run pytest -q

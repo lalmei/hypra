@@ -2,6 +2,7 @@
 
 **Native Python/SymPy hypergeometric epsilon expansions, inspired by HypExp 2.**
 
+Native HPL functionality is also informed by HPL 2.0.
 No Mathematica installation is required. Hypra is an academic **partial native
 implementation**, not yet a full replacement for HypExp/HPL. It computes exact symbolic
 coefficients using recurrence relations and preserves unevaluated HPL words.
@@ -42,7 +43,7 @@ provenance, CLI and LaTeX output are included.
 ## Start
 
 ```sh
-cd ~/project/hypra
+cd ~/projects/hypra
 uv sync
 uv run hypra backend-info
 uv run python scripts/validate.py --output-dir reports/local
@@ -85,6 +86,14 @@ print(s.latex(h))
 Expanded letters `{-1,0,1}` use kernels `1/(1+t)`, `1/t`, `1/(1-t)`;
 `H_1(z)=-log(1-z)`. Construction/serialization preserves words. Known-word
 reduction is explicit and does not claim arbitrary analytic continuation.
+
+Additional native HPL operations include exact at-i values for low weights,
+explicit upper/lower real-cut numerical values, ordinary-point Taylor series,
+classical reduction of all cubic words with at most two distinct letters,
+alternating endpoints, MZV/EulerSum stuffle products and explicitly named
+shuffle-regularization APIs. Each has documented domain/resource limits;
+regularized constants are never silently treated as ordinary finite limits.
+See the [HPL 2 capability map](docs/parity-map.md) for remaining gaps.
 
 ## Validate and produce LaTeX
 

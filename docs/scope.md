@@ -9,12 +9,12 @@ complete public API coverage or full upstream parity.
 
 | Module | Implemented mathematical work | Important restrictions |
 | --- | --- | --- |
-| `nested_sums.py` | Strict harmonic-sum product algebra, formal exponential, canonical integer hypergeometric coefficients to HPLs | Canonical upper bases 0/1 and lower base 1; exact rational slopes |
+| `nested_sums.py` | Strict harmonic-sum product algebra, formal exponential, canonical integer hypergeometric coefficients to HPLs | Canonical upper bases 0/1 and lower base 1; exact rational or guarded polynomial symbolic slopes |
 | `integer.py` | Integer-base `pF(p-1)` reduction, upper raising/lower shifting, finite-prefix/tail reindexing | Fixed singular lower parameters rejected; moving lower poles require extra orders; high offsets can be expensive |
-| `colored_sums.py` | Signed strict sums, colored stuffle products, even-index projection, canonical matched-half coefficients | Equal half-upper/lower counts; alphabet signs ±1; rational slopes; HPL argument `sqrt(z)` |
+| `colored_sums.py` | Signed strict sums, colored stuffle products, even-index projection, canonical matched-half coefficients | Equal half-upper/lower counts; alphabet signs ±1; guarded exact slopes; HPL argument `sqrt(z)` |
 | `matched_half.py` | Integer-offset reduction around matched half-integer bases, including prefix/tail reindexing | `pF(p-1)` with equal counts of half-integral upper/lower bases; fixed singular lower rejected |
 | `contiguous.py` / `canonical.py` | Generic upper/lower contiguous differential operators, Laurent convolution, one-parameter removable-limit regularization | Supported canonical families only; bounded shift count/depth; unresolved singular limits fail closed |
-| `half_system.py` | Canonical rationalized epsilon ODE systems A/B/C | Patterns specified below; rank at least two; symbolic slopes allowed internally, not a general public symbolic-slope promise |
+| `half_system.py` | Canonical rationalized epsilon ODE systems A/B/C/D | Patterns specified below; rank at least two; guarded polynomial symbolic slopes; symbolic singular lower slopes need explicit nonzero assumptions |
 | `hpl_algebra.py` | Shuffle linearization, rational-HPL primitives, definite origin integration, local exact series | Rational poles only 0/±1; finite origin constant must be proved; explicit weight/pole/term budgets |
 | `endpoints.py` | Finite terminating sums; convergent Gauss `2F1(1)` rewrite | Fixed nonpositive upper termination only; affine Gauss parameters and proven convergence; no divergent endpoint continuation |
 
@@ -32,6 +32,15 @@ For example mixed `3F2` with two half-upper and one half-lower remains unsupport
 [half-system derivation](half-system.md) and [integer identities](integer-port.md).
 Endpoint rewriting must run before pole planning to include hidden Gamma
 poles; see [endpoint conditions](endpoints.md).
+
+## HPL 2-inspired native layer
+
+The [HPL parity map](parity-map.md) records numerical continuation, exact
+special values, classical reduction, shuffle/stuffle algebra and explicit
+regularization coverage. The [Taylor API](hpl-taylor.md) also integrates
+ordinary interior-point expansions with SymPy's `.series()` method. These
+are Python-native operations, not a redistributed Mathematica package or a
+claim that every upstream special-value table has been reproduced.
 
 ## Exactness, branches and failure behavior
 
