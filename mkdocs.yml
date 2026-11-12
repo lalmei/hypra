@@ -1,6 +1,6 @@
 site_name: Hypra
 site_description: Native exact epsilon expansions and harmonic polylogarithms in Python
-site_url: http://127.0.0.1:8000/
+site_url: !ENV [HYPRA_SITE_URL, "http://127.0.0.1:8000/"]
 use_directory_urls: true
 theme:
   name: materialx
@@ -96,4 +96,5 @@ nav:
       - Exact transport protocol: protocol.md
       - Upstream sources and attribution: upstream-source.md
       - Documentation maintenance: docs-maintenance.md
+      - Release process: releasing.md
       - Mathematics PDF: mathematics.pdf

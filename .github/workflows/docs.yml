@@ -1,4 +1,4 @@
-name: Build documentation
+name: Build and deploy documentation
 
 on:
   push:
@@ -26,6 +26,8 @@ jobs:
       - name: Install locked documentation dependencies
         run: uv sync --locked --group docs
       - name: Build strict offline-capable documentation
+        env:
+          HYPRA_SITE_URL: https://lalmei.github.io/hypra/
         run: uv run --no-sync mkdocs build --strict
       - name: Check local rendering assets and generated reference pages
         run: uv run --no-sync python scripts/check_docs_build.py
@@ -36,3 +38,27 @@ jobs:
           path: site/
           if-no-files-found: error
           retention-days: 14
+      - name: Upload GitHub Pages artifact
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: site/
+
+  deploy:
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    needs: docs
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    concurrency:
+      group: github-pages
+      cancel-in-progress: false
+    steps:
+      - name: Deploy GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

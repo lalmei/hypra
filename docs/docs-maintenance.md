@@ -39,13 +39,19 @@ existing managed local server is already running.
   [editable TeX](mathematics.tex) and [PDF](mathematics.pdf). KaTeX handles web
   equations; it does not compile the PDF report.
 
-## CI is build-only
+## Documentation CI and GitHub Pages
 
 `.github/workflows/docs.yml` installs locked dependencies, performs a strict
-build, checks generated API/CLI pages and local assets, and uploads the static
-site as a short-lived Actions artifact. It has read-only repository permissions.
-It does **not** enable GitHub Pages, deploy publicly, push a `gh-pages` branch,
-or change repository settings.
+build and checks generated API/CLI pages and local assets. Pull requests build
+review artifacts only. Pushes to `main` (or a manual run on `main`) additionally
+upload the Pages artifact and deploy through the `github-pages` environment.
+Only that deployment job receives `pages: write` and `id-token: write`;
+repository content remains read-only. No personal access token is required.
+
+The repository's Pages source must be set to **GitHub Actions**. The expected
+public URL is `https://lalmei.github.io/hypra/`; a workflow file alone does not
+prove deployment succeeded. CI sets `HYPRA_SITE_URL` to this project URL.
+Local builds retain `http://127.0.0.1:8000/` unless explicitly overridden.
 
 Keep a blank line between consecutive display-math blocks. Without it, Markdown
 can consume `\[` / `\]` as ordinary punctuation before KaTeX sees the equation.
