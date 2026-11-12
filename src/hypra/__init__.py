@@ -15,6 +15,7 @@ from .backend import (
 )
 from .config import BackendConfig
 from .errors import HypraError, IncompleteExpansionError, UnsupportedExpressionError
+from .hpl_algebra import hpl_series, integrate_from_zero, primitive_hpl, shuffle_expand
 from .hpl_alternating import hpl_alternating_at_one, reduce_euler_sum
 from .hpl_continue import HPLContinuationResult, continue_hpl
 from .hpl_endpoints import hpl_at_one, reduce_mzv
@@ -80,7 +81,9 @@ __all__ = [
     "hpl_at_one",
     "hpl_evalf",
     "hpl_pm",
+    "hpl_series",
     "hypergeometric",
+    "integrate_from_zero",
     "invert_hpl",
     "letters_to_pm",
     "lyndon_factors",
@@ -88,8 +91,10 @@ __all__ = [
     "mobius_hpl",
     "negate_hpl",
     "pm_to_letters",
+    "primitive_hpl",
     "reduce_euler_sum",
     "reduce_mzv",
     "reflect_hpl",
+    "shuffle_expand",
     "square_hpl",
 ]

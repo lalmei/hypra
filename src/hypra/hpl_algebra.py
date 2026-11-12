@@ -359,6 +359,19 @@ def _origin_constant(expression, z):
     return s.simplify(origin)
 
 
+def primitive_hpl(expression, z: s.Symbol) -> s.Expr:
+    """An exact local primitive of rational-HPL products, up to a constant.
+
+    Rational poles must be at 0,±1. Unlike integrate_from_zero, this does not
+    require a finite origin value and does not assign a divergent endpoint.
+    Principal branches on real 0<z<1 are retained; no definite integral or
+    contour continuation is inferred from this local antiderivative.
+    """
+    linear = _linear_terms(expression, z)
+    primitive = s.Add(*(_primitive(rational, word, z) for word, rational in linear.items()))
+    return shuffle_expand(primitive, z)
+
+
 def integrate_from_zero(expression, z: s.Symbol) -> s.Expr:
     """Compute integral_0^z R(t) HPL(word,t) dt, including shuffle products.
 
@@ -369,9 +382,7 @@ def integrate_from_zero(expression, z: s.Symbol) -> s.Expr:
     origin limit raises UnsupportedExpressionError; no divergent terms are
     silently regularized. The algorithm recursively lowers HPL word weight.
     """
-    linear = _linear_terms(expression, z)
-    primitive = s.Add(*(_primitive(rational, word, z) for word, rational in linear.items()))
-    primitive = shuffle_expand(primitive, z)
+    primitive = primitive_hpl(expression, z)
     origin = _origin_constant(primitive, z)
     return primitive - origin
 

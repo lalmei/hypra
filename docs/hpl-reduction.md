@@ -29,3 +29,13 @@ H(1,1,1;z)=H(1;z)³/6. This is a basis of the formal shuffle algebra, not a
 claim that its evaluations are algebraically independent after special values,
 argument transformations, or additional functional relations. No upstream
 reduction tables are copied. Word/weight limits fail explicitly.
+
+## Local primitives versus definite integrals
+
+`primitive_hpl(expr,z)` returns a local antiderivative up to an arbitrary
+constant, including cases singular at zero. Its rational coefficients may
+have poles at 0,±1; products are shuffle-linearized. `integrate_from_zero`
+uses the same primitive but additionally proves that the combined origin
+limit is finite and subtracts it. A primitive for `1/z` is therefore valid,
+while its integral from zero is rejected. Neither API invents a regularized
+endpoint value or a new contour prescription.
