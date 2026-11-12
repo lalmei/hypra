@@ -109,3 +109,14 @@ principal square roots/logarithms are used consistently on this slit disk.
 The default remains the real interval. Symbolic complex-domain assertions,
 unit-circle endpoints and points outside the disk are still rejected by this
 mode; numerical HPL continuation does not silently authorize them.
+
+For exact numerical points outside the unit disk, explicitly select
+`NativeConfig(argument_domain="principal-cut-plane")`. The supported domain is
+C minus the real rays `(−∞,0]` and `[1,∞)`; zero itself is handled separately.
+Arguments must be provably finite and either nonreal or in the real interval.
+The canonical maps remain on compatible branches: case A maps to the upper
+half-plane, case B to the unit disk, and matched-half maps to the right
+half-plane off its positive cut. The identity theorem extends the same
+origin-germ identities, without exchanging integrals and regulator limits.
+This is not acceptance of general symbolic complex-domain assertions or
+unspecified cut boundary values.

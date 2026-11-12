@@ -30,8 +30,8 @@ class NativeConfig:
     argument_domain: str = "real-interval"
 
     def __post_init__(self):
-        if self.argument_domain not in ("real-interval", "principal-disk"):
-            raise ValueError("argument_domain must be real-interval or principal-disk")
+        if self.argument_domain not in ("real-interval", "principal-disk", "principal-cut-plane"):
+            raise ValueError("argument_domain must be real-interval, principal-disk or principal-cut-plane")
         if self.timeout_seconds is not None and (
             isinstance(self.timeout_seconds, bool)
             or not isinstance(self.timeout_seconds, (int, float))
@@ -120,6 +120,14 @@ def expand_atom(h, eps, order, assumptions=s.true, argument_domain="real-interva
             raise UnsupportedExpressionError(
                 "Principal-disk expansion requires an exact numeric argument with "
                 "0 < |z| < 1 off the negative real axis"
+            )
+    elif argument_domain == "principal-cut-plane":
+        if z.free_symbols or z.is_finite is not True or not (
+            z.is_real is False or _inside_interval(z, s.true)
+        ):
+            raise UnsupportedExpressionError(
+                "Principal-cut-plane expansion requires an exact finite numeric "
+                "point off (-infinity,0] and [1,infinity)"
             )
     elif not _inside_interval(z, assumptions):
         raise UnsupportedExpressionError(

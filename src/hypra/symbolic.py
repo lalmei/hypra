@@ -200,6 +200,19 @@ class HPL(Function):
         return rf"H_{{{word}}}\!\left({printer._print(self.argument)}\right)"
 
 
+def _constant_evalf(atom, prec, evaluator, arguments):
+    """Explicit constant evalf, without importing numerical engines at startup."""
+    import mpmath as mp
+    from sympy import Float
+    from sympy.core.evalf import prec_to_dps
+
+    digits = max(2, prec_to_dps(prec) + 8)
+    if sum(atom.indices) > 6 or digits > 900:
+        return atom
+    value = evaluator(*arguments, dps=digits).value
+    return Float(mp.nstr(value, n=digits), precision=prec)
+
+
 class MZV(Function):
     """An exact convergent multiple zeta value in strict descending convention.
 
@@ -237,6 +250,11 @@ class MZV(Function):
     @property
     def indices(self):
         return self.args[0]
+
+    def _eval_evalf(self, prec):
+        from .hpl_constants import evaluate_mzv
+
+        return _constant_evalf(self, prec, evaluate_mzv, (self.indices,))
 
     def _eval_derivative(self, symbol):
         return Integer(0)
@@ -287,6 +305,11 @@ class EulerSum(Function):
     @property
     def colors(self):
         return self.args[1]
+
+    def _eval_evalf(self, prec):
+        from .hpl_constants import evaluate_euler_sum
+
+        return _constant_evalf(self, prec, evaluate_euler_sum, (self.indices, self.colors))
 
     def _eval_derivative(self, symbol):
         return Integer(0)

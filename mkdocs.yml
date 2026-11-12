@@ -49,6 +49,7 @@ nav:
       - Shuffle and logarithm reduction: hpl-reduction.md
       - Binary endpoints and MZVs: hpl-endpoints.md
       - Alternating endpoints and Euler sums: hpl-alternating-endpoints.md
+      - Numerical endpoint constants: hpl-constant-numerics.md
       - Negation and reflection: hpl-transforms.md
       - Binary argument maps: hpl-binary-maps.md
       - Mobius transformation: hpl-mobius.md

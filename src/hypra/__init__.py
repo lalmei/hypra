@@ -17,6 +17,8 @@ from .config import BackendConfig
 from .errors import HypraError, IncompleteExpansionError, UnsupportedExpressionError
 from .hpl_algebra import hpl_series, integrate_from_zero, primitive_hpl, shuffle_expand
 from .hpl_alternating import hpl_alternating_at_one, reduce_euler_sum
+from .hpl_arguments import transform_hpl_arguments
+from .hpl_constants import ConstantNumericResult, evaluate_euler_sum, evaluate_mzv
 from .hpl_continue import HPLContinuationResult, continue_hpl
 from .hpl_endpoints import hpl_at_one, reduce_mzv
 from .hpl_inversion import invert_hpl
@@ -55,6 +57,7 @@ __all__ = [
     "BackendProtocolError",
     "BackendTimeoutError",
     "BackendUnavailableError",
+    "ConstantNumericResult",
     "EulerSum",
     "ExpansionResult",
     "HPLContinuationResult",
@@ -72,7 +75,9 @@ __all__ = [
     "continue_hpl",
     "decode_expr",
     "encode_expr",
+    "evaluate_euler_sum",
     "evaluate_hpl",
+    "evaluate_mzv",
     "expand_epsilon",
     "expand_indices",
     "extract_hpl_logs",
@@ -97,4 +102,5 @@ __all__ = [
     "reflect_hpl",
     "shuffle_expand",
     "square_hpl",
+    "transform_hpl_arguments",
 ]

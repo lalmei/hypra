@@ -63,3 +63,12 @@ by differential equations and double reflection, exact origin series for
 negation, explicit trailing-zero monodromy, selected weight-four/five
 reflection derivatives, and rejection of unsupported domains/letters/weights.
 It is not a general minimal-basis reducer or a continuation-path engine.
+
+## Whole-expression argument unification
+
+`transform_hpl_arguments(expr,z,domain="0<z<1",boundary="upper")` dispatches
+recognized HPL arguments to a common z: −z, 1−z, z², (1−z)/(1+z), z/(z−1),
+and 1/z. It requires an explicit boundary for cut-valued arguments and rejects
+unknown variable-dependent arguments. Constant-argument HPLs remain unchanged.
+The component transforms' alphabet and weight restrictions still apply; this
+wrapper does not infer new branch identities from syntactic resemblance.
