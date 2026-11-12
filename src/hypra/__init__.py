@@ -22,7 +22,7 @@ from .hpl_numeric import (
     evaluate_hpl,
     hpl_evalf,
 )
-from .hpl_reduce import extract_hpl_logs
+from .hpl_reduce import extract_hpl_logs, lyndon_factors, lyndon_reduce
 from .hpl_transform import negate_hpl, reflect_hpl
 from .native import NativeBackend, NativeConfig
 from .serialization import SerializationError, decode_expr, encode_expr
@@ -67,6 +67,8 @@ __all__ = [
     "hpl_at_one",
     "hpl_evalf",
     "hypergeometric",
+    "lyndon_factors",
+    "lyndon_reduce",
     "negate_hpl",
     "reduce_mzv",
     "reflect_hpl",

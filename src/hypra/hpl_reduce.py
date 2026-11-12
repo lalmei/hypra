@@ -49,3 +49,62 @@ def extract_hpl_logs(expression, *, leading_ones=True, trailing_zeros=True):
         word = _word(atom.word)
         replacements[atom] = _extract(word, atom.argument, leading_ones, trailing_zeros)
     return reduce_known_hpl(s.expand(expression.xreplace(replacements)))
+
+
+def lyndon_factors(word):
+    """Chen--Fox--Lyndon factorization, with alphabet order -1 < 0 < 1."""
+    word = _word(word)
+    factors, i = [], 0
+    while i < len(word):
+        j, k = i+1, i
+        while j < len(word) and word[k] <= word[j]:
+            k = i if word[k] < word[j] else k+1
+            j += 1
+        length = j-k
+        while i <= k:
+            factors.append(word[i:i+length])
+            i += length
+    return tuple(factors)
+
+
+@lru_cache(maxsize=4096)
+def _lyndon(word, z):
+    if not word:
+        return s.S.One
+    factors = lyndon_factors(word)
+    if len(factors) == 1:
+        return HPL(word, z)
+    counts = {(): 1}
+    for factor in factors:
+        merged = {}
+        for left, multiplicity in counts.items():
+            for right, coefficient in shuffle_words(left, factor).items():
+                merged[right] = merged.get(right, 0) + multiplicity*coefficient
+        counts = merged
+        if len(counts) > 16384:
+            raise UnsupportedExpressionError("Lyndon reduction exceeds the word budget")
+    diagonal = counts.pop(word)
+    if any(other >= word for other in counts):
+        raise UnsupportedExpressionError("Lyndon shuffle triangularity check failed")
+    product = s.prod(HPL(factor, z) for factor in factors)
+    return s.expand((product-sum(count*_lyndon(other,z) for other,count in counts.items()))/diagonal)
+
+
+def lyndon_reduce(expression):
+    """Reduce HPL words to a shuffle-algebra Lyndon basis through weight eight.
+
+    This uses exact triangular shuffle factorization, not precomputed tables.
+    It is a shuffle basis only, not a claim of algebraic independence after
+    argument transformations or evaluation at special points.
+    """
+    if not isinstance(expression, s.Expr):
+        raise TypeError("expression must be a SymPy expression")
+    if expression.has(s.Float, s.nan, s.zoo, s.oo, -s.oo):
+        raise UnsupportedExpressionError("Lyndon reduction requires exact finite input")
+    replacements = {}
+    for atom in expression.atoms(HPL):
+        word = _word(atom.word)
+        if len(word) > 8:
+            raise UnsupportedExpressionError("Lyndon reduction currently supports weight at most eight")
+        replacements[atom] = _lyndon(word, atom.argument)
+    return s.expand(expression.xreplace(replacements))

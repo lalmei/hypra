@@ -22,3 +22,26 @@ def test_flags_and_validation():
     assert extract_hpl_logs(HPL((1,0),z),leading_ones=False,trailing_zeros=False)==HPL((1,0),z)
     with pytest.raises(TypeError):
         extract_hpl_logs('text')
+
+
+def test_lyndon_factorization_and_basis():
+    from itertools import product
+
+    from hypra.hpl_reduce import lyndon_factors, lyndon_reduce
+    for weight in range(1,4):
+        for word in product((-1,0,1),repeat=weight):
+            factors=lyndon_factors(word)
+            assert sum(factors,())==word
+            assert list(factors)==sorted(factors,reverse=True)
+            result=lyndon_reduce(HPL(word,z))
+            assert s.simplify(hpl_series(result-HPL(word,z),z,5))==0
+            for atom in result.atoms(HPL):
+                assert len(lyndon_factors(atom.word))==1
+
+
+def test_lyndon_repeated_and_limits():
+    from hypra.errors import UnsupportedExpressionError
+    from hypra.hpl_reduce import lyndon_reduce
+    assert lyndon_reduce(HPL((1,1,1),z))==HPL((1,),z)**3/6
+    with pytest.raises(UnsupportedExpressionError,match='eight'):
+        lyndon_reduce(HPL((0,)*8+(1,),z))
