@@ -252,6 +252,54 @@ class MZV(Function):
         return rf"\zeta\!\left({indices}\right)"
 
 
+class EulerSum(Function):
+    r"""Strict colored sum sum_{n1>...>nd>=1} prod colors[j]**nj / nj**indices[j].
+
+    Outer-cutoff convergence is used, including conditional convergence when
+    the first index is one and its color is minus one. No regularization.
+    Construction preserves indices and colors rather than reducing constants.
+    """
+
+    nargs = 2
+
+    def __new__(cls, indices, colors, **options):
+        if not isinstance(indices, (tuple, list, Tuple)) or not isinstance(colors, (tuple, list, Tuple)):
+            raise TypeError("EulerSum indices and colors must be exact tuples/lists")
+        if len(indices) != len(colors):
+            raise ValueError("EulerSum requires one color per index")
+        if any(isinstance(n, bool) or not isinstance(n, (int, Integer)) or n <= 0 for n in indices):
+            raise ValueError("EulerSum indices must be positive exact integers")
+        if any(isinstance(c, bool) or not isinstance(c, (int, Integer)) or c not in (-1, 1) for c in colors):
+            raise ValueError("EulerSum colors must be exact -1 or 1")
+        if indices and indices[0] == 1 and colors[0] == 1:
+            raise ValueError("Divergent EulerSum; no regularized value is assigned")
+        return super().__new__(cls, Tuple(*indices), Tuple(*colors), **options)
+
+    @classmethod
+    def eval(cls, indices, colors):
+        if not indices:
+            return Integer(1)
+
+    @property
+    def indices(self):
+        return self.args[0]
+
+    @property
+    def colors(self):
+        return self.args[1]
+
+    def _eval_derivative(self, symbol):
+        return Integer(0)
+
+    def _eval_is_real(self):
+        return True
+
+    def _latex(self, printer):
+        indices = ",".join(printer._print(n) for n in self.indices)
+        colors = ",".join(printer._print(c) for c in self.colors)
+        return rf"\operatorname{{ES}}\!\left[\begin{{matrix}}{indices}\\{colors}\end{{matrix}}\right]"
+
+
 def reduce_known_hpl(expression):
     """Reduce selected HPL words to exact logarithms and classical polylogs.
 
@@ -262,7 +310,7 @@ def reduce_known_hpl(expression):
     that the expression is regular at a branch point.
 
     Supported identities are the empty word (one), all-zero, all-one,
-    all-minus-one words, and zero strings followed by one. Mixed words outside
+    all-minus-one words, and zero strings followed by plus or minus one. Mixed words outside
     these patterns remain symbolic. Formulae hold away from singular endpoints
     and extend there only when the corresponding limit exists.
     """
@@ -282,8 +330,8 @@ def reduce_known_hpl(expression):
             return (-log(1 - z)) ** weight / factorial(weight)
         if all(letter == -1 for letter in word):
             return log(1 + z) ** weight / factorial(weight)
-        if word[-1] == 1 and all(letter == 0 for letter in word[:-1]):
-            return polylog(weight, z)
+        if word[-1] in (-1, 1) and all(letter == 0 for letter in word[:-1]):
+            return word[-1] * polylog(weight, word[-1] * z)
         return atom
 
     return expression.replace(lambda node: isinstance(node, HPL), reduce_one)

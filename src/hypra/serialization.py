@@ -16,7 +16,7 @@ from sympy.core.assumptions import _assume_defined
 from sympy.core.relational import Relational
 from sympy.logic.boolalg import Boolean
 
-from .symbolic import HPL, MZV
+from .symbolic import HPL, MZV, EulerSum
 
 
 class SerializationError(ValueError):
@@ -77,6 +77,7 @@ _ARITY = {
     "HypergeometricPFQ": (3,),
     "HPL": (2,),
     "MZV": (1,),
+    "EulerSum": (2,),
 }
 _RELATIONS = {"Equal", "Unequal", "Less", "LessEqual", "Greater", "GreaterEqual"}
 _LOGIC = {"And", "Or", "Not"}
@@ -146,6 +147,8 @@ def encode_expr(expression):
             head = "HypergeometricPFQ"
         elif expr.func == HPL:
             head = "HPL"
+        elif expr.func == EulerSum:
+            head = "EulerSum"
         elif expr.func == MZV:
             head = "MZV"
         else:
@@ -198,6 +201,7 @@ def decode_expr(payload):
             "HypergeometricPFQ",
             "HPL",
             "MZV",
+            "EulerSum",
         }:
             raise SerializationError(f"Unsupported AST head: {head}")
         _keys(node, {"head", "args"})
@@ -225,6 +229,11 @@ def decode_expr(payload):
                 raise SerializationError(
                     "HPL word must contain expanded letters -1, 0, or 1"
                 ) from exc
+        if head == "EulerSum":
+            try:
+                return EulerSum(*args)
+            except (TypeError, ValueError) as exc:
+                raise SerializationError("Invalid or divergent EulerSum") from exc
         if head == "MZV":
             if not isinstance(args[0], sp.Tuple):
                 raise SerializationError("MZV indices must be a List")

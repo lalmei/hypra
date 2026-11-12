@@ -15,8 +15,11 @@ from .backend import (
 )
 from .config import BackendConfig
 from .errors import HypraError, IncompleteExpansionError, UnsupportedExpressionError
+from .hpl_alternating import hpl_alternating_at_one, reduce_euler_sum
 from .hpl_continue import HPLContinuationResult, continue_hpl
 from .hpl_endpoints import hpl_at_one, reduce_mzv
+from .hpl_inversion import invert_hpl
+from .hpl_mobius import mobius_hpl
 from .hpl_numeric import (
     HPLNumericalConvergenceError,
     HPLNumericResult,
@@ -27,7 +30,7 @@ from .hpl_reduce import extract_hpl_logs, lyndon_factors, lyndon_reduce
 from .hpl_transform import negate_hpl, reflect_hpl
 from .native import NativeBackend, NativeConfig
 from .serialization import SerializationError, decode_expr, encode_expr
-from .symbolic import HPL, MZV
+from .symbolic import HPL, MZV, EulerSum
 
 __version__ = "0.1.0a0"
 
@@ -49,6 +52,7 @@ __all__ = [
     "BackendProtocolError",
     "BackendTimeoutError",
     "BackendUnavailableError",
+    "EulerSum",
     "ExpansionResult",
     "HPLContinuationResult",
     "HPLNumericResult",
@@ -67,12 +71,16 @@ __all__ = [
     "evaluate_hpl",
     "expand_epsilon",
     "extract_hpl_logs",
+    "hpl_alternating_at_one",
     "hpl_at_one",
     "hpl_evalf",
     "hypergeometric",
+    "invert_hpl",
     "lyndon_factors",
     "lyndon_reduce",
+    "mobius_hpl",
     "negate_hpl",
+    "reduce_euler_sum",
     "reduce_mzv",
     "reflect_hpl",
 ]
