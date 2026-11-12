@@ -34,6 +34,8 @@ def canonical_half_series(upper_base, upper_slopes, lower_base, lower_slopes,
            for x in alpha + beta):
         raise ValueError("Slopes must be exact and independent of argument and regulator")
     half = s.Rational(1, 2)
+    if all(x == half for x in a+b):
+        return _all_half_series(alpha, beta, z, epsilon, order)
     if all(x == 0 for x in a) and b.count(half) == 1 and all(x in (half, 1) for x in b):
         kind = 'A'
     elif a.count(half) == 1 and all(x in (half, 0) for x in a) and all(x == 1 for x in b):
@@ -91,3 +93,40 @@ def canonical_half_series(upper_base, upper_slopes, lower_base, lower_slopes,
                        for k in range(1, min(n, operator.degree())+1))
         coefficients.append(invert(forcing))
     return sum(value.subs(t, argument)*epsilon**n for n,value in enumerate(coefficients))
+
+
+def _all_half_series(alpha, beta, z, epsilon, order):
+    """Gauge-normalized all-half pF(p-1) germ, using only ordinary HPL letters.
+
+    L0=(theta-1/2)^(p-1) B in this order, B=(1-z)theta-z/2.
+    Gauge F=(1-z)^(-1/2)Y, z=t²/(t²-1): conjugated theta
+    is t(1-t²)/2 d/dt -t²/2. Conjugated B=t/2 d/dt, and
+    conjugated (theta-1/2)=t(1-t²)/2 d/dt -(1+t²)/2.
+    Both inverse kernels have only 0,±1 poles. Origin analyticity excludes
+    the fractional-power homogeneous solutions of the latter operator.
+    """
+    t, x = s.Dummy('t', positive=True), s.Dummy('theta')
+    half = s.Rational(1, 2)
+    zt = t**2/(t**2-1)
+    operator = s.Poly(s.expand(x*s.prod(x-half+b*epsilon for b in beta)
+                              -zt*s.prod(x+half+a*epsilon for a in alpha)), epsilon)
+
+    def apply(poly, value):
+        if poly == 0 or value == 0:
+            return s.S.Zero
+        polynomial = s.Poly(poly, x)
+        powers = [value]
+        for _ in range(polynomial.degree()):
+            last = powers[-1]
+            powers.append(s.expand(t*(1-t**2)*s.diff(last,t)/2-t**2*last/2))
+        return s.expand(sum(c*powers[int(m[0])] for m,c in polynomial.terms()))
+
+    coefficients = [s.S.One]
+    for n in range(1, order+1):
+        forcing = -sum(apply(operator.nth(k), coefficients[n-k])
+                       for k in range(1,min(n,operator.degree())+1))
+        for _ in range(len(beta)):
+            forcing = t/(1-t**2)*integrate_from_zero(s.expand(2*forcing/t**2),t)
+        coefficients.append(integrate_from_zero(s.expand(2*forcing/t),t))
+    argument = s.I*s.sqrt(z/(1-z))
+    return sum(c.subs(t,argument)*epsilon**n for n,c in enumerate(coefficients))/s.sqrt(1-z)

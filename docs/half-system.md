@@ -2,7 +2,7 @@
 
 This is an independent implementation of the hypergeometric differential
 equation, not a translation of upstream Mathematica source. It covers the
-three patterns below for rank p >= 2, not every HypExp2 half-integer class.
+patterns below for rank p >= 2, not every HypExp2 half-integer class.
 All parameters are base + slope × epsilon. Slopes may be symbolic and must
 be independent of the argument and epsilon.
 
@@ -14,7 +14,7 @@ Write theta = z d/dz and
 \]
 
 For F = sum epsilon^n F_n and L = sum epsilon^k L_k, the analytic solution
-has F_0=1, F_n(0)=0 for n>0, and
+has F_n(0)=0 for n>0, and (F_0=1 in A/B/C; see D for its gauge)
 
 \[
  L_0F_n=-\sum_{k=1}^nL_kF_{n-k}.
@@ -101,3 +101,56 @@ zero and negative slopes. These checks are independent of the implemented
 ODE inverse, but finite checks are not a proof of unrestricted rank/order
 performance or full HypExp2 coverage. Symbolic slopes and missing operator
 coefficients are tested separately.
+
+## D: every parameter base is 1/2, arbitrary rank p >= 2
+
+This family admits the ordered factorization
+
+\[
+ L_0=(\theta-\tfrac12)^{p-1}B,\qquad
+ B=(1-z)\theta-\tfrac z2.
+\]
+
+The order matters because theta and z do not commute. Indeed,
+`(theta-1/2)^k z = z (theta+1/2)^k`, proving this factorization from the
+original defining operator. Here F_0=(1-z)^(-1/2), not 1. Gauge out this
+exact zeroth-order function: F=(1-z)^(-1/2)Y and use
+z=t²/(t²-1), t=i sqrt(z/(1-z)). Conjugation sends theta to
+
+\[
+ T=\frac{t(1-t^2)}2\partial_t-\frac{t^2}2.
+\]
+
+The two factors become
+
+\[
+ \widetilde D=\frac{t(1-t^2)}2\partial_t-\frac{1+t^2}2,
+ \qquad \widetilde B=\frac t2\partial_t.
+\]
+
+For a forcing term g, their analytic inverses are
+
+\[
+ \widetilde D^{-1}g=\frac{t}{1-t^2}\int_0^t\frac{2g(u)}{u^2}\,du,
+ \qquad
+ \widetilde B^{-1}g=\int_0^t\frac{2g(u)}u\,du.
+\]
+
+At each regulator order, form the forcing using the full conjugated operator
+L(epsilon) with theta replaced by T, then apply D inverse p-1 times and B
+inverse last. Set Y_0=1. The coefficient sources and solutions are even origin
+germs O(t²) at every positive regulator order; these integrals are finite and
+preserve that property. Homogeneous D modes are odd/fractional in z and B's
+constant is fixed by Y_n(0)=0. The same positive-imaginary-axis continuation
+argument as case A applies to the final HPLs and the principal gauge factor.
+
+A naive simultaneous rationalization of sqrt(z) and sqrt(1-z) would introduce
+apparent fourth-root-of-unity letters. The gauge above avoids that issue:
+all actual rational poles are 0 and ±1, so the existing HPL algebra suffices.
+This is an independently derived operator method, not copied upstream tables.
+
+`tests/test_all_half_system.py` checks rank-three and rank-four outputs through
+epsilon² and t⁴ against exact defining Pochhammer coefficients, including
+parameter cancellations. This establishes bounded regression evidence, not a
+claim that arbitrary ranks/orders are computationally cheap.
+

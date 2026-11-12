@@ -24,7 +24,7 @@ prerequisite.
    endpoint preprocessing and complete-expression pole budgets. Include mixed
    families and cancellation-sensitive products, not only isolated functions.
 2. Extend half-integer class reductions beyond matched-half patterns and the
-   three canonical ODE systems. Derive missing shifts with explicit boundary
+   four canonical ODE patterns. Derive missing shifts with explicit boundary
    conditions and branch choices; reject unsupported patterns in the meantime.
 3. Expand independent exact coefficient benchmarks, higher-rank cases and
    complexity/performance measurements. Optimize algebra without weakening

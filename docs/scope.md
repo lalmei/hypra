@@ -18,17 +18,17 @@ complete public API coverage or full upstream parity.
 | `hpl_algebra.py` | Shuffle linearization, rational-HPL primitives, definite origin integration, local exact series | Rational poles only 0/±1; finite origin constant must be proved; explicit weight/pole/term budgets |
 | `endpoints.py` | Finite terminating sums; convergent Gauss `2F1(1)` rewrite | Fixed nonpositive upper termination only; affine Gauss parameters and proven convergence; no divergent endpoint continuation |
 
-The native dispatcher uses integer and matched-half reductions. The three
-canonical half-system kernels cover:
+The native dispatcher uses integer and matched-half reductions. The canonical half-system kernels cover:
 
 A. All upper bases zero, exactly one lower base 1/2 and the rest 1.
 B. Exactly one upper base 1/2, remaining upper bases zero, all lower bases 1.
 C. `2F1` upper bases (0,1/2), lower base 1/2.
+D. All upper and lower bases 1/2, arbitrary rank at least two, using a rational gauge transformation.
 
 The generic contiguous engine now supplies integer shifts for the supported
-canonical patterns, including unmatched-half A/B at arbitrary rank and the
-Euler-reduced all-half `2F1` family. This does not cover every half-count pattern
-(for example all-half `3F2` remains unsupported). See
+canonical patterns, including unmatched-half A/B at arbitrary rank and all-half families. This covers the canonical parameter-count classes listed
+by HypExp 2, not every conceivable half-count pattern or full upstream API.
+For example mixed `3F2` with two half-upper and one half-lower remains unsupported. See
 [half-system derivation](half-system.md) and [integer identities](integer-port.md).
 Endpoint rewriting must run before pole planning to include hidden Gamma
 poles; see [endpoint conditions](endpoints.md).

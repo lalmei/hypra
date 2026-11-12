@@ -47,6 +47,6 @@ def use_contiguous(upper, lower):
     r = sum(base.q == 2 for base, _ in upper)
     q = sum(base.q == 2 for base, _ in lower)
     supported = r == q or (r, q) in ((0, 1), (1, 0)) or (
-        len(upper) == 2 and (r, q) == (2, 1)
+        r == len(upper) and q == len(lower)
     )
     return supported and (r != q or any(base < 0 for base, _ in upper))

@@ -93,3 +93,26 @@ def test_resource_limits_and_fixed_lower_pole_reject():
             canonical_builder,
             max_internal_order=3,
         )
+
+
+def test_shifted_unmatched_half_3f2_through_cubic_order():
+    """Canonical differential system plus shift, checked against defining sum."""
+    from hypra.canonical import build_canonical, canonical_bases
+    from hypra.symbolic import HPL
+
+    upper = [(s.Rational(3, 2), s.S.One), (s.S.Zero, s.S.One), (s.S.Zero, -s.S.One)]
+    lower = [(s.S.One, s.Integer(2)), (s.S.One, s.Integer(3))]
+    bases = canonical_bases(upper, lower)
+    result = expand_contiguous(upper, lower, *bases, Z, E, 3, build_canonical)
+    reference = _direct_reference(upper, lower, 3, 4)
+    t = s.Symbol("local_half_t", positive=True)
+    for power in range(4):
+        coefficient = laurent_coefficient(result, E, power)
+        coefficient = coefficient.xreplace(
+            {
+                atom: hpl_series(HPL(atom.word, t), t, 10).subs(t, atom.argument)
+                for atom in coefficient.atoms(HPL)
+            }
+        )
+        actual = s.series(coefficient, Z, 0, 4).removeO()
+        assert s.simplify(s.expand(actual - laurent_coefficient(reference, E, power))) == 0

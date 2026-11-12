@@ -88,7 +88,7 @@ def test_native_domain_and_unsupported_families_fail():
         expand_epsilon(s.hyper([1, -E], [1 - 2 * E], W), E, config=NO_CACHE)
     with pytest.raises(UnsupportedExpressionError, match="Unsupported"):
         expand_epsilon(
-            s.hyper([s.Rational(1, 2)+E]*3, [s.Rational(1, 2)-E]*2, W),
+            s.hyper([s.Rational(1, 2)+E]*2 + [E], [s.Rational(1, 2)-E, 1+E], W),
             E,
             assumptions=DOMAIN,
             config=NO_CACHE,
