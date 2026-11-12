@@ -171,3 +171,13 @@ the slit unit disk. `continue_hpl(word, z, domain="principal-cut-plane",
 path="radial", dps=50)` continues numerically along the specified off-cut
 radial path; it reports propagated truncation and precision-stability diagnostics.
 These numerical diagnostics do not certify floating-point roundoff.
+
+## Browse the documentation locally
+
+```sh
+uv sync
+uv run mkdocs serve --dev-addr 127.0.0.1:8000
+```
+
+Open http://127.0.0.1:8000/ on the same computer. The documentation includes
+locally bundled math rendering and works without external browser resources.

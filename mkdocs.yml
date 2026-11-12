@@ -1,0 +1,59 @@
+site_name: Hypra
+site_description: Native exact epsilon expansions and harmonic polylogarithms in Python
+site_url: http://127.0.0.1:8000/
+use_directory_urls: true
+theme:
+  name: material
+  font: false
+  palette:
+    scheme: default
+    primary: teal
+    accent: deep orange
+  features:
+    - navigation.sections
+    - navigation.top
+    - content.code.copy
+plugins:
+  - search
+markdown_extensions:
+  - admonition
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.highlight
+  - pymdownx.superfences
+  - pymdownx.arithmatex:
+      generic: true
+extra_css:
+  - assets/katex/katex.min.css
+extra_javascript:
+  - assets/katex/katex.min.js
+  - assets/katex/auto-render.min.js
+  - assets/math.js
+nav:
+  - Overview: index.md
+  - Start here:
+      - API examples: api-examples.md
+      - Setup: setup.md
+      - Capabilities and limits: scope.md
+      - Roadmap: roadmap.md
+  - Exact expansion algorithms:
+      - Mathematical derivation: mathematics.md
+      - Integer parameter reductions: integer-port.md
+      - Half-integer systems: half-system.md
+      - Hypergeometric endpoints: endpoints.md
+  - Harmonic polylogarithms:
+      - Notation and formatting: hpl-notation.md
+      - Numerical evaluation: hpl-numerics.md
+      - Radial numerical continuation: hpl-continuation.md
+      - Shuffle and logarithm reduction: hpl-reduction.md
+      - Binary endpoints and MZVs: hpl-endpoints.md
+      - Alternating endpoints and Euler sums: hpl-alternating-endpoints.md
+      - Negation and reflection: hpl-transforms.md
+      - Binary argument maps: hpl-binary-maps.md
+      - Mobius transformation: hpl-mobius.md
+      - Inversion: hpl-inversion.md
+  - Reference:
+      - Exact transport protocol: protocol.md
+      - Upstream sources and attribution: upstream-source.md
+      - Mathematics PDF: mathematics.pdf
