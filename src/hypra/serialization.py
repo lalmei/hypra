@@ -16,6 +16,7 @@ from sympy.core.assumptions import _assume_defined
 from sympy.core.relational import Relational
 from sympy.logic.boolalg import Boolean
 
+from .nielsen import NielsenPolylog
 from .symbolic import HPL, MZV, EulerSum
 
 
@@ -39,6 +40,7 @@ _CONSTANTS = {
 }
 _CONSTANTS_BY_HEAD = {head: value for value, head in _CONSTANTS.items()}
 _FUNCTIONS = {
+    NielsenPolylog: "NielsenPolylog",
     sp.Add: "Add",
     sp.Mul: "Mul",
     sp.Pow: "Pow",
@@ -60,6 +62,7 @@ _FUNCTIONS = {
 }
 _FUNCTIONS_BY_HEAD = {head: fn for fn, head in _FUNCTIONS.items()}
 _ARITY = {
+    "NielsenPolylog": (3,),
     "Pow": (2,),
     "Gamma": (1,),
     "Log": (1, 2),

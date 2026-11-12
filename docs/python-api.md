@@ -32,3 +32,11 @@ are not a claim of additional parameter or branch coverage.
 ::: hypra.hpl_boundary_numeric.evaluate_hpl_boundary
 
 ::: hypra.hpl_boundary_numeric.HPLBoundaryNumericResult
+
+::: hypra.nielsen.NielsenPolylog
+
+::: hypra.nielsen.hpl_to_nielsen
+
+::: hypra.nielsen.nielsen_to_hpl
+
+::: hypra.nielsen.reduce_nielsen

@@ -73,6 +73,7 @@ nav:
       - Hypergeometric endpoints: endpoints.md
   - Harmonic polylogarithms:
       - Notation and formatting: hpl-notation.md
+      - Nielsen polylogarithms: nielsen-polylogarithms.md
       - Numerical evaluation: hpl-numerics.md
       - Interior Taylor series: hpl-taylor.md
       - Exact values at i: hpl-at-i.md

@@ -45,6 +45,7 @@ from .hpl_stuffle import stuffle_expand_constants
 from .hpl_taylor import hpl_taylor
 from .hpl_transform import negate_hpl, reflect_hpl
 from .native import NativeBackend, NativeConfig
+from .nielsen import NielsenPolylog, hpl_to_nielsen, nielsen_to_hpl, reduce_nielsen
 from .serialization import SerializationError, decode_expr, encode_expr
 from .symbolic import HPL, MZV, EulerSum
 
@@ -79,6 +80,7 @@ __all__ = [
     "IncompleteExpansionError",
     "NativeBackend",
     "NativeConfig",
+    "NielsenPolylog",
     "SerializationError",
     "UnsupportedExpressionError",
     "__version__",
@@ -106,6 +108,7 @@ __all__ = [
     "hpl_pm",
     "hpl_series",
     "hpl_taylor",
+    "hpl_to_nielsen",
     "hypergeometric",
     "integrate_from_zero",
     "invert_hpl",
@@ -114,10 +117,12 @@ __all__ = [
     "lyndon_reduce",
     "mobius_hpl",
     "negate_hpl",
+    "nielsen_to_hpl",
     "pm_to_letters",
     "primitive_hpl",
     "reduce_euler_sum",
     "reduce_mzv",
+    "reduce_nielsen",
     "reflect_hpl",
     "shuffle_expand",
     "shuffle_regularized_hpl_at_one",

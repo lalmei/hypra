@@ -15,6 +15,7 @@ The reference source is read only; no upstream reduction tables are copied.
 | Product expansion | `shuffle_expand`, `shuffle_product` | Same-argument shuffle algebra |
 | Logarithm extraction | `extract_hpl_logs` | Leading 1 and trailing 0; retains branch data |
 | Shuffle basis reduction | `lyndon_reduce` | Table-free Lyndon basis through weight eight, not upstream's particular chosen basis |
+| Nielsen notation | `NielsenPolylog`, `hpl_to_nielsen`, `nielsen_to_hpl` | Exact 0^n1^p words; no general Nielsen-basis claim |
 | Elementary/classical conversion | `reduce_known_hpl`; `classical_hpl` | Standard all-weight simple words; all weight-two and weight-three words with at most two distinct letters; other mixed words retained |
 | Argument transformations | Negation, reflection, Möbius, inversion, square, fractional maps | Explicit alphabet/domain/boundary/weight contracts |
 | Expression argument unification | `transform_hpl_arguments` | Dispatches supported maps; unknown arguments rejected |
@@ -63,8 +64,9 @@ real-cut additions:
 - **Minimal sets and known functions:** the native Lyndon basis is a chosen
   table-free shuffle basis, not upstream's particular minimal-set tables.
   Classical conversion still leaves genuinely ternary weight-three words
-  and general higher-weight words intact. A dedicated Nielsen-polylogarithm
-  conversion layer is not implemented.
+  and general higher-weight words intact. An exact Nielsen-polylogarithm
+  notation/conversion layer covers words 0^n 1^p; it does not reduce arbitrary
+  HPL words to Nielsen functions.
 - **Numerical assurance:** cut-boundary evaluation maps the exact argument
   before numerics. Its component tail bounds are not a propagated final-error
   certificate; higher-precision stability is checked separately. Neither this
