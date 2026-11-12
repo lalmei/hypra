@@ -30,3 +30,9 @@ def test_sympy_series_at_shifted_point():
 def test_invalid_center_fails(center):
     with pytest.raises(UnsupportedExpressionError):
         hpl_taylor((0,1),center,z)
+
+
+def test_sympy_interior_trailing_zero_is_analytic():
+    actual=HPL((1,0),c+h).series(h,0,4).removeO()
+    expected=hpl_taylor((1,0),c,z,through=3).removeO().subs(z,c+h)
+    assert s.expand(actual-expected) == 0

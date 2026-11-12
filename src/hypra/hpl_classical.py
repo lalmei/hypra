@@ -8,9 +8,9 @@ from .symbolic import HPL, reduce_known_hpl
 
 
 def classical_hpl(expression, z, *, domain):
-    """Reduce weight two and weight three over {0,1} or {0,-1} at z.
+    """Reduce weight two and all weight-three words using at most two letters.
 
-    Requires the declared real interval 0<z<1. Higher mixed words remain HPLs;
+    Requires the declared real interval 0<z<1. Weight-three words using all three letters and higher mixed words remain HPLs;
     this does not claim a complete high-weight classical-function basis.
     """
     if not isinstance(expression, s.Expr) or not isinstance(z, s.Symbol):
@@ -42,6 +42,25 @@ def classical_hpl(expression, z, *, domain):
     negative_011 = (
         s.zeta(3) - s.polylog(3, u) - L * s.polylog(2, u) + L**2 * s.log(z) / 2 - L**3 / 3
     )
+
+    # The real substitution u=(1∓z)/2 evaluates H_{∓1,±1,±1}.
+    def opposite_repeat(sign):
+        logarithm = s.log(1 - sign * z)
+        argument = (1 - sign * z) / 2
+        return (
+            s.polylog(3, s.S.Half)
+            + logarithm**2 * s.log((1 + sign * z) / 2) / 2
+            + logarithm * s.polylog(2, argument)
+            - s.polylog(3, argument)
+        )
+
+    minus_plus_plus = opposite_repeat(1)
+    plus_minus_minus = -opposite_repeat(-1)
+    minus_minus_plus = (
+        -(s.log(1 + z) ** 2) * s.log(1 - z) / 2
+        - s.log(1 + z) * formulas[(1, -1)]
+        + plus_minus_minus
+    )
     changes = {}
     for atom in result.atoms(HPL):
         if atom.argument != z:
@@ -64,6 +83,21 @@ def classical_hpl(expression, z, *, domain):
             changes[atom] = reduce_known_hpl(relabeled).xreplace(
                 {HPL((0, -1, -1), z): negative_011}
             )
+        elif len(word) == 3 and all(letter in (-1, 1) for letter in word):
+            # Abstract two-letter shuffle extraction, not argument relabeling.
+            binary = tuple(0 if letter == -1 else 1 for letter in word)
+            extracted = _extract(binary, z, True, True)
+            relabeled = extracted.xreplace(
+                {
+                    h: HPL(tuple(-1 if letter == 0 else 1 for letter in h.word), z)
+                    for h in extracted.atoms(HPL)
+                }
+            )
+            replacements = {HPL(w, z): f for w, f in formulas.items()}
+            replacements.update(
+                {HPL((-1, -1, 1), z): minus_minus_plus, HPL((-1, 1, 1), z): minus_plus_plus}
+            )
+            changes[atom] = reduce_known_hpl(relabeled.xreplace(replacements))
         elif word in formulas:
             changes[atom] = formulas[word]
     return result.xreplace(changes)

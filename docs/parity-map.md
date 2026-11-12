@@ -15,7 +15,7 @@ The reference source is read only; no upstream reduction tables are copied.
 | Product expansion | `shuffle_expand`, `shuffle_product` | Same-argument shuffle algebra |
 | Logarithm extraction | `extract_hpl_logs` | Leading 1 and trailing 0; retains branch data |
 | Shuffle basis reduction | `lyndon_reduce` | Table-free Lyndon basis through weight eight, not upstream's particular chosen basis |
-| Elementary/classical conversion | `reduce_known_hpl`; `classical_hpl` | Standard all-weight simple words; all weight-two and {0,±1}-single-sign weight-three words; other mixed words retained |
+| Elementary/classical conversion | `reduce_known_hpl`; `classical_hpl` | Standard all-weight simple words; all weight-two and weight-three words with at most two distinct letters; other mixed words retained |
 | Argument transformations | Negation, reflection, Möbius, inversion, square, fractional maps | Explicit alphabet/domain/boundary/weight contracts |
 | Expression argument unification | `transform_hpl_arguments` | Dispatches supported maps; unknown arguments rejected |
 | Rational-HPL integration | `primitive_hpl`, `integrate_from_zero` | Poles only 0,±1; definite origin limit must exist |
@@ -62,7 +62,7 @@ real-cut additions:
   but are not a complete reduction to the upstream named constant basis.
 - **Minimal sets and known functions:** the native Lyndon basis is a chosen
   table-free shuffle basis, not upstream's particular minimal-set tables.
-  Classical conversion still leaves genuinely mixed-sign weight-three words
+  Classical conversion still leaves genuinely ternary weight-three words
   and general higher-weight words intact. A dedicated Nielsen-polylogarithm
   conversion layer is not implemented.
 - **Numerical assurance:** cut-boundary evaluation maps the exact argument
@@ -78,11 +78,11 @@ real-cut additions:
 
 The smallest useful remaining symbolic milestone is **all mixed-sign ternary
 weight-three HPLs in classical functions on the real interval**. Over the
-ordered alphabet `-1 < 0 < 1`, weight three has eight Lyndon basis words. Four
-mixed-sign representatives remain beyond the current single-sign primitives:
-`(-1,-1,1)`, `(-1,0,1)`, `(-1,1,0)`, `(-1,1,1)`.
+ordered alphabet `-1 < 0 < 1`, weight three has eight Lyndon basis words. Two
+genuinely ternary representatives remain beyond the implemented two-letter primitives:
+`(-1,0,1)` and `(-1,1,0)`.
 
-A native implementation can derive four logarithm/dilogarithm/trilogarithm
+A native implementation can derive the remaining two logarithm/dilogarithm/trilogarithm
 primitives, fix each constant by the origin limit, and reconstruct all 27
 words through the existing shuffle algebra. Acceptance should check every
 exact differentiated recursion, the origin normalization and independent

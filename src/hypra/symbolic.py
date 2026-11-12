@@ -158,11 +158,6 @@ class HPL(Function):
         if all(letter == 0 for letter in self.word):
             exact = log(self.argument) ** len(self.word) / factorial(len(self.word))
             return exact._eval_nseries(x, n, logx, cdir=cdir)
-        if self.word[-1] == 0:
-            raise UnsupportedExpressionError(
-                "Mixed trailing-zero HPL words have logarithmic germs; use "
-                "hypra.hpl_algebra.hpl_series for explicit local terms"
-            )
         center = self.argument.subs(x, 0)
         if center.is_Rational and 0 < center < 1:
             from .hpl_taylor import hpl_taylor
@@ -176,6 +171,11 @@ class HPL(Function):
             local = Dummy("hpl_taylor")
             polynomial = hpl_taylor(self.word, center, local, through=degree).removeO()
             return polynomial.subs(local, self.argument)._eval_nseries(x, n, logx, cdir=cdir) + Order(x**n, x)
+        if self.word[-1] == 0:
+            raise UnsupportedExpressionError(
+                "Mixed trailing-zero HPL words have logarithmic germs; use "
+                "hypra.hpl_algebra.hpl_series for explicit local terms"
+            )
         _, power = self._zero_germ_argument(x, logx, cdir)
         # Expand strictly deeper than required: omitted analytic argument powers
         # have valuation > n, so appending O(x**n) cannot overstate accuracy.
