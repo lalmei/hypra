@@ -1,0 +1,39 @@
+{
+  "offline_mathematics": "exact independent derivation, not a backend execution",
+  "P": "1 + epsilon*log(1 - w) + epsilon**2*(-log(1 - w)**2/2 - 2*polylog(2, w)) + O(epsilon**3)",
+  "Q": "1 + 2*epsilon*log(w) - 4*epsilon**2*polylog(2, 1 - w) + O(epsilon**3)",
+  "J4": "2*epsilon**2*zeta(3) + 11*pi**4*epsilon**3/60 + O(epsilon**4)",
+  "backend": {
+    "available": false,
+    "executable": null,
+    "wolfram_version": null,
+    "system_id": null,
+    "hypexp_version": null,
+    "hpl_version": null,
+    "hypexp_path": null,
+    "hpl_path": null,
+    "fingerprint": null,
+    "hypexp_sha256": null,
+    "hpl_sha256": null,
+    "error": "Wolfram executable not found",
+    "bridge_version": 1
+  },
+  "real_backend_validation": "BLOCKED: Wolfram executable not found",
+  "secondary_quadrature": [
+    {
+      "epsilon": "-0.01",
+      "J4_quadrature": "0.00022332470376487292171569888493895584",
+      "residual_over_epsilon4": "77.1656489187845"
+    },
+    {
+      "epsilon": "-0.005",
+      "J4_quadrature": "0.000057919627934559368999401229799292253",
+      "residual_over_epsilon4": "78.5191137742036"
+    },
+    {
+      "epsilon": "-0.0025",
+      "J4_quadrature": "0.000014749769033388574581689016311535814",
+      "residual_over_epsilon4": "79.21158617085"
+    }
+  ]
+}

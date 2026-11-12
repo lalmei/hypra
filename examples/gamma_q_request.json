@@ -1,0 +1,135 @@
+{
+  "expression": {
+    "head": "Mul",
+    "args": [
+      {
+        "head": "Gamma",
+        "args": [
+          {
+            "head": "Symbol",
+            "name": "eps",
+            "assumptions": {}
+          }
+        ]
+      },
+      {
+        "head": "HypergeometricPFQ",
+        "args": [
+          {
+            "head": "List",
+            "args": [
+              {
+                "head": "Integer",
+                "value": "1"
+              },
+              {
+                "head": "Mul",
+                "args": [
+                  {
+                    "head": "Integer",
+                    "value": "-2"
+                  },
+                  {
+                    "head": "Symbol",
+                    "name": "eps",
+                    "assumptions": {}
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "head": "List",
+            "args": [
+              {
+                "head": "Add",
+                "args": [
+                  {
+                    "head": "Integer",
+                    "value": "1"
+                  },
+                  {
+                    "head": "Mul",
+                    "args": [
+                      {
+                        "head": "Integer",
+                        "value": "-2"
+                      },
+                      {
+                        "head": "Symbol",
+                        "name": "eps",
+                        "assumptions": {}
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "head": "Add",
+            "args": [
+              {
+                "head": "Integer",
+                "value": "1"
+              },
+              {
+                "head": "Mul",
+                "args": [
+                  {
+                    "head": "Integer",
+                    "value": "-1"
+                  },
+                  {
+                    "head": "Symbol",
+                    "name": "w",
+                    "assumptions": {}
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "epsilon": {
+    "head": "Symbol",
+    "name": "eps",
+    "assumptions": {}
+  },
+  "through": 2,
+  "assumptions": {
+    "head": "And",
+    "args": [
+      {
+        "head": "Greater",
+        "args": [
+          {
+            "head": "Symbol",
+            "name": "w",
+            "assumptions": {}
+          },
+          {
+            "head": "Integer",
+            "value": "0"
+          }
+        ]
+      },
+      {
+        "head": "Less",
+        "args": [
+          {
+            "head": "Symbol",
+            "name": "w",
+            "assumptions": {}
+          },
+          {
+            "head": "Integer",
+            "value": "1"
+          }
+        ]
+      }
+    ]
+  }
+}

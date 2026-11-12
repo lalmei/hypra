@@ -1,0 +1,25 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "hypra"
+version = "0.1.0a0"
+description = "Native exact hypergeometric epsilon expansions in SymPy, inspired by HypExp2"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = ["sympy>=1.13,<2"]
+
+[project.scripts]
+hypra = "hypra.__main__:main"
+
+[dependency-groups]
+dev = ["pytest>=8", "ruff>=0.8"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = ["real_backend: requires licensed Wolfram plus external HypExp/HPL (opt in)"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"

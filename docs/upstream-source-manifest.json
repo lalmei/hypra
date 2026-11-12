@@ -1,0 +1,435 @@
+{
+  "retrieved_utc_date": "2026-11-12",
+  "purpose": "read-only academic source study for Python-native reimplementation; not executed or installed",
+  "source_homepages": [
+    "https://www.physik.uzh.ch/data/HypExp/",
+    "https://www.physik.uzh.ch/data/HPL/"
+  ],
+  "licence": {
+    "label": "CPC non-profit use license",
+    "url": "https://www.elsevier.com/about/policies-and-standards/open-access-licenses/elsevier-user/cpc",
+    "hypexp_record": "https://elsevier.digitalcommonsdata.com/datasets/cphpktd5cn/1",
+    "hpl_record": "https://elsevier.digitalcommonsdata.com/datasets/hntx3r95cx/1",
+    "redistribution": "Original or modified program redistribution requires author written permission; reference files excluded from git/package."
+  },
+  "archives": [
+    {
+      "name": "HypExp-2.0",
+      "url": "https://www.physik.uzh.ch/data/HypExp/HypExp-2.0.tar.gz",
+      "archive_path": "reference/upstream/HypExp-2.0.tar.gz",
+      "archive_bytes": 1342237,
+      "archive_sha256": "d6275525a37d393c7706210d875364d06962f84e1715b570f07c56ed3cf9a60f",
+      "files": [
+        {
+          "path": "HypExp-2.0/.HPLversion",
+          "bytes": 30,
+          "sha256": "1a66d9c6a5e768d6fe2aa6df3ccb7dd77062ea89f816d44a899ea37039d4f9ef"
+        },
+        {
+          "path": "HypExp-2.0/.HypExpversion",
+          "bytes": 25,
+          "sha256": "8e0a4e7cf8acc3e3f2d1da80659dce6ea37e4df5ee768d7edbb56bdc0856a6ba"
+        },
+        {
+          "path": "HypExp-2.0/HPL-2Examples.nb",
+          "bytes": 134883,
+          "sha256": "834a6bfaa33abaf8833e9bc20bc52305db2d141b09eb0920bb628b3d489de0a5"
+        },
+        {
+          "path": "HypExp-2.0/HPL.m",
+          "bytes": 97008,
+          "sha256": "bc45586267933e01fc62815fad01828afcc772031c578541320144790e31ad54"
+        },
+        {
+          "path": "HypExp-2.0/HPLInstall",
+          "bytes": 6768,
+          "sha256": "1979553fa25e3e17d32bd0feabc1ca0d402db7b4ba1cd98b08b4a8560d576673"
+        },
+        {
+          "path": "HypExp-2.0/HPLInstallTest.m",
+          "bytes": 30,
+          "sha256": "a8f335ecb86693e16d21b209bccab18f9a6f27e4c2d604d2f8e8055be7d057f8"
+        },
+        {
+          "path": "HypExp-2.0/HPLUninstall",
+          "bytes": 870,
+          "sha256": "1d446d4694b5cbe2f2eaeffddce08e5e2c4384fd479310af621ae9478a21a82b"
+        },
+        {
+          "path": "HypExp-2.0/HPL_README",
+          "bytes": 3526,
+          "sha256": "ad35dd1b8fd35afed4c2b04d61dab200bfad23b4deec1706e91bbe2a9687e69e"
+        },
+        {
+          "path": "HypExp-2.0/HPLatI1.m",
+          "bytes": 159,
+          "sha256": "f5b9cf9471a382f1e42280a10e8b6e40e36383dfed0076c5e2a532a4b5b53f78"
+        },
+        {
+          "path": "HypExp-2.0/HPLatI2.m",
+          "bytes": 794,
+          "sha256": "bdf95abd907039e99d043b54768819da5b6d7031417846baa2355151b24c147a"
+        },
+        {
+          "path": "HypExp-2.0/HPLatI3.m",
+          "bytes": 5352,
+          "sha256": "54c3eff7ca07e0f738d36c5a1aa81c06613cfba644ce6eb86ea998fe748b3ad7"
+        },
+        {
+          "path": "HypExp-2.0/HPLatI4.m",
+          "bytes": 35115,
+          "sha256": "674bd0518404abf1d4767e7fba15f4b70de950a80cdfc27343a846b5d600126f"
+        },
+        {
+          "path": "HypExp-2.0/HPLatI5.m",
+          "bytes": 377463,
+          "sha256": "bb81339619f00ed2e90266ab94e1985b39c6e4718f0970412411a6cc35430173"
+        },
+        {
+          "path": "HypExp-2.0/HPLatI6.m",
+          "bytes": 6078639,
+          "sha256": "bab53bc6adc12bc5add8b3339ba843d05abf21f9cdba83926d411139df47ef03"
+        },
+        {
+          "path": "HypExp-2.0/HPLnolicense",
+          "bytes": 37,
+          "sha256": "6e0f981c29f82572af541d36fb7916a4f4bcb1cd0bcdfa95de99b189a742502a"
+        },
+        {
+          "path": "HypExp-2.0/HypExp.m",
+          "bytes": 146010,
+          "sha256": "f172363ad6d109b34e402e1e0b86ee0f004a55a09d8d83a12a6d4a23393ffffa"
+        },
+        {
+          "path": "HypExp-2.0/HypExpInstall",
+          "bytes": 11026,
+          "sha256": "fafd57d39a189f1ecbc062c0617273b63532dca921c7855239064ab8284bc85e"
+        },
+        {
+          "path": "HypExp-2.0/HypExpInstallTest.m",
+          "bytes": 33,
+          "sha256": "8feea32fec27c36f77cf08f33b534d26a018e6a16665a52086765bb5d02cb54a"
+        },
+        {
+          "path": "HypExp-2.0/HypExpUnInstall",
+          "bytes": 1239,
+          "sha256": "5120fff9756396648ab91f31c2ab68fa61c9de3b05c8ba86833e800f4468f3fb"
+        },
+        {
+          "path": "HypExp-2.0/MinimalSet2.m",
+          "bytes": 829,
+          "sha256": "c73eaa3449b12dbfcdac8ac5a14e6d767a9d21b32ed47f6a3a46dd26c77a8e12"
+        },
+        {
+          "path": "HypExp-2.0/MinimalSet3.m",
+          "bytes": 3209,
+          "sha256": "8f7a340375576a14fb07e57db814d3a7ab3bffa1f222018cb70e4acd327889e0"
+        },
+        {
+          "path": "HypExp-2.0/MinimalSet4.m",
+          "bytes": 13592,
+          "sha256": "c93c8d1a02906fdd162646c83377d11c701eba9e59fecede6184df3da475bdaa"
+        },
+        {
+          "path": "HypExp-2.0/MinimalSet5.m",
+          "bytes": 58922,
+          "sha256": "0a8bbe98737c294ef93ac646c812cf55cd9fe62f452f88365ec7c167acd8d435"
+        },
+        {
+          "path": "HypExp-2.0/MinimalSet6.m",
+          "bytes": 277954,
+          "sha256": "16d66ccad2684479a2fae8a28743662e753a06fd7c32cf511cf7a0d7f9e659c5"
+        },
+        {
+          "path": "HypExp-2.0/MinimalSetpm2.m",
+          "bytes": 888,
+          "sha256": "a43d3fa8eb2007fd1705f2302dc855937ba2ce8c6fc3e9b39fa0e5d3ca8e01d1"
+        },
+        {
+          "path": "HypExp-2.0/MinimalSetpm3.m",
+          "bytes": 3678,
+          "sha256": "bc4ca35e89b3a1f959b24c81d3ac72f9f632a93b25c0da3603c4f251cae857a3"
+        },
+        {
+          "path": "HypExp-2.0/MinimalSetpm4.m",
+          "bytes": 16751,
+          "sha256": "38148442a76cfee66c4a0e2bf3e5c812d084826156443b1dca8c30793f5de70c"
+        },
+        {
+          "path": "HypExp-2.0/MinimalSetpm5.m",
+          "bytes": 78054,
+          "sha256": "41ba3dbd1a9d74e5dc8a7ce6e16f526bb4871a543da477875e2d30e0ecbfbeec"
+        },
+        {
+          "path": "HypExp-2.0/MinimalSetpm6.m",
+          "bytes": 391761,
+          "sha256": "40cb8ec1bd3325f150cc5d86bee24bee1be2ae99cb88d1c8c213c1fb428d9d7e"
+        },
+        {
+          "path": "HypExp-2.0/PZRule10.m",
+          "bytes": 16621,
+          "sha256": "b160a8b2a37a8662093caea002e73528547aef5516b649a884bf56e7243d54cd"
+        },
+        {
+          "path": "HypExp-2.0/PZRule2.m",
+          "bytes": 22371,
+          "sha256": "7d556fe22bf86d1b5f4e50030f41469ce4835baf658e89552313b98c3cbc0a34"
+        },
+        {
+          "path": "HypExp-2.0/PZRule3.m",
+          "bytes": 27764,
+          "sha256": "d586a5532e795fac0314b1b21930effeef5b21043da805a357d1f87ae753d66a"
+        },
+        {
+          "path": "HypExp-2.0/PZRule4.m",
+          "bytes": 35360,
+          "sha256": "8a1dc2f0b30283579e188dfce364ca4cd31b38f6baa6135fb5d686262848dd0a"
+        },
+        {
+          "path": "HypExp-2.0/PZRule5.m",
+          "bytes": 30214,
+          "sha256": "c356cc2e89d41552da1a96651d4a8f2a981c5d1eb91d1cdcf759e5e24d7d2263"
+        },
+        {
+          "path": "HypExp-2.0/PZRule6.m",
+          "bytes": 17034,
+          "sha256": "cb62d11f0ae6ac73ea7a8846a9c89da15918a3256aa327229788985c6a55d9fd"
+        },
+        {
+          "path": "HypExp-2.0/PZRule7.m",
+          "bytes": 5974,
+          "sha256": "2e9c7fb7e3c9f3fcd64782f014e441bb3aca7855f5d12527a7805f59d6987eb0"
+        },
+        {
+          "path": "HypExp-2.0/PZRule8.m",
+          "bytes": 8696,
+          "sha256": "5d3d2f617715495cff418d77f72a94957897684939f077e1a150cf1b53beec90"
+        },
+        {
+          "path": "HypExp-2.0/PZRule9.m",
+          "bytes": 12226,
+          "sha256": "47c4f73f5d9fcd11e2be7e2fae0cb3fe4941fac46e71a96ebe1134257c0d6a8f"
+        },
+        {
+          "path": "HypExp-2.0/README",
+          "bytes": 4724,
+          "sha256": "8717cbe6a4a6ccf8da7c739c07f8427eea3616d2eb02cf31f0f60853a43c47ee"
+        },
+        {
+          "path": "HypExp-2.0/collectedfunctions.out",
+          "bytes": 1642984,
+          "sha256": "db41cdf76e99007c83fad31d7a1174a8f7be6e64f342c4bae3308b99c5164660"
+        },
+        {
+          "path": "HypExp-2.0/h6table.mat",
+          "bytes": 226039,
+          "sha256": "e0c24b9c6b500002cf932a2d0ced25d4ba8e4ce9a488dbd54fd61f077a091efb"
+        },
+        {
+          "path": "HypExp-2.0/install_libs",
+          "bytes": 2958,
+          "sha256": "8cf72ff35f779ff5f81886eb6deee15c512a530a330d4b4246d3df46c83a1bb0"
+        },
+        {
+          "path": "HypExp-2.0/lib_consistency",
+          "bytes": 802,
+          "sha256": "ac360b50e5ddeb9feffb2ffa5e2b7b28f8cae3c2343f3676d88b838682282f8d"
+        },
+        {
+          "path": "HypExp-2.0/listintegralsminimal.m",
+          "bytes": 34450,
+          "sha256": "d6632d6305e36279ae608fca3f6d8316c48b5ba705c7fd8e918b57ed515d687e"
+        },
+        {
+          "path": "HypExp-2.0/nmzv.m",
+          "bytes": 7640,
+          "sha256": "2e8b6ad5a194aaf745990fbca2901387e503250184a6b29dbf5ddc879e30f0eb"
+        },
+        {
+          "path": "HypExp-2.0/numHPLatI4.m",
+          "bytes": 1123,
+          "sha256": "343114423a1b5472459b07f763e89490e08c9d8d45d2713bc44d6b289c095451"
+        },
+        {
+          "path": "HypExp-2.0/numHPLatI5.m",
+          "bytes": 10179,
+          "sha256": "85a239445a5be8f39495e3df2816c64b928018b0e4b6bd3f50adbe31fc3ba008"
+        },
+        {
+          "path": "HypExp-2.0/numHPLatI6.m",
+          "bytes": 26120,
+          "sha256": "4803a5d44fbbeda519c3e82c4737e3dee244fc3b5229fe3a00efce9c1746dc3d"
+        },
+        {
+          "path": "HypExp-2.0/rrarg.m",
+          "bytes": 4909,
+          "sha256": "137d811049a2592661ac57449eac27d2333e7bee1ffaaf941ae4adfb6f3b7377"
+        },
+        {
+          "path": "HypExp-2.0/rrlpnHPL_private.out2",
+          "bytes": 1387,
+          "sha256": "27aab5ef8c6aed96d53dddb4b1c4dd70dc6f9a6ffad58ece23e7ff88742f8941"
+        },
+        {
+          "path": "HypExp-2.0/rulesalgorithm.m",
+          "bytes": 24477,
+          "sha256": "600f2b67fe528291592aefaef02872ea36df68fdbda4efc24205412e3efa0c2b"
+        }
+      ]
+    },
+    {
+      "name": "HPL-2.0",
+      "url": "https://www.physik.uzh.ch/data/HPL/HPL-2.0.tar.gz",
+      "archive_path": "reference/upstream/HPL-2.0.tar.gz",
+      "archive_bytes": 1055473,
+      "archive_sha256": "ca965edb320c735f31433daf11b099ef11d2fbd1a8108b11293d18a6674136ee",
+      "files": [
+        {
+          "path": "HPL-2.0/.HPLversion",
+          "bytes": 30,
+          "sha256": "d5c0809b134f35ff168224e3c8cf801f455f74b7f25ad8bf0f64036de17c91d4"
+        },
+        {
+          "path": "HPL-2.0/HPL-2Examples.nb",
+          "bytes": 134883,
+          "sha256": "834a6bfaa33abaf8833e9bc20bc52305db2d141b09eb0920bb628b3d489de0a5"
+        },
+        {
+          "path": "HPL-2.0/HPL.m",
+          "bytes": 96873,
+          "sha256": "2f0162a822c0dc28f2157c34d59e29bf2acbcf56d7f1d4e9779f57ed62e35f80"
+        },
+        {
+          "path": "HPL-2.0/HPLInstall",
+          "bytes": 6768,
+          "sha256": "1979553fa25e3e17d32bd0feabc1ca0d402db7b4ba1cd98b08b4a8560d576673"
+        },
+        {
+          "path": "HPL-2.0/HPLInstallTest.m",
+          "bytes": 30,
+          "sha256": "a8f335ecb86693e16d21b209bccab18f9a6f27e4c2d604d2f8e8055be7d057f8"
+        },
+        {
+          "path": "HPL-2.0/HPLUninstall",
+          "bytes": 870,
+          "sha256": "1d446d4694b5cbe2f2eaeffddce08e5e2c4384fd479310af621ae9478a21a82b"
+        },
+        {
+          "path": "HPL-2.0/HPL_README",
+          "bytes": 3526,
+          "sha256": "ad35dd1b8fd35afed4c2b04d61dab200bfad23b4deec1706e91bbe2a9687e69e"
+        },
+        {
+          "path": "HPL-2.0/HPLatI1.m",
+          "bytes": 159,
+          "sha256": "f5b9cf9471a382f1e42280a10e8b6e40e36383dfed0076c5e2a532a4b5b53f78"
+        },
+        {
+          "path": "HPL-2.0/HPLatI2.m",
+          "bytes": 794,
+          "sha256": "bdf95abd907039e99d043b54768819da5b6d7031417846baa2355151b24c147a"
+        },
+        {
+          "path": "HPL-2.0/HPLatI3.m",
+          "bytes": 5352,
+          "sha256": "54c3eff7ca07e0f738d36c5a1aa81c06613cfba644ce6eb86ea998fe748b3ad7"
+        },
+        {
+          "path": "HPL-2.0/HPLatI4.m",
+          "bytes": 35115,
+          "sha256": "674bd0518404abf1d4767e7fba15f4b70de950a80cdfc27343a846b5d600126f"
+        },
+        {
+          "path": "HPL-2.0/HPLatI5.m",
+          "bytes": 377463,
+          "sha256": "bb81339619f00ed2e90266ab94e1985b39c6e4718f0970412411a6cc35430173"
+        },
+        {
+          "path": "HPL-2.0/HPLatI6.m",
+          "bytes": 6078639,
+          "sha256": "bab53bc6adc12bc5add8b3339ba843d05abf21f9cdba83926d411139df47ef03"
+        },
+        {
+          "path": "HPL-2.0/HPLnolicense",
+          "bytes": 37,
+          "sha256": "6e0f981c29f82572af541d36fb7916a4f4bcb1cd0bcdfa95de99b189a742502a"
+        },
+        {
+          "path": "HPL-2.0/MinimalSet2.m",
+          "bytes": 829,
+          "sha256": "c73eaa3449b12dbfcdac8ac5a14e6d767a9d21b32ed47f6a3a46dd26c77a8e12"
+        },
+        {
+          "path": "HPL-2.0/MinimalSet3.m",
+          "bytes": 3209,
+          "sha256": "8f7a340375576a14fb07e57db814d3a7ab3bffa1f222018cb70e4acd327889e0"
+        },
+        {
+          "path": "HPL-2.0/MinimalSet4.m",
+          "bytes": 13592,
+          "sha256": "c93c8d1a02906fdd162646c83377d11c701eba9e59fecede6184df3da475bdaa"
+        },
+        {
+          "path": "HPL-2.0/MinimalSet5.m",
+          "bytes": 58922,
+          "sha256": "0a8bbe98737c294ef93ac646c812cf55cd9fe62f452f88365ec7c167acd8d435"
+        },
+        {
+          "path": "HPL-2.0/MinimalSet6.m",
+          "bytes": 277954,
+          "sha256": "16d66ccad2684479a2fae8a28743662e753a06fd7c32cf511cf7a0d7f9e659c5"
+        },
+        {
+          "path": "HPL-2.0/MinimalSetpm2.m",
+          "bytes": 888,
+          "sha256": "a43d3fa8eb2007fd1705f2302dc855937ba2ce8c6fc3e9b39fa0e5d3ca8e01d1"
+        },
+        {
+          "path": "HPL-2.0/MinimalSetpm3.m",
+          "bytes": 3678,
+          "sha256": "bc4ca35e89b3a1f959b24c81d3ac72f9f632a93b25c0da3603c4f251cae857a3"
+        },
+        {
+          "path": "HPL-2.0/MinimalSetpm4.m",
+          "bytes": 16751,
+          "sha256": "38148442a76cfee66c4a0e2bf3e5c812d084826156443b1dca8c30793f5de70c"
+        },
+        {
+          "path": "HPL-2.0/MinimalSetpm5.m",
+          "bytes": 78054,
+          "sha256": "41ba3dbd1a9d74e5dc8a7ce6e16f526bb4871a543da477875e2d30e0ecbfbeec"
+        },
+        {
+          "path": "HPL-2.0/MinimalSetpm6.m",
+          "bytes": 391761,
+          "sha256": "40cb8ec1bd3325f150cc5d86bee24bee1be2ae99cb88d1c8c213c1fb428d9d7e"
+        },
+        {
+          "path": "HPL-2.0/h6table.mat",
+          "bytes": 226039,
+          "sha256": "e0c24b9c6b500002cf932a2d0ced25d4ba8e4ce9a488dbd54fd61f077a091efb"
+        },
+        {
+          "path": "HPL-2.0/nmzv.m",
+          "bytes": 7640,
+          "sha256": "2e8b6ad5a194aaf745990fbca2901387e503250184a6b29dbf5ddc879e30f0eb"
+        },
+        {
+          "path": "HPL-2.0/numHPLatI4.m",
+          "bytes": 1123,
+          "sha256": "343114423a1b5472459b07f763e89490e08c9d8d45d2713bc44d6b289c095451"
+        },
+        {
+          "path": "HPL-2.0/numHPLatI5.m",
+          "bytes": 10179,
+          "sha256": "85a239445a5be8f39495e3df2816c64b928018b0e4b6bd3f50adbe31fc3ba008"
+        },
+        {
+          "path": "HPL-2.0/numHPLatI6.m",
+          "bytes": 26120,
+          "sha256": "4803a5d44fbbeda519c3e82c4737e3dee244fc3b5229fe3a00efce9c1746dc3d"
+        }
+      ]
+    }
+  ]
+}

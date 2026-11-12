@@ -1,0 +1,1284 @@
+{
+  "native_backend_validation": "PASSED: actual native Python P/Q/integrand calculations",
+  "backend": {
+    "available": true,
+    "backend": "native-sympy",
+    "algorithm_version": "hpl-twof1-v1",
+    "sympy_version": "1.14.0",
+    "error": null
+  },
+  "P": {
+    "polynomial": {
+      "head": "Add",
+      "args": [
+        {
+          "head": "Integer",
+          "value": "1"
+        },
+        {
+          "head": "Mul",
+          "args": [
+            {
+              "head": "Symbol",
+              "name": "eps",
+              "assumptions": {}
+            },
+            {
+              "head": "Log",
+              "args": [
+                {
+                  "head": "Add",
+                  "args": [
+                    {
+                      "head": "Integer",
+                      "value": "1"
+                    },
+                    {
+                      "head": "Mul",
+                      "args": [
+                        {
+                          "head": "Integer",
+                          "value": "-1"
+                        },
+                        {
+                          "head": "Symbol",
+                          "name": "w",
+                          "assumptions": {}
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "head": "Mul",
+          "args": [
+            {
+              "head": "Integer",
+              "value": "-2"
+            },
+            {
+              "head": "Pow",
+              "args": [
+                {
+                  "head": "Symbol",
+                  "name": "eps",
+                  "assumptions": {}
+                },
+                {
+                  "head": "Integer",
+                  "value": "2"
+                }
+              ]
+            },
+            {
+              "head": "PolyLog",
+              "args": [
+                {
+                  "head": "Integer",
+                  "value": "2"
+                },
+                {
+                  "head": "Symbol",
+                  "name": "w",
+                  "assumptions": {}
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "head": "Mul",
+          "args": [
+            {
+              "head": "Rational",
+              "numerator": "-1",
+              "denominator": "2"
+            },
+            {
+              "head": "Pow",
+              "args": [
+                {
+                  "head": "Symbol",
+                  "name": "eps",
+                  "assumptions": {}
+                },
+                {
+                  "head": "Integer",
+                  "value": "2"
+                }
+              ]
+            },
+            {
+              "head": "Pow",
+              "args": [
+                {
+                  "head": "Log",
+                  "args": [
+                    {
+                      "head": "Add",
+                      "args": [
+                        {
+                          "head": "Integer",
+                          "value": "1"
+                        },
+                        {
+                          "head": "Mul",
+                          "args": [
+                            {
+                              "head": "Integer",
+                              "value": "-1"
+                            },
+                            {
+                              "head": "Symbol",
+                              "name": "w",
+                              "assumptions": {}
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "head": "Integer",
+                  "value": "2"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "epsilon": {
+      "head": "Symbol",
+      "name": "eps",
+      "assumptions": {}
+    },
+    "through": 2,
+    "remainder_order": 3,
+    "latex": "1 + eps \\log{\\left(1 - w \\right)} - 2 eps^{2} \\operatorname{Li}_{2}\\left(w\\right) - \\frac{eps^{2} \\log{\\left(1 - w \\right)}^{2}}{2} + O\\left(eps^{3}\\right)",
+    "provenance": {
+      "hypra_version": "0.1.0a0",
+      "sympy_version": "1.14.0",
+      "input": {
+        "head": "HypergeometricPFQ",
+        "args": [
+          {
+            "head": "List",
+            "args": [
+              {
+                "head": "Integer",
+                "value": "1"
+              },
+              {
+                "head": "Mul",
+                "args": [
+                  {
+                    "head": "Integer",
+                    "value": "-1"
+                  },
+                  {
+                    "head": "Symbol",
+                    "name": "eps",
+                    "assumptions": {}
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "head": "List",
+            "args": [
+              {
+                "head": "Add",
+                "args": [
+                  {
+                    "head": "Integer",
+                    "value": "1"
+                  },
+                  {
+                    "head": "Mul",
+                    "args": [
+                      {
+                        "head": "Integer",
+                        "value": "-2"
+                      },
+                      {
+                        "head": "Symbol",
+                        "name": "eps",
+                        "assumptions": {}
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "head": "Symbol",
+            "name": "w",
+            "assumptions": {}
+          }
+        ]
+      },
+      "epsilon": {
+        "head": "Symbol",
+        "name": "eps",
+        "assumptions": {}
+      },
+      "assumptions": {
+        "head": "And",
+        "args": [
+          {
+            "head": "Greater",
+            "args": [
+              {
+                "head": "Symbol",
+                "name": "w",
+                "assumptions": {}
+              },
+              {
+                "head": "Integer",
+                "value": "0"
+              }
+            ]
+          },
+          {
+            "head": "Less",
+            "args": [
+              {
+                "head": "Symbol",
+                "name": "w",
+                "assumptions": {}
+              },
+              {
+                "head": "Integer",
+                "value": "1"
+              }
+            ]
+          }
+        ]
+      },
+      "plan": {
+        "through": 2,
+        "pole_bound": 0,
+        "internal_order": 2,
+        "valuation_lower_bound": 0
+      },
+      "backend": {
+        "available": true,
+        "backend": "native-sympy",
+        "algorithm_version": "hpl-twof1-v1",
+        "sympy_version": "1.14.0",
+        "error": null,
+        "source_fingerprint": "0807fb702b08b3190ffac0b7ed879494495f46177d9c47f036f96e172fa05ea8"
+      },
+      "backend_fingerprint": {
+        "available": true,
+        "backend": "native-sympy",
+        "algorithm_version": "hpl-twof1-v1",
+        "sympy_version": "1.14.0",
+        "error": null,
+        "source_fingerprint": "0807fb702b08b3190ffac0b7ed879494495f46177d9c47f036f96e172fa05ea8"
+      },
+      "cache_hit": false,
+      "order_basis": "proved-native-recurrence-and-conservative-pole-budget",
+      "injected_backend": false,
+      "branch_convention": "Principal branches; no automatic analytic continuation or integral/limit interchange",
+      "certificate_scope": "Conditional on backend correctness and the stated input domain"
+    }
+  },
+  "Q": {
+    "polynomial": {
+      "head": "Add",
+      "args": [
+        {
+          "head": "Integer",
+          "value": "1"
+        },
+        {
+          "head": "Mul",
+          "args": [
+            {
+              "head": "Integer",
+              "value": "-4"
+            },
+            {
+              "head": "Pow",
+              "args": [
+                {
+                  "head": "Symbol",
+                  "name": "eps",
+                  "assumptions": {}
+                },
+                {
+                  "head": "Integer",
+                  "value": "2"
+                }
+              ]
+            },
+            {
+              "head": "PolyLog",
+              "args": [
+                {
+                  "head": "Integer",
+                  "value": "2"
+                },
+                {
+                  "head": "Add",
+                  "args": [
+                    {
+                      "head": "Integer",
+                      "value": "1"
+                    },
+                    {
+                      "head": "Mul",
+                      "args": [
+                        {
+                          "head": "Integer",
+                          "value": "-1"
+                        },
+                        {
+                          "head": "Symbol",
+                          "name": "w",
+                          "assumptions": {}
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "head": "Mul",
+          "args": [
+            {
+              "head": "Integer",
+              "value": "2"
+            },
+            {
+              "head": "Symbol",
+              "name": "eps",
+              "assumptions": {}
+            },
+            {
+              "head": "Log",
+              "args": [
+                {
+                  "head": "Symbol",
+                  "name": "w",
+                  "assumptions": {}
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "epsilon": {
+      "head": "Symbol",
+      "name": "eps",
+      "assumptions": {}
+    },
+    "through": 2,
+    "remainder_order": 3,
+    "latex": "1 + 2 eps \\log{\\left(w \\right)} - 4 eps^{2} \\operatorname{Li}_{2}\\left(1 - w\\right) + O\\left(eps^{3}\\right)",
+    "provenance": {
+      "hypra_version": "0.1.0a0",
+      "sympy_version": "1.14.0",
+      "input": {
+        "head": "HypergeometricPFQ",
+        "args": [
+          {
+            "head": "List",
+            "args": [
+              {
+                "head": "Integer",
+                "value": "1"
+              },
+              {
+                "head": "Mul",
+                "args": [
+                  {
+                    "head": "Integer",
+                    "value": "-2"
+                  },
+                  {
+                    "head": "Symbol",
+                    "name": "eps",
+                    "assumptions": {}
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "head": "List",
+            "args": [
+              {
+                "head": "Add",
+                "args": [
+                  {
+                    "head": "Integer",
+                    "value": "1"
+                  },
+                  {
+                    "head": "Mul",
+                    "args": [
+                      {
+                        "head": "Integer",
+                        "value": "-2"
+                      },
+                      {
+                        "head": "Symbol",
+                        "name": "eps",
+                        "assumptions": {}
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "head": "Add",
+            "args": [
+              {
+                "head": "Integer",
+                "value": "1"
+              },
+              {
+                "head": "Mul",
+                "args": [
+                  {
+                    "head": "Integer",
+                    "value": "-1"
+                  },
+                  {
+                    "head": "Symbol",
+                    "name": "w",
+                    "assumptions": {}
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "epsilon": {
+        "head": "Symbol",
+        "name": "eps",
+        "assumptions": {}
+      },
+      "assumptions": {
+        "head": "And",
+        "args": [
+          {
+            "head": "Greater",
+            "args": [
+              {
+                "head": "Symbol",
+                "name": "w",
+                "assumptions": {}
+              },
+              {
+                "head": "Integer",
+                "value": "0"
+              }
+            ]
+          },
+          {
+            "head": "Less",
+            "args": [
+              {
+                "head": "Symbol",
+                "name": "w",
+                "assumptions": {}
+              },
+              {
+                "head": "Integer",
+                "value": "1"
+              }
+            ]
+          }
+        ]
+      },
+      "plan": {
+        "through": 2,
+        "pole_bound": 0,
+        "internal_order": 2,
+        "valuation_lower_bound": 0
+      },
+      "backend": {
+        "available": true,
+        "backend": "native-sympy",
+        "algorithm_version": "hpl-twof1-v1",
+        "sympy_version": "1.14.0",
+        "error": null,
+        "source_fingerprint": "0807fb702b08b3190ffac0b7ed879494495f46177d9c47f036f96e172fa05ea8"
+      },
+      "backend_fingerprint": {
+        "available": true,
+        "backend": "native-sympy",
+        "algorithm_version": "hpl-twof1-v1",
+        "sympy_version": "1.14.0",
+        "error": null,
+        "source_fingerprint": "0807fb702b08b3190ffac0b7ed879494495f46177d9c47f036f96e172fa05ea8"
+      },
+      "cache_hit": false,
+      "order_basis": "proved-native-recurrence-and-conservative-pole-budget",
+      "injected_backend": false,
+      "branch_convention": "Principal branches; no automatic analytic continuation or integral/limit interchange",
+      "certificate_scope": "Conditional on backend correctness and the stated input domain"
+    }
+  },
+  "J4_integrand": {
+    "polynomial": {
+      "head": "Add",
+      "args": [
+        {
+          "head": "Mul",
+          "args": [
+            {
+              "head": "Integer",
+              "value": "-4"
+            },
+            {
+              "head": "Pow",
+              "args": [
+                {
+                  "head": "Symbol",
+                  "name": "eps",
+                  "assumptions": {}
+                },
+                {
+                  "head": "Integer",
+                  "value": "3"
+                }
+              ]
+            },
+            {
+              "head": "Pow",
+              "args": [
+                {
+                  "head": "Symbol",
+                  "name": "w",
+                  "assumptions": {}
+                },
+                {
+                  "head": "Integer",
+                  "value": "-1"
+                }
+              ]
+            },
+            {
+              "head": "Pow",
+              "args": [
+                {
+                  "head": "Log",
+                  "args": [
+                    {
+                      "head": "Symbol",
+                      "name": "w",
+                      "assumptions": {}
+                    }
+                  ]
+                },
+                {
+                  "head": "Integer",
+                  "value": "2"
+                }
+              ]
+            },
+            {
+              "head": "Log",
+              "args": [
+                {
+                  "head": "Add",
+                  "args": [
+                    {
+                      "head": "Integer",
+                      "value": "1"
+                    },
+                    {
+                      "head": "Mul",
+                      "args": [
+                        {
+                          "head": "Integer",
+                          "value": "-1"
+                        },
+                        {
+                          "head": "Symbol",
+                          "name": "w",
+                          "assumptions": {}
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "head": "Mul",
+          "args": [
+            {
+              "head": "Integer",
+              "value": "-4"
+            },
+            {
+              "head": "Pow",
+              "args": [
+                {
+                  "head": "Symbol",
+                  "name": "eps",
+                  "assumptions": {}
+                },
+                {
+                  "head": "Integer",
+                  "value": "3"
+                }
+              ]
+            },
+            {
+              "head": "Pow",
+              "args": [
+                {
+                  "head": "Symbol",
+                  "name": "w",
+                  "assumptions": {}
+                },
+                {
+                  "head": "Integer",
+                  "value": "-1"
+                }
+              ]
+            },
+            {
+              "head": "Log",
+              "args": [
+                {
+                  "head": "Symbol",
+                  "name": "w",
+                  "assumptions": {}
+                }
+              ]
+            },
+            {
+              "head": "PolyLog",
+              "args": [
+                {
+                  "head": "Integer",
+                  "value": "2"
+                },
+                {
+                  "head": "Symbol",
+                  "name": "w",
+                  "assumptions": {}
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "head": "Mul",
+          "args": [
+            {
+              "head": "Integer",
+              "value": "-4"
+            },
+            {
+              "head": "Pow",
+              "args": [
+                {
+                  "head": "Symbol",
+                  "name": "eps",
+                  "assumptions": {}
+                },
+                {
+                  "head": "Integer",
+                  "value": "3"
+                }
+              ]
+            },
+            {
+              "head": "Pow",
+              "args": [
+                {
+                  "head": "Symbol",
+                  "name": "w",
+                  "assumptions": {}
+                },
+                {
+                  "head": "Integer",
+                  "value": "-1"
+                }
+              ]
+            },
+            {
+              "head": "Log",
+              "args": [
+                {
+                  "head": "Add",
+                  "args": [
+                    {
+                      "head": "Integer",
+                      "value": "1"
+                    },
+                    {
+                      "head": "Mul",
+                      "args": [
+                        {
+                          "head": "Integer",
+                          "value": "-1"
+                        },
+                        {
+                          "head": "Symbol",
+                          "name": "w",
+                          "assumptions": {}
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "head": "PolyLog",
+              "args": [
+                {
+                  "head": "Integer",
+                  "value": "2"
+                },
+                {
+                  "head": "Add",
+                  "args": [
+                    {
+                      "head": "Integer",
+                      "value": "1"
+                    },
+                    {
+                      "head": "Mul",
+                      "args": [
+                        {
+                          "head": "Integer",
+                          "value": "-1"
+                        },
+                        {
+                          "head": "Symbol",
+                          "name": "w",
+                          "assumptions": {}
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "head": "Mul",
+          "args": [
+            {
+              "head": "Integer",
+              "value": "-3"
+            },
+            {
+              "head": "Pow",
+              "args": [
+                {
+                  "head": "Symbol",
+                  "name": "eps",
+                  "assumptions": {}
+                },
+                {
+                  "head": "Integer",
+                  "value": "3"
+                }
+              ]
+            },
+            {
+              "head": "Pow",
+              "args": [
+                {
+                  "head": "Symbol",
+                  "name": "w",
+                  "assumptions": {}
+                },
+                {
+                  "head": "Integer",
+                  "value": "-1"
+                }
+              ]
+            },
+            {
+              "head": "Pow",
+              "args": [
+                {
+                  "head": "Log",
+                  "args": [
+                    {
+                      "head": "Add",
+                      "args": [
+                        {
+                          "head": "Integer",
+                          "value": "1"
+                        },
+                        {
+                          "head": "Mul",
+                          "args": [
+                            {
+                              "head": "Integer",
+                              "value": "-1"
+                            },
+                            {
+                              "head": "Symbol",
+                              "name": "w",
+                              "assumptions": {}
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "head": "Integer",
+                  "value": "2"
+                }
+              ]
+            },
+            {
+              "head": "Log",
+              "args": [
+                {
+                  "head": "Symbol",
+                  "name": "w",
+                  "assumptions": {}
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "head": "Mul",
+          "args": [
+            {
+              "head": "Integer",
+              "value": "2"
+            },
+            {
+              "head": "Pow",
+              "args": [
+                {
+                  "head": "Symbol",
+                  "name": "eps",
+                  "assumptions": {}
+                },
+                {
+                  "head": "Integer",
+                  "value": "2"
+                }
+              ]
+            },
+            {
+              "head": "Pow",
+              "args": [
+                {
+                  "head": "Symbol",
+                  "name": "w",
+                  "assumptions": {}
+                },
+                {
+                  "head": "Integer",
+                  "value": "-1"
+                }
+              ]
+            },
+            {
+              "head": "Log",
+              "args": [
+                {
+                  "head": "Symbol",
+                  "name": "w",
+                  "assumptions": {}
+                }
+              ]
+            },
+            {
+              "head": "Log",
+              "args": [
+                {
+                  "head": "Add",
+                  "args": [
+                    {
+                      "head": "Integer",
+                      "value": "1"
+                    },
+                    {
+                      "head": "Mul",
+                      "args": [
+                        {
+                          "head": "Integer",
+                          "value": "-1"
+                        },
+                        {
+                          "head": "Symbol",
+                          "name": "w",
+                          "assumptions": {}
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "epsilon": {
+      "head": "Symbol",
+      "name": "eps",
+      "assumptions": {}
+    },
+    "through": 3,
+    "remainder_order": 4,
+    "latex": "\\frac{2 eps^{2} \\log{\\left(w \\right)} \\log{\\left(1 - w \\right)}}{w} - \\frac{4 eps^{3} \\log{\\left(1 - w \\right)} \\operatorname{Li}_{2}\\left(1 - w\\right)}{w} - \\frac{4 eps^{3} \\log{\\left(w \\right)} \\operatorname{Li}_{2}\\left(w\\right)}{w} - \\frac{3 eps^{3} \\log{\\left(w \\right)} \\log{\\left(1 - w \\right)}^{2}}{w} - \\frac{4 eps^{3} \\log{\\left(w \\right)}^{2} \\log{\\left(1 - w \\right)}}{w} + O\\left(eps^{4}\\right)",
+    "provenance": {
+      "hypra_version": "0.1.0a0",
+      "sympy_version": "1.14.0",
+      "input": {
+        "head": "Mul",
+        "args": [
+          {
+            "head": "Pow",
+            "args": [
+              {
+                "head": "Symbol",
+                "name": "w",
+                "assumptions": {}
+              },
+              {
+                "head": "Add",
+                "args": [
+                  {
+                    "head": "Integer",
+                    "value": "-1"
+                  },
+                  {
+                    "head": "Mul",
+                    "args": [
+                      {
+                        "head": "Integer",
+                        "value": "-2"
+                      },
+                      {
+                        "head": "Symbol",
+                        "name": "eps",
+                        "assumptions": {}
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "head": "Pow",
+            "args": [
+              {
+                "head": "Add",
+                "args": [
+                  {
+                    "head": "Integer",
+                    "value": "1"
+                  },
+                  {
+                    "head": "Mul",
+                    "args": [
+                      {
+                        "head": "Integer",
+                        "value": "-1"
+                      },
+                      {
+                        "head": "Symbol",
+                        "name": "w",
+                        "assumptions": {}
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "head": "Mul",
+                "args": [
+                  {
+                    "head": "Integer",
+                    "value": "-1"
+                  },
+                  {
+                    "head": "Symbol",
+                    "name": "eps",
+                    "assumptions": {}
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "head": "Add",
+            "args": [
+              {
+                "head": "Integer",
+                "value": "-1"
+              },
+              {
+                "head": "HypergeometricPFQ",
+                "args": [
+                  {
+                    "head": "List",
+                    "args": [
+                      {
+                        "head": "Integer",
+                        "value": "1"
+                      },
+                      {
+                        "head": "Mul",
+                        "args": [
+                          {
+                            "head": "Integer",
+                            "value": "-1"
+                          },
+                          {
+                            "head": "Symbol",
+                            "name": "eps",
+                            "assumptions": {}
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "head": "List",
+                    "args": [
+                      {
+                        "head": "Add",
+                        "args": [
+                          {
+                            "head": "Integer",
+                            "value": "1"
+                          },
+                          {
+                            "head": "Mul",
+                            "args": [
+                              {
+                                "head": "Integer",
+                                "value": "-2"
+                              },
+                              {
+                                "head": "Symbol",
+                                "name": "eps",
+                                "assumptions": {}
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "head": "Symbol",
+                    "name": "w",
+                    "assumptions": {}
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "head": "Add",
+            "args": [
+              {
+                "head": "Integer",
+                "value": "-1"
+              },
+              {
+                "head": "HypergeometricPFQ",
+                "args": [
+                  {
+                    "head": "List",
+                    "args": [
+                      {
+                        "head": "Integer",
+                        "value": "1"
+                      },
+                      {
+                        "head": "Mul",
+                        "args": [
+                          {
+                            "head": "Integer",
+                            "value": "-2"
+                          },
+                          {
+                            "head": "Symbol",
+                            "name": "eps",
+                            "assumptions": {}
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "head": "List",
+                    "args": [
+                      {
+                        "head": "Add",
+                        "args": [
+                          {
+                            "head": "Integer",
+                            "value": "1"
+                          },
+                          {
+                            "head": "Mul",
+                            "args": [
+                              {
+                                "head": "Integer",
+                                "value": "-2"
+                              },
+                              {
+                                "head": "Symbol",
+                                "name": "eps",
+                                "assumptions": {}
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "head": "Add",
+                    "args": [
+                      {
+                        "head": "Integer",
+                        "value": "1"
+                      },
+                      {
+                        "head": "Mul",
+                        "args": [
+                          {
+                            "head": "Integer",
+                            "value": "-1"
+                          },
+                          {
+                            "head": "Symbol",
+                            "name": "w",
+                            "assumptions": {}
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "epsilon": {
+        "head": "Symbol",
+        "name": "eps",
+        "assumptions": {}
+      },
+      "assumptions": {
+        "head": "And",
+        "args": [
+          {
+            "head": "Greater",
+            "args": [
+              {
+                "head": "Symbol",
+                "name": "w",
+                "assumptions": {}
+              },
+              {
+                "head": "Integer",
+                "value": "0"
+              }
+            ]
+          },
+          {
+            "head": "Less",
+            "args": [
+              {
+                "head": "Symbol",
+                "name": "w",
+                "assumptions": {}
+              },
+              {
+                "head": "Integer",
+                "value": "1"
+              }
+            ]
+          }
+        ]
+      },
+      "plan": {
+        "through": 3,
+        "pole_bound": 0,
+        "internal_order": 3,
+        "valuation_lower_bound": 0
+      },
+      "backend": {
+        "available": true,
+        "backend": "native-sympy",
+        "algorithm_version": "hpl-twof1-v1",
+        "sympy_version": "1.14.0",
+        "error": null,
+        "source_fingerprint": "0807fb702b08b3190ffac0b7ed879494495f46177d9c47f036f96e172fa05ea8"
+      },
+      "backend_fingerprint": {
+        "available": true,
+        "backend": "native-sympy",
+        "algorithm_version": "hpl-twof1-v1",
+        "sympy_version": "1.14.0",
+        "error": null,
+        "source_fingerprint": "0807fb702b08b3190ffac0b7ed879494495f46177d9c47f036f96e172fa05ea8"
+      },
+      "cache_hit": false,
+      "order_basis": "proved-native-recurrence-and-conservative-pole-budget",
+      "injected_backend": false,
+      "branch_convention": "Principal branches; no automatic analytic continuation or integral/limit interchange",
+      "certificate_scope": "Conditional on backend correctness and the stated input domain"
+    }
+  },
+  "J4": "2*eps**2*zeta(3) + 11*pi**4*eps**3/60 + O(eps**4)",
+  "integration_scope": "J4 only, using five independently derived moments and the documented endpoint proof",
+  "external_validation": "not required; not requested",
+  "secondary_quadrature": [
+    {
+      "epsilon": "-0.01",
+      "J4_quadrature": "0.00022332470376487292171569888493895584",
+      "residual_over_epsilon4": "77.1656489187845"
+    },
+    {
+      "epsilon": "-0.005",
+      "J4_quadrature": "0.000057919627934559368999401229799292253",
+      "residual_over_epsilon4": "78.5191137742036"
+    },
+    {
+      "epsilon": "-0.0025",
+      "J4_quadrature": "0.000014749769033388574581689016311535814",
+      "residual_over_epsilon4": "79.21158617085"
+    }
+  ]
+}
