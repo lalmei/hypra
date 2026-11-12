@@ -1,6 +1,10 @@
 """Run the real Typer CLI, preserving the programmatic main(argv) entrypoint."""
 
-import click
+try:
+    # Recent Typer releases vendor Click; older supported releases use Click.
+    from typer._click.exceptions import Abort, ClickException
+except ImportError:
+    from click import Abort, ClickException
 
 from .api import backend_info, expand_epsilon
 from .cli import app
@@ -20,10 +24,10 @@ def main(argv=None):
             obj={"backend_info": backend_info, "expand_epsilon": expand_epsilon},
         )
         return result if isinstance(result, int) else 0
-    except click.ClickException as exc:
+    except ClickException as exc:
         exc.show()
         raise SystemExit(exc.exit_code) from exc
-    except click.Abort as exc:
+    except Abort as exc:
         raise SystemExit(1) from exc
 
 
