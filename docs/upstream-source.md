@@ -54,7 +54,11 @@ are an inspection map, not a claim that these routines have already been ported.
 | HPL product algebra | `HPL.m`, 394–432 | Shuffle recursion with multiplicities; avoid factorial permutation enumeration where dynamic programming suffices. |
 | HPL argument transformations | `HPL.m`, 1452 onward | Branch-aware transformations and boundary constants; keep unsupported continuation explicit. |
 
-### Recommended implementation sequence
+### Historical implementation sequence
+
+The initial sequence below has largely been implemented; it is retained as
+design provenance, not a current list of unimplemented tasks. The
+[parity map](parity-map.md) is the current capability audit.
 
 1. Implement a narrow integer-parameter family using its differential equation
    and exact iterated-integral recursion. Validate coefficients independently
@@ -67,6 +71,46 @@ are an inspection map, not a claim that these routines have already been ported.
    with general HypExp 2 parity.
 5. Treat z=1 limits, endpoint integration, MZV reduction and numerical continuation
    as distinct features requiring their own convergence and branch tests.
+
+## HPL 2.0 functionality audit
+
+This audit uses the **standalone 03-Nov-2011 HPL.m**, the manifest-pinned
+archive, and the public abstract of
+[Extension of HPL to complex arguments](https://arxiv.org/abs/hep-ph/0703052).
+The bundled `HPL_README` ends with a September 2005 date, so it is not by
+itself a reliable description of the 2.0 additions. No source was executed,
+no table entries were copied and no installer was run.
+
+| Evidence in pinned HPL.m | What it establishes | Native status / distinction |
+|---|---|---|
+| Public declarations, lines 31–101 | Product/log extraction, known-function/minimal-set reduction, argument changes, integration, index conversions, complex continuation, plus/minus notation, and HPLI | Existing Python APIs cover these operation categories with narrower explicit contracts; a shared category is not full parity |
+| Continuation region and side declarations, lines 61–69 | Real exterior/negative intervals and a controlled approach side; upstream also has a default side | Native symbolic region maps and numerical boundary values require an explicit side; arbitrary winding paths remain unsupported |
+| Integration declaration, lines 73–77 | Rational kernels with poles at 0 and ±1 multiplying HPLs | Native rational-HPL primitives and origin-normalized integration check unsupported poles and divergent lower limits |
+| Argument-transform declaration, lines 79–86 | Negation, reflection, square-root, fractional, Möbius and inversion transformations, with branch-side data | Native maps are separately proved and resource-bounded; no generic complex automatic rewrite is implied |
+| Plus/minus and HPLI declarations, lines 89–101 | Extended kernel notation and values at the imaginary unit | Native multilinear notation conversion; exact at-i low-weight/simple-word reductions, not a full table import |
+| Optional minimal-set loaders, lines 685–697 | Basis rules depend on available weight-specific files | Native Lyndon reduction uses an algorithmic basis; upstream table-dependent basis equivalence is unverified |
+| Optional MZV/at-i table loaders, around 1804 and 1828–1833 | Higher special-value coverage depends on separately loaded data | Native exact remainder constants and bounded numerics do not reproduce those named tables |
+
+The at-i work derives all weight-two ternary values from iterated integrals
+and shuffle identities, retaining classical dilogarithms when appropriate.
+Numerical real-cut evaluation composes existing exact region maps with interior
+numerics, rather than approximating the cut by an arbitrary imaginary offset.
+These are native mathematical implementations, not execution of HPL 2.0.
+
+The next bounded symbolic gap is the remaining mixed-sign weight-three
+classical primitives, followed by broader constant relations and justified
+continuation domains. See [the current parity map](parity-map.md) for the
+specific proposed basis and the separation of implemented work from plans.
+
+### Distribution boundary remains unchanged
+
+The original HPL 2 archive, Mathematica routines, minimal-set files, at-i tables
+and numerical constant tables remain local ignored reference material. The CPC
+licence record cited above does not become permissive merely because the goal
+is an academic Python package. Independently derived algorithms need their own
+implementation and attribution; any direct source/table translation or
+redistribution requires a separate permissions review. No claim of legal
+clearance for an arbitrary literal port follows from this technical audit.
 
 ## Important observation about the abandoned wrapper-first approach
 

@@ -163,6 +163,19 @@ class HPL(Function):
                 "Mixed trailing-zero HPL words have logarithmic germs; use "
                 "hypra.hpl_algebra.hpl_series for explicit local terms"
             )
+        center = self.argument.subs(x, 0)
+        if center.is_Rational and 0 < center < 1:
+            from .hpl_taylor import hpl_taylor
+
+            delta = self.argument - center
+            leading = delta.as_leading_term(x, logx=logx, cdir=cdir)
+            coefficient, power = leading.as_coeff_exponent(x)
+            if coefficient.has(x) or coefficient.is_nonzero is not True or not power.is_Rational or power <= 0:
+                raise UnsupportedExpressionError("Could not establish an interior Taylor argument germ")
+            degree = int(ceiling(max(n, 0) / power)) + 1
+            local = Dummy("hpl_taylor")
+            polynomial = hpl_taylor(self.word, center, local, through=degree).removeO()
+            return polynomial.subs(local, self.argument)._eval_nseries(x, n, logx, cdir=cdir) + Order(x**n, x)
         _, power = self._zero_germ_argument(x, logx, cdir)
         # Expand strictly deeper than required: omitted analytic argument powers
         # have valuation > n, so appending O(x**n) cannot overstate accuracy.

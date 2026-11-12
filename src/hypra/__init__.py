@@ -18,6 +18,7 @@ from .errors import HypraError, IncompleteExpansionError, UnsupportedExpressionE
 from .hpl_algebra import hpl_series, integrate_from_zero, primitive_hpl, shuffle_expand
 from .hpl_alternating import hpl_alternating_at_one, reduce_euler_sum
 from .hpl_arguments import transform_hpl_arguments
+from .hpl_boundary_numeric import HPLBoundaryNumericResult, evaluate_hpl_boundary
 from .hpl_classical import classical_hpl
 from .hpl_constants import ConstantNumericResult, evaluate_euler_sum, evaluate_mzv
 from .hpl_continuation import analytic_continue_hpl
@@ -39,7 +40,9 @@ from .hpl_regularized import (
     hpl_expression_endpoint_polynomial,
     shuffle_regularized_hpl_at_one,
 )
+from .hpl_special import hpl_at_i
 from .hpl_stuffle import stuffle_expand_constants
+from .hpl_taylor import hpl_taylor
 from .hpl_transform import negate_hpl, reflect_hpl
 from .native import NativeBackend, NativeConfig
 from .serialization import SerializationError, decode_expr, encode_expr
@@ -68,6 +71,7 @@ __all__ = [
     "ConstantNumericResult",
     "EulerSum",
     "ExpansionResult",
+    "HPLBoundaryNumericResult",
     "HPLContinuationResult",
     "HPLNumericResult",
     "HPLNumericalConvergenceError",
@@ -87,18 +91,21 @@ __all__ = [
     "encode_expr",
     "evaluate_euler_sum",
     "evaluate_hpl",
+    "evaluate_hpl_boundary",
     "evaluate_mzv",
     "expand_epsilon",
     "expand_indices",
     "extract_hpl_logs",
     "fractional_hpl",
     "hpl_alternating_at_one",
+    "hpl_at_i",
     "hpl_at_one",
     "hpl_endpoint_polynomial",
     "hpl_evalf",
     "hpl_expression_endpoint_polynomial",
     "hpl_pm",
     "hpl_series",
+    "hpl_taylor",
     "hypergeometric",
     "integrate_from_zero",
     "invert_hpl",

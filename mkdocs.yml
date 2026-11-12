@@ -74,7 +74,10 @@ nav:
   - Harmonic polylogarithms:
       - Notation and formatting: hpl-notation.md
       - Numerical evaluation: hpl-numerics.md
+      - Interior Taylor series: hpl-taylor.md
+      - Exact values at i: hpl-at-i.md
       - Radial numerical continuation: hpl-continuation.md
+      - Real-cut boundary numerics: hpl-boundary-numerics.md
       - Shuffle and logarithm reduction: hpl-reduction.md
       - Classical polylogarithms: hpl-classical-binary-three.md
       - Negative-letter classical reduction: hpl-classical-negative-three.md

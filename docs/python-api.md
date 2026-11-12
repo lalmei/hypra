@@ -24,3 +24,11 @@ are not a claim of additional parameter or branch coverage.
 ::: hypra.hpl_stuffle.stuffle_expand_constants
 
 ::: hypra.hpl_regularized.hpl_expression_endpoint_polynomial
+
+::: hypra.hpl_special.hpl_at_i
+
+::: hypra.hpl_taylor.hpl_taylor
+
+::: hypra.hpl_boundary_numeric.evaluate_hpl_boundary
+
+::: hypra.hpl_boundary_numeric.HPLBoundaryNumericResult
