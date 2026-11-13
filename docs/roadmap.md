@@ -13,7 +13,7 @@
 - Arbitrary-word numerical HPL evaluation on the real interval and explicit
   principal slit disk; off-cut radial Taylor continuation with propagated
   truncation estimates and separate high-precision stability checks.
-- Real-domain SymPy `HPL.evalf()` integration without eager branch changes.
+- Principal off-cut complex and interior real SymPy `HPL.evalf()`.
 - Optional hard native-backend deadline and exceptional-parameter validation.
 - Exact terminating sums and condition-checked Gauss endpoint rewriting.
 - Whole-expression Laurent prefactors, exact serialization, LaTeX, provenance,

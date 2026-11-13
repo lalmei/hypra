@@ -2,7 +2,7 @@
 
 `evaluate_euler_sum(indices, colors, dps=50)` and
 `evaluate_mzv(indices, dps=50)` evaluate convergent endpoint constants through
-weight six. They return a `ConstantNumericResult` with `.value`,
+weight eight. They return a `ConstantNumericResult` with `.value`,
 `.stability_gap`, requested/working precision, method and sum convention.
 Indices and colors have the exact conventions of [alternating endpoints](hpl-alternating-endpoints.md).
 Divergent constants are rejected rather than regularized.
@@ -13,6 +13,15 @@ from hypra.hpl_constants import evaluate_euler_sum, evaluate_mzv
 print(evaluate_euler_sum((1, 2), (-1, -1), dps=60).value)
 print(evaluate_mzv((4, 2), dps=60).value)
 ```
+
+The public symbols `HPLs6`, `HPLs7a`, `HPLs7b`, and `HPLs8a` through
+`HPLs8d` are exact SymPy expressions. Their defining sums have weakly
+decreasing indices. Splitting each sum by its equal-index blocks converts
+it to strict sums, adding powers and multiplying signs within a block.
+`HPLs7a` and `HPLs7b` follow the executable upstream definitions
+and quoted numerical values, which give weak indices `(-5,1,1)` and
+`(5,-1,-1)`. The signed indices in their usage strings differ.
+Use `HPLs8a.evalf(30)` to evaluate an example.
 
 ## Why endpoint summation is unnecessary
 
@@ -54,11 +63,11 @@ roundoff and special-function evaluation are not rigorously interval-enclosed.
 A term-budget or precision-stability failure raises an error, with no partial
 success result. The evaluator preserves global mpmath precision.
 
-Supported weights are at most six, requested precision 2–900 decimal digits,
+Supported weights are at most eight, requested precision 2–900 decimal digits,
 and HPL `max_terms` defaults to 100000. Exact Möbius expressions can grow
-substantially with weight, so weight-six calls may be slower than elementary
+substantially with weight, so weight-eight calls may be slower than elementary
 reductions. Explicit `MZV(...).evalf(50)` and `EulerSum(...).evalf(50)` use this
-engine through weight six, with guarded digits. Construction remains
+engine through weight eight, with guarded digits. Construction remains
 symbolic; constants above the supported weight remain unevaluated. Tests include independent one-dimensional quadrature and
 convergent finite-cutoff stuffle identities, as well as the symbolic strict
 weight-decrease invariant.
