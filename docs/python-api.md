@@ -56,11 +56,16 @@ one. The powers are explicit integers and convergence at zero requires
 
 `hypergeometric_log_moment(p, n, m, k, q, z)` adds the factor
 \(\log^k(1-zu)/(zu-1)^q\). All five powers are nonnegative integers.
-It supports `z=0`, `z=1` when `n >= q`, argument-independent kernels
-(`k=q=0`), and interior moving kernels (`0<z<1`, `m=0`).
-A symbolic interior argument is interpreted on that real interval.
-The substitution `t=z*u` reduces those interior kernels to rational-HPL
-primitives. Both APIs return exact SymPy expressions and raise
+It supports `z=0`, convergent cases at `z=1` (`n >= q`), and
+real interior arguments `0<z<1`, including products of all three
+logarithms. A symbolic interior argument is interpreted on that interval. A provably
+negative real argument is reflected to `z/(z-1)` by substituting `u=1-v`.
+The logarithmic weight `n+m+k+int(q>0)` is at most five, with
+`p <= 64` and `q <= 32`. The interior mixed-log recurrence
+differentiates the Euler hypergeometric equation in the three log
+parameters and fixes the solution at the origin. Integration by parts
+raises the polynomial degree, and differentiation raises the pole order.
+Both APIs return exact SymPy expressions and raise
 `UnsupportedExpressionError` for unsupported cases or divergent integrals.
 
 ```python

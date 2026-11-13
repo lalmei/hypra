@@ -24,9 +24,10 @@ The reference source is read only; no upstream reduction tables are copied.
 | Series around zero | `hpl_series`, supported SymPy `.series()` | Explicit logarithmic local-series conventions |
 | Values at one | `hpl_at_one`, `hpl_alternating_at_one` | Convergent values only; exact MZV/EulerSum remainder constants |
 | Explicit shuffle regularization | `hpl_endpoint_polynomial`, `hpl_expression_endpoint_polynomial`, `shuffle_regularized_hpl_at_one` | Real endpoint polynomial in T=−log(1−z); not an ordinary finite limit |
-| Numerical endpoint constants | `evaluate_mzv`, `evaluate_euler_sum`, `.evalf()` | Through weight six; guarded precision evidence, not interval certification |
+| Named HPL constants | `HPLs6`, `HPLs7a`–`HPLs8d` | Exact weak harmonic sums expressed in the strict Euler-sum convention |
+| Numerical endpoint constants | `evaluate_mzv`, `evaluate_euler_sum`, `.evalf()` | Through weight eight; guarded precision evidence, not interval certification |
 | Values at i | `hpl_at_i`; numerical `continue_hpl` | Exact all ternary words through weight two, repeated letters and simple classical words through weight 24; higher mixed words are not covered by a special-value table |
-| Numerical HPL evaluation | `hpl_evalf`, `evaluate_hpl`, `continue_hpl` | Real interval, explicit slit disk, or explicit off-cut radial path |
+| Numerical HPL evaluation | `hpl_evalf`, `evaluate_hpl`, `continue_hpl` | Real interval, explicit slit disk or off-cut principal radial path, also via SymPy `.evalf()` |
 | Numerical real-cut boundary values | `evaluate_hpl_boundary` | Exact real argument plus explicit region and upper/lower side; existing map/weight bounds; no guessed small imaginary offset |
 
 ## HypExp 2.0 public operations
@@ -38,7 +39,7 @@ definite logarithmic integrals, and Mathematica library management.
 |---|---|---|
 | `HypExp`, `MyHypExpansion` | `expand_epsilon` with an exact SymPy `hyper` | See [supported families and domains](scope.md#hypexp-2-class-correspondence) and the endpoint and exceptional-parameter restrictions. The class list describes kernel coverage. |
 | `HypExpU` | `beta_log_moment(n, m, p)` | Convergence requires `p + m >= 0`. Log weight through seven and `-32 <= p <= 64`. |
-| `HypExpInt` | `hypergeometric_log_moment(p, n, m, k, q, z)` | Exact endpoints, argument-independent integrals, and real interior moving kernels with `m = 0`. Interior products involving both `log(1-u)` and a moving kernel remain open. |
+| `HypExpInt` | `hypergeometric_log_moment(p, n, m, k, q, z)` | Convergent endpoints and exact real mixed-log kernels for `z<1` through upstream log weight five, subject to power and algebra budgets. |
 | `HypExpAddToLib`, `HypExpIsKnownToOrder` | Native request-result cache via `NativeConfig` | The cache stores individual computed requests. An expansion library indexed by parameter bases and known order has no public equivalent. |
 | `$HypExpFailed`, `$HypExpPolyLogRules` | Typed exceptions and explicit HPL reduction | Appendix A.1 rewrite coverage has not been verified. |
 
@@ -68,8 +69,8 @@ real-cut additions:
   continuation require explicit domains and cut sides. Radial numerical
   continuation follows one specified path. This is not unrestricted complex
   winding/monodromy or automatic branch simplification.
-- **Values at i:** an unevaluated `HPL(word, I)` is a lossless symbolic object,
-  not an evaluated constant. `hpl_at_i` provides proved low-weight and simple
+- **Values at i:** `HPL(word, I).evalf()` evaluates mixed words numerically
+  by principal radial continuation. `hpl_at_i` provides proved low-weight and simple
   all-weight reductions, sometimes retaining exact classical dilogarithms.
   It does not reproduce upstream's weight-dependent special-value tables.
 - **Constant reduction:** exact `MZV`/`EulerSum` remainders, shuffle/stuffle
