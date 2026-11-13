@@ -97,10 +97,9 @@ Numerical real-cut evaluation composes existing exact region maps with interior
 numerics, rather than approximating the cut by an arbitrary imaginary offset.
 These are native mathematical implementations, not execution of HPL 2.0.
 
-The next bounded symbolic gap is the remaining mixed-sign weight-three
-classical primitives, followed by broader constant relations and justified
-continuation domains. See [the current parity map](parity-map.md) for the
-specific proposed basis and the separation of implemented work from plans.
+All ternary weight-three classical reductions are now implemented on the
+real interval. The [current parity map](parity-map.md) lists the remaining
+constant-reduction and continuation gaps.
 
 ### Distribution boundary remains unchanged
 
