@@ -46,6 +46,7 @@ from .hpl_special import hpl_at_i
 from .hpl_stuffle import stuffle_expand_constants
 from .hpl_taylor import hpl_taylor
 from .hpl_transform import negate_hpl, reflect_hpl
+from .hypexp_integrals import beta_log_moment, hypergeometric_log_moment
 from .native import NativeBackend, NativeConfig
 from .nielsen import NielsenPolylog, hpl_to_nielsen, nielsen_to_hpl, reduce_nielsen
 from .serialization import SerializationError, decode_expr, encode_expr
@@ -88,6 +89,7 @@ __all__ = [
     "__version__",
     "analytic_continue_hpl",
     "backend_info",
+    "beta_log_moment",
     "classical_hpl",
     "compress_indices",
     "continue_hpl",
@@ -114,6 +116,7 @@ __all__ = [
     "hpl_taylor",
     "hpl_to_nielsen",
     "hypergeometric",
+    "hypergeometric_log_moment",
     "integrate_from_zero",
     "invert_hpl",
     "letters_to_pm",
