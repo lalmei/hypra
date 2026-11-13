@@ -9,6 +9,7 @@ from __future__ import annotations
 import sympy as s
 
 from .errors import UnsupportedExpressionError
+from .planning import _positive
 
 
 def _fixed_nonpositive_integer(value, epsilon):
@@ -37,25 +38,41 @@ def _convergent(excess, epsilon, assumptions):
     # infer convergence merely from the existence of a Gamma continuation.
     real_excess = s.re(excess)
     try:
-        return s.ask(s.Q.positive(real_excess), assumptions) is True
+        return _positive(real_excess, assumptions)
     except (ValueError, TypeError):
         return False
 
 
-def convergent_integer_unit(hyper, epsilon):
-    """Strict positive integer-base excess for uniform unit-endpoint series.
+def convergent_unit(hyper, epsilon):
+    """Test strictly positive base excess for affine integer/half-integer pF(p-1)."""
+    from .matched_half import half_parameters
 
-    Moving lower poles are permitted meromorphically; fixed poles are not.
-    This deliberately excludes zero base excess and all half-integer patterns.
-    """
-    from .integer import integer_parameters
-    parsed = integer_parameters(hyper, epsilon)
+    parsed = half_parameters(hyper, epsilon)
     if parsed is None or len(hyper.ap) != len(hyper.bq)+1:
         return False
     upper, lower = parsed
-    if any(base <= 0 and slope == 0 for base,slope in lower):
+    if any(base.is_Integer and base <= 0 and slope == 0 for base, slope in lower):
         return False
-    return sum(base for base,_ in lower)-sum(base for base,_ in upper)>0
+    return sum(base for base, _ in lower) > sum(base for base, _ in upper)
+
+
+def _raise_unit_excess(upper, lower, excess):
+    """Sum the telescoping coefficient difference on the convergent side."""
+    n = s.Dummy("index")
+    denominator = s.prod(n+b for b in lower)
+    remainder = s.Poly(s.expand(s.prod(n+a for a in upper) + (excess-n)*denominator), n)
+    # The two leading degrees cancel. Express the remainder in falling
+    # factorials so each term can be summed by reindexing a shifted pFq.
+    terms = []
+    for j in range(len(lower)-1, -1, -1):
+        coefficient = remainder.nth(j)
+        if coefficient == 0:
+            continue
+        remainder -= s.Poly(coefficient*s.ff(n, j), n)
+        scale = s.prod(s.rf(a, j) for a in upper)/s.prod(s.rf(b, j+1) for b in lower)
+        shifted = s.hyper([a+j for a in upper], [b+j+1 for b in lower], 1, evaluate=False)
+        terms.append(coefficient*scale*shifted)
+    return s.Add(*terms)/excess
 
 
 def rewrite_endpoints(expr, epsilon, assumptions=s.true):
@@ -110,10 +127,21 @@ def rewrite_endpoints(expr, epsilon, assumptions=s.true):
                 continue
             raise UnsupportedExpressionError("Binomial z=1 convergence is not proven")
         if len(upper) != 2 or len(lower) != 1:
-            if convergent_integer_unit(reduced, epsilon):
+            if convergent_unit(reduced, epsilon):
                 replacements[atom] = reduced
                 continue
-            raise UnsupportedExpressionError("Nonterminating z=1 requires Gauss or integer parameters with strictly positive base excess")
+            if len(upper) == len(lower)+1:
+                from .matched_half import half_parameters
+
+                excess = s.expand(sum(lower)-sum(upper))
+                if half_parameters(reduced, epsilon) is not None and _convergent(
+                    excess, epsilon, assumptions
+                ):
+                    replacements[atom] = _raise_unit_excess(upper, lower, excess)
+                    continue
+            raise UnsupportedExpressionError(
+                "Nonterminating z=1 requires supported parameters and proven positive excess"
+            )
         a, b = upper
         c = lower[0]
         for parameter in (a, b, c):

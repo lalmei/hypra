@@ -112,17 +112,17 @@ def expand_atom(h, eps, order, assumptions=s.true, argument_domain="real-interva
         return s.S.One
     z = h.argument
     if z == 1:
-        from .endpoints import convergent_integer_unit
-        from .hpl_limits import hpl_limit_at_one
+        from .endpoints import convergent_unit
+        from .unit_limit import unit_coefficient_limit
         from .planning import laurent_coefficient
 
-        if not convergent_integer_unit(h, eps):
-            raise UnsupportedExpressionError("Unit endpoint requires strictly positive integer-base excess")
+        if not convergent_unit(h, eps):
+            raise UnsupportedExpressionError("Unit endpoint requires strictly positive base excess")
         regular_z = s.Dummy("unit_argument", positive=True)
         regular_h = s.hyper(h.ap, h.bq, regular_z, evaluate=False)
         regular = expand_atom(regular_h, eps, order, s.And(assumptions, regular_z < 1), "real-interval")
         poles = plan_expansion(h, eps, order, assumptions).pole_bound
-        return s.Add(*(eps**k * hpl_limit_at_one(laurent_coefficient(regular, eps, k), regular_z)
+        return s.Add(*(eps**k * unit_coefficient_limit(laurent_coefficient(regular, eps, k), regular_z)
                        for k in range(-poles, order+1)))
     if argument_domain == "principal-disk":
         # This increment admits exact numerical complex points only. Symbolic
@@ -272,6 +272,10 @@ class NativeBackend:
             "half_system.py",
             "twof1_shift.py",
             "endpoints.py",
+            "unit_limit.py",
+            "hpl_series_one.py",
+            "hpl_inversion.py",
+            "hpl_mobius.py",
             "canonical.py",
             "contiguous.py",
         ):
