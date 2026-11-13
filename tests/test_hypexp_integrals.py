@@ -55,5 +55,42 @@ def test_unsupported_inputs():
         hypergeometric_log_moment(0, 0, 1, 1, 1, 1)
     with pytest.raises(UnsupportedExpressionError, match="0 < z < 1"):
         hypergeometric_log_moment(0, 0, 0, 1, 1, 2)
-    with pytest.raises(UnsupportedExpressionError, match="m=0"):
-        hypergeometric_log_moment(0, 0, 1, 1, 1, s.S.Half)
+
+@pytest.mark.parametrize("powers", [
+    (0, 0, 1, 1, 0),
+    (0, 0, 1, 0, 1),
+    (2, 1, 1, 1, 2),
+    (2, 1, 2, 1, 0),
+    (3, 0, 1, 0, 4),
+])
+def test_mixed_moments_against_quadrature(powers):
+    p, n, m, k, q = powers
+    z = s.Symbol("z")
+    exact = hypergeometric_log_moment(*powers, z)
+    assert not exact.has(s.Integral, s.hyper, s.Float)
+    with mp.workdps(40):
+        x = mp.mpf(2)/5
+        expected = mp.quad(
+            lambda u: u**p * mp.log(u)**n * mp.log1p(-u)**m
+            * mp.log1p(-x*u)**k / (x*u-1)**q,
+            [0, 1],
+        )
+        actual = exact.subs(z, s.Rational(2, 5)).evalf(28)
+        assert abs(mp.mpf(str(actual)) - expected) < mp.mpf("1e-26")
+
+
+def test_mixed_moment_large_polynomial_degree():
+    p = 36
+    actual = beta_log_moment(0, 1, p)
+    assert actual == -s.harmonic(p+1)/(p+1)
+
+
+def test_negative_argument_reflection_preserves_all_log_factors():
+    actual = hypergeometric_log_moment(1, 1, 1, 1, 1, -s.Rational(3, 2))
+    with mp.workdps(40):
+        x = -mp.mpf(3)/2
+        expected = mp.quad(
+            lambda u: u * mp.log(u) * mp.log1p(-u) * mp.log1p(-x*u) / (x*u-1),
+            [0, 1],
+        )
+        assert abs(mp.mpf(str(actual.evalf(28))) - expected) < mp.mpf("1e-26")
