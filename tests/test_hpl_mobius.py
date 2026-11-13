@@ -43,7 +43,7 @@ def test_repeated_letters_and_domain_limits():
     with pytest.raises(UnsupportedExpressionError):
         mobius_hpl((0,), Z)
     with pytest.raises(UnsupportedExpressionError):
-        mobius_hpl((0,) * 7, Z, **DOMAIN)
+        mobius_hpl((0,) * 9, Z, **DOMAIN)
 
 
 @pytest.mark.parametrize("word", [(0, -1, 1, 0), (1, -1, 0, 1, 0), (-1, 0, -1, 1, 1)])
