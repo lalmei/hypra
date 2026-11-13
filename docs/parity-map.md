@@ -37,7 +37,7 @@ definite logarithmic integrals, and Mathematica library management.
 
 | Upstream operation | Python interface | Current boundary |
 |---|---|---|
-| `HypExp`, `MyHypExpansion` | `expand_epsilon` with an exact SymPy `hyper` | See [supported families and domains](scope.md#hypexp-2-class-correspondence) and the endpoint and exceptional-parameter restrictions. The class list describes kernel coverage. |
+| `HypExp`, `MyHypExpansion` | `expand_epsilon` with an exact SymPy `hyper` | See [supported families and domains](scope.md#hypexp-2-class-correspondence) and [unit endpoint coverage](endpoints.md). The class list describes kernel coverage. |
 | `HypExpU` | `beta_log_moment(n, m, p)` | Convergence requires `p + m >= 0`. Log weight through seven and `-32 <= p <= 64`. |
 | `HypExpInt` | `hypergeometric_log_moment(p, n, m, k, q, z)` | Convergent endpoints and exact real mixed-log kernels for `z<1` through upstream log weight five, subject to power and algebra budgets. |
 | `HypExpAddToLib`, `HypExpIsKnownToOrder` | Native request-result cache via `NativeConfig` | The cache stores individual computed requests. An expansion library indexed by parameter bases and known order has no public equivalent. |

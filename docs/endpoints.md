@@ -1,8 +1,7 @@
 # Endpoint and terminating-series preprocessing
 
 `rewrite_endpoints(expr, epsilon, assumptions)` runs before Laurent-order
-planning. It performs only the identities below. It neither evaluates a
-divergent endpoint by continuation nor exchanges a limit and an integral.
+planning. It uses the convergence conditions and identities below.
 
 ## Finite terminating sums
 
@@ -46,9 +45,7 @@ therefore included in the prefactor-order budget after rewriting.
 A negative base excess, identically zero excess, or unproven convergence is
 rejected. The Gamma quotient may have a meromorphic continuation beyond the
 convergent domain, but that fact is not used to assign a value to a divergent
-hypergeometric endpoint. Higher-rank unit endpoints are restricted to the strictly convergent
-all-integer path described below. Endpoint rewrites make no claim about integrals of the
-result or uniform endpoint estimates needed to exchange other operations.
+hypergeometric endpoint. Higher-rank unit endpoints use the reductions below.
 
 ## Sources and implementation provenance
 
@@ -62,27 +59,42 @@ parameters*, hep-ph/0507094, and *HypExp 2*, arXiv:0708.2443. These endpoint
 routines are independent implementations of the mathematical identities;
 no upstream package source or lookup tables are copied.
 
-## Generic all-integer pF(p-1) unit endpoints
+## Higher-rank integer and half-integer endpoints
 
-The native engine also accepts integer-base affine parameters with rational
-slopes when the base excess
+For supported affine integer and half-integer parameter families with
+strictly positive base excess, the native engine expands at a dummy
+interior argument and evaluates the limit of each complete Laurent
+coefficient. Integer kernels use binary HPL reflection. Half-integer
+kernels use the local coordinate `t = sqrt(1-z)` and power/log expansions.
+The matched and single-half-upper coordinates tend to one. The
+single-half-lower and all-half systems use an imaginary coordinate that
+tends to infinity. The upper-side inversion identity is continued from
+large positive arguments through the upper quadrant to obtain its
+power/log expansion. These methods apply within the resource budgets of the interior kernels.
+The limit is extracted after combining all
+potentially divergent terms. The near-one engine supports HPL weight
+through eight, and the inversion engine supports weight through six.
+
+### Zero base excess on a convergent regulator side
+
+Let $c_n$ be the defining coefficient at $z=1$ and let
+$\Delta=\sum b_j-\sum a_i$. The sum of
+$(n+1)c_{n+1}-n c_n$ vanishes when $\Re\Delta>0$, since
+$n c_n=O(n^{-\Re\Delta})$. Adding $\Delta c_n$ to this
+difference gives $c_n R(n)/\prod_j(n+b_j)$, where
 
 \[
- \Delta_0=\sum_j b_j(0)-\sum_i a_i(0)>0.
+R(n)=\prod_i(n+a_i)+(\Delta-n)\prod_j(n+b_j).
 \]
 
-This path first expands at a dummy real argument 0<z<1 using the existing
-integer algorithm. Each complete Laurent coefficient is then transformed
-with z=1-t and binary HPL reflection. The finite origin-limit routine combines
-all rational and logarithmic terms before deciding whether a finite limit
-exists. It never adds individually divergent endpoint values.
-
-The implementation is bounded by the reflection engine: binary HPL words
-of weight at most eight and supported rational coefficients. Unsupported word
-alphabets, arguments, weights or unproved cancellations raise. This is not a
-generic half-integer endpoint evaluator. Nonpositive base excess still fails,
-except when another explicitly supported identity such as Gauss or exact
-termination applies.
+The two highest powers cancel. Expanding $R(n)$ in falling factorials
+and shifting the summation index expresses the original series as a
+linear combination of same-rank series with excess $\Delta+1$, divided
+by $\Delta$. This rewrite runs before Laurent planning so the new pole
+and any external poles are budgeted together. The zero-base-excess
+rewrite requires assumptions proving $\Re\Delta>0$ on a punctured
+regulator side. Negative base excess and identically zero excess
+remain unsupported.
 
 ### Why the coefficient endpoint limit is justified
 
