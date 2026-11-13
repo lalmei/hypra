@@ -77,6 +77,8 @@ jobs:
     needs: [validate, publication-gate]
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    permissions:
+      id-token: write
     environment:
       name: pypi
       url: https://pypi.org/project/hypra/
@@ -85,14 +87,9 @@ jobs:
         with:
           name: python-distributions
           path: dist/
-      - name: Require explicitly configured PyPI credential
-        env:
-          PYPI_API_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
-        run: test -n "$PYPI_API_TOKEN" || { echo 'PYPI_API_TOKEN is not configured'; exit 1; }
       - name: Publish approved distributions
         uses: pypa/gh-action-pypi-publish@7245906fb61fa33a13554f9d5fb856fe61758086 # release/v1
         with:
-          password: ${{ secrets.PYPI_API_TOKEN }}
           packages-dir: dist/
           skip-existing: false
-          attestations: false
+          attestations: true
