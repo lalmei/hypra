@@ -1,26 +1,14 @@
-# Fixed initial alpha: this config is used by a read-only, dry-run workflow.
-# PEP 440 uses 0.1.0a0; do not infer or bump the published package version.
-name-template: 'Hypra 0.1.0a0'
+# PEP 440 alpha; the workflow never changes this existing tag or publishes it.
+name-template: 'Hypra v0.1.0a0'
 tag-template: 'v0.1.0a0'
 prerelease: true
 latest: false
 commitish: 'e1c13fc82a9077720a6b27350a5729993e772a83'
 change-template: '- $TITLE (#$NUMBER)'
-change-title-escapes: '\<*_&#@`'
+change-title-escapes: '\\<*_&#@`'
 no-changes-template: '- No merged pull requests were identified for this comparison. Direct commits are not a complete PR changelog.'
-categories:
-  - title: 'Features'
-    labels: ['feature', 'enhancement']
-  - title: 'Fixes'
-    labels: ['fix', 'bug']
-  - title: 'Documentation'
-    labels: ['documentation', 'docs']
 template: |
   <!-- release-drafter:start -->
-  ## Generated pull-request notes
-
-  Review this preview against the immutable release commit before adopting it.
-  It does not replace the curated overview, artifact checksums or limitations.
-
+  ## Changes
   $CHANGES
   <!-- release-drafter:end -->

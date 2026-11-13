@@ -23,6 +23,8 @@ jobs:
         with:
           enable-cache: true
           python-version: '3.12'
+      - name: Check draft-note preservation guards
+        run: node scripts/test_release_drafter.cjs
       - name: Install locked documentation dependencies
         run: uv sync --locked --group docs
       - name: Build strict offline-capable documentation
