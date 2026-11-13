@@ -15,8 +15,8 @@ import sympy as s
 from .errors import UnsupportedExpressionError
 from .hpl_alternating import hpl_alternating_at_one, reduce_euler_sum
 from .hpl_endpoints import reduce_mzv
-from .hpl_mobius import mobius_hpl
-from .hpl_numeric import HPLNumericalConvergenceError, hpl_evalf
+from .hpl_mobius import _MAX_MOBIUS_WEIGHT, mobius_hpl
+from .hpl_numeric import HPLNumericalConvergenceError, _evaluate
 from .symbolic import HPL, MZV, EulerSum
 
 
@@ -53,6 +53,15 @@ def _remainder(word):
     return remainder.subs(z, s.Rational(1, 2))
 
 
+@lru_cache(maxsize=4096)
+def _hpl_value(word, argument, digits, max_terms):
+    # The endpoint evaluator already repeats the entire calculation at
+    # higher precision. Reuse each guarded interior series across sums.
+    value, _, _, _ = _evaluate(word, argument, digits+10, digits+8, max_terms, "real")
+    return s.Float(mp.nstr(value, n=digits), digits)
+
+
+@lru_cache(maxsize=1024)
 def _calculate(constant, digits, max_terms):
     ctx = mp.mp.clone()
     ctx.dps = digits
@@ -65,8 +74,8 @@ def _calculate(constant, digits, max_terms):
         if atom == 1:
             return s.S.One
         weight = sum(atom.indices)
-        if weight > 6:
-            raise UnsupportedExpressionError('Numerical endpoint constants support weight at most six')
+        if weight > _MAX_MOBIUS_WEIGHT:
+            raise UnsupportedExpressionError(f'Numerical endpoint constants support weight at most {_MAX_MOBIUS_WEIGHT}')
         if isinstance(atom, MZV):
             reduced = reduce_mzv(atom)
             if reduced == atom:
@@ -85,14 +94,14 @@ def _calculate(constant, digits, max_terms):
             raise UnsupportedExpressionError('Endpoint recursion did not strictly lower weight')
         expression = expression.xreplace({child: evaluate(child) for child in constants})
         expression = expression.xreplace({
-            h: as_float(hpl_evalf(tuple(h.word), h.argument, dps=digits, max_terms=max_terms))
+            h: _hpl_value(tuple(h.word), h.argument, digits, max_terms)
             for h in expression.atoms(HPL)
         })
         residual = expression.evalf(digits)
         if residual.free_symbols or residual.is_real is not True or residual.is_finite is not True:
             raise UnsupportedExpressionError('Endpoint recursion left an unevaluated numeric expression')
-        value = hpl_evalf(word, s.Rational(1, 3), dps=digits, max_terms=max_terms)
-        return as_float(factor * (ctx.convert(value) - ctx.mpf(str(residual))))
+        value = _hpl_value(word, s.Rational(1, 3), digits, max_terms)
+        return as_float(factor * (ctx.mpf(str(value)) - ctx.mpf(str(residual))))
 
     result = evaluate(constant).evalf(digits)
     return ctx.mpf(str(result))
@@ -103,8 +112,8 @@ def _run(constant, dps, max_terms):
         raise ValueError('dps must be an integer between 2 and 900')
     if type(max_terms) is not int or not 1 <= max_terms <= 1000000:
         raise ValueError('max_terms must be an integer between 1 and 1000000')
-    if constant != 1 and sum(constant.indices) > 6:
-        raise UnsupportedExpressionError('Numerical endpoint constants support weight at most six')
+    if constant != 1 and sum(constant.indices) > _MAX_MOBIUS_WEIGHT:
+        raise UnsupportedExpressionError(f'Numerical endpoint constants support weight at most {_MAX_MOBIUS_WEIGHT}')
     first = _calculate(constant, dps + 20, max_terms)
     second = _calculate(constant, dps + 40, max_terms)
     ctx = mp.mp.clone()
@@ -116,7 +125,7 @@ def _run(constant, dps, max_terms):
 
 
 def evaluate_euler_sum(indices, colors, *, dps=50, max_terms=100000):
-    """Numerically evaluate a convergent strict colored sum of weight <=6.
+    """Numerically evaluate a convergent strict colored sum of weight <=8.
 
     The two-list input uses EulerSum's explicit sigma**n convention. Each
     recursive step must lower weight. HPL tail targets and repeated guarded
@@ -126,5 +135,5 @@ def evaluate_euler_sum(indices, colors, *, dps=50, max_terms=100000):
 
 
 def evaluate_mzv(indices, *, dps=50, max_terms=100000):
-    """Numerically evaluate a convergent strict multiple zeta of weight <=6."""
+    """Numerically evaluate a convergent strict multiple zeta of weight <=8."""
     return _run(MZV(indices), dps, max_terms)

@@ -28,6 +28,7 @@ from .hpl_inversion import invert_hpl
 from .hpl_limits import hpl_limit_at_one
 from .hpl_maps import fractional_hpl, square_hpl
 from .hpl_mobius import mobius_hpl
+from .hpl_named_constants import HPLs6, HPLs7a, HPLs7b, HPLs8a, HPLs8b, HPLs8c, HPLs8d
 from .hpl_notation import compress_indices, expand_indices, hpl_pm, letters_to_pm, pm_to_letters
 from .hpl_numeric import (
     HPLNumericalConvergenceError,
@@ -66,6 +67,13 @@ def hypergeometric(upper, lower, argument):
 
 __all__ = [
     "HPL",
+    "HPLs6",
+    "HPLs7a",
+    "HPLs7b",
+    "HPLs8a",
+    "HPLs8b",
+    "HPLs8c",
+    "HPLs8d",
     "MZV",
     "BackendConfig",
     "BackendError",

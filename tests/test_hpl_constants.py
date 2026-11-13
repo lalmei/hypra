@@ -45,7 +45,7 @@ def test_symbolic_remainder_strictly_lowers_constant_weight(word):
 
 def test_reject_limits_divergence_and_invalid_inputs():
     with pytest.raises(UnsupportedExpressionError, match='weight'):
-        evaluate_mzv((7,))
+        evaluate_mzv((9,))
     with pytest.raises(ValueError):
         evaluate_euler_sum((1,), (1,))
     with pytest.raises(TypeError):
@@ -77,5 +77,5 @@ def test_explicit_symbolic_constant_evalf_and_no_eager_constructor():
         assert isinstance(value, s.Float)
         with mp.workdps(70):
             assert abs(mp.mpf(str(value)) - result.value) < mp.mpf('1e-49')
-    assert MZV((7,)).evalf(50) == MZV((7,))
-    assert EulerSum((7,), (-1,)).evalf(50) == EulerSum((7,), (-1,))
+    assert MZV((9,)).evalf(50) == MZV((9,))
+    assert EulerSum((9,), (-1,)).evalf(50) == EulerSum((9,), (-1,))

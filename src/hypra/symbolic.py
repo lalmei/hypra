@@ -99,23 +99,29 @@ class HPL(Function):
         return self.fdiff(2) * self.argument.diff(symbol)
 
     def _eval_evalf(self, prec):
-        """Explicit SymPy evalf on the real interval only, with guarded digits."""
+        """Evaluate interior real and off-cut complex principal values."""
         import mpmath as mp
-        from sympy import Float
+        from sympy import Float, I
         from sympy.core.evalf import prec_to_dps
 
-        from .hpl_numeric import hpl_evalf
-
         z = self.argument
-        if (z.is_number is not True or z.is_real is not True
-                or z.is_finite is not True or z.is_positive is not True
-                or (1 - z).is_positive is not True):
+        if z.is_number is not True or z.is_finite is not True or len(self.word) > 24:
             return self
         digits = max(2, prec_to_dps(prec) + 8)
-        if digits > 1000 or len(self.word) > 24:
+        word = tuple(self.word)
+        if z.is_real is False and digits <= 500:
+            from .hpl_continue import continue_hpl
+
+            value = continue_hpl(
+                word, z, domain="principal-cut-plane", path="radial", dps=digits
+            ).value
+            return (Float(mp.nstr(value.real, n=digits), precision=prec)
+                    + I*Float(mp.nstr(value.imag, n=digits), precision=prec))
+        if z.is_positive is not True or (1-z).is_positive is not True or digits > 1000:
             return self
-        value = hpl_evalf(tuple(self.word), z, dps=digits)
-        # str(mpf) uses the global context and would discard guarded digits.
+        from .hpl_numeric import hpl_evalf
+
+        value = hpl_evalf(word, z, dps=digits)
         return Float(mp.nstr(value, n=digits), precision=prec)
 
     def _zero_germ_argument(self, x, logx=None, cdir=0):
@@ -219,8 +225,10 @@ def _constant_evalf(atom, prec, evaluator, arguments):
     from sympy import Float
     from sympy.core.evalf import prec_to_dps
 
+    from .hpl_mobius import _MAX_MOBIUS_WEIGHT
+
     digits = max(2, prec_to_dps(prec) + 8)
-    if sum(atom.indices) > 6 or digits > 900:
+    if sum(atom.indices) > _MAX_MOBIUS_WEIGHT or digits > 900:
         return atom
     value = evaluator(*arguments, dps=digits).value
     return Float(mp.nstr(value, n=digits), precision=prec)
