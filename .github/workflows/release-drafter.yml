@@ -150,7 +150,7 @@ jobs:
             const prefix = body.slice(0, body.indexOf(start) + start.length);
             const suffix = body.slice(body.indexOf(end));
             const notes = accepted.length ? accepted.join('\n') : '- No merged PR entries verified in this immutable tag; see the curated release overview.';
-            const replacement = `${prefix}\n## Generated pull-request notes\n\n${notes}\n${suffix}`;
+            const replacement = `${prefix}\n## Changes\n${notes}\n${suffix}`;
             if (replacement !== body) {
               // Only body is PATCHed: no draft/publication, asset, tag or target fields.
               await github.rest.repos.updateRelease({...context.repo, release_id, body: replacement});
