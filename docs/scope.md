@@ -16,7 +16,7 @@ complete public API coverage or full upstream parity.
 | `contiguous.py` / `canonical.py` | Generic upper/lower contiguous differential operators, Laurent convolution, one-parameter removable-limit regularization | Supported canonical families only; bounded shift count/depth; unresolved singular limits fail closed |
 | `half_system.py` | Canonical rationalized epsilon ODE systems A/B/C/D | Patterns specified below; rank at least two; guarded polynomial symbolic slopes; symbolic singular lower slopes need explicit nonzero assumptions |
 | `hpl_algebra.py` | Shuffle linearization, rational-HPL primitives, definite origin integration, local exact series | Rational poles only 0/±1; finite origin constant must be proved; explicit weight/pole/term budgets |
-| `endpoints.py` | Finite terminating sums; convergent Gauss `2F1(1)` rewrite | Fixed nonpositive upper termination only; affine Gauss parameters and proven convergence; no divergent endpoint continuation |
+| `endpoints.py` | Finite terminating sums; Gauss and higher-rank convergent unit endpoints | Fixed nonpositive upper termination only; supported affine integer and half-integer kernels; proven convergence; no divergent endpoint continuation |
 
 The native dispatcher uses integer and matched-half reductions. The canonical half-system kernels cover:
 
