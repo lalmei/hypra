@@ -29,6 +29,19 @@ The reference source is read only; no upstream reduction tables are copied.
 | Numerical HPL evaluation | `hpl_evalf`, `evaluate_hpl`, `continue_hpl` | Real interval, explicit slit disk, or explicit off-cut radial path |
 | Numerical real-cut boundary values | `evaluate_hpl_boundary` | Exact real argument plus explicit region and upper/lower side; existing map/weight bounds; no guessed small imaginary offset |
 
+## HypExp 2.0 public operations
+
+The public declarations in the pinned `HypExp.m` distinguish expansion,
+definite logarithmic integrals, and Mathematica library management.
+
+| Upstream operation | Python interface | Current boundary |
+|---|---|---|
+| `HypExp`, `MyHypExpansion` | `expand_epsilon` with an exact SymPy `hyper` | See [supported families and domains](scope.md#hypexp-2-class-correspondence) and the endpoint and exceptional-parameter restrictions. The class list describes kernel coverage. |
+| `HypExpU` | `beta_log_moment(n, m, p)` | Convergence requires `p + m >= 0`. Log weight through seven and `-32 <= p <= 64`. |
+| `HypExpInt` | `hypergeometric_log_moment(p, n, m, k, q, z)` | Exact endpoints, argument-independent integrals, and real interior moving kernels with `m = 0`. Interior products involving both `log(1-u)` and a moving kernel remain open. |
+| `HypExpAddToLib`, `HypExpIsKnownToOrder` | Native request-result cache via `NativeConfig` | The cache stores individual computed requests. An expansion library indexed by parameter bases and known order has no public equivalent. |
+| `$HypExpFailed`, `$HypExpPolyLogRules` | Typed exceptions and explicit HPL reduction | Appendix A.1 rewrite coverage has not been verified. |
+
 ## Remaining distinctions
 
 Generic mixed words are not all converted into classical

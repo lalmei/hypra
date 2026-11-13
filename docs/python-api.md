@@ -44,3 +44,30 @@ are not a claim of additional parameter or branch coverage.
 ::: hypra.hpl_series_one.hpl_series_at_one
 
 ::: hypra.hpl_limits.hpl_limit_at_one
+
+
+## Definite logarithmic integrals
+
+`beta_log_moment(n, m, p)` integrates
+\(u^p \log^n(u) \log^m(1-u)\) from zero to one. It normalizes the
+rational-HPL primitive at zero and combines its finite endpoint limit at
+one. The powers are explicit integers and convergence at zero requires
+`p + m >= 0`.
+
+`hypergeometric_log_moment(p, n, m, k, q, z)` adds the factor
+\(\log^k(1-zu)/(zu-1)^q\). All five powers are nonnegative integers.
+It supports `z=0`, `z=1` when `n >= q`, argument-independent kernels
+(`k=q=0`), and interior moving kernels (`0<z<1`, `m=0`).
+A symbolic interior argument is interpreted on that real interval.
+The substitution `t=z*u` reduces those interior kernels to rational-HPL
+primitives. Both APIs return exact SymPy expressions and raise
+`UnsupportedExpressionError` for unsupported cases or divergent integrals.
+
+```python
+from sympy import Symbol
+from hypra import beta_log_moment, hypergeometric_log_moment
+
+z = Symbol("z")
+beta_log_moment(0, 1, -1)                       # -pi**2/6
+hypergeometric_log_moment(0, 0, 0, 0, 1, z)    # -HPL((1,), z)/z
+```
