@@ -16,10 +16,11 @@ The reference source is read only; no upstream reduction tables are copied.
 | Logarithm extraction | `extract_hpl_logs` | Leading 1 and trailing 0; retains branch data |
 | Shuffle basis reduction | `lyndon_reduce` | Table-free Lyndon basis through weight eight, not upstream's particular chosen basis |
 | Nielsen notation | `NielsenPolylog`, `hpl_to_nielsen`, `nielsen_to_hpl` | Exact 0^n1^p words; no general Nielsen-basis claim |
-| Elementary/classical conversion | `reduce_known_hpl`; `classical_hpl` | Standard all-weight simple words; all weight-two and weight-three words with at most two distinct letters; other mixed words retained |
+| Elementary/classical conversion | `reduce_known_hpl`; `classical_hpl` | Standard all-weight simple words; all weight-two and all 27 ternary weight-three words; other mixed words retained |
 | Argument transformations | Negation, reflection, Möbius, inversion, square, fractional maps | Explicit alphabet/domain/boundary/weight contracts |
 | Expression argument unification | `transform_hpl_arguments` | Dispatches supported maps; unknown arguments rejected |
 | Rational-HPL integration | `primitive_hpl`, `integrate_from_zero` | Poles only 0,±1; definite origin limit must exist |
+| Near-one series and combined limits | `hpl_series_at_one`, `hpl_limit_at_one` | Explicit logarithmic remainders; bounded weight/order/poles; no divergent-limit assignment |
 | Series around zero | `hpl_series`, supported SymPy `.series()` | Explicit logarithmic local-series conventions |
 | Values at one | `hpl_at_one`, `hpl_alternating_at_one` | Convergent values only; exact MZV/EulerSum remainder constants |
 | Explicit shuffle regularization | `hpl_endpoint_polynomial`, `hpl_expression_endpoint_polynomial`, `shuffle_regularized_hpl_at_one` | Real endpoint polynomial in T=−log(1−z); not an ordinary finite limit |
@@ -63,8 +64,8 @@ real-cut additions:
   but are not a complete reduction to the upstream named constant basis.
 - **Minimal sets and known functions:** the native Lyndon basis is a chosen
   table-free shuffle basis, not upstream's particular minimal-set tables.
-  Classical conversion still leaves genuinely ternary weight-three words
-  and general higher-weight words intact. An exact Nielsen-polylogarithm
+  Classical conversion covers all 27 ternary weight-three words; general
+  higher-weight words remain intact. An exact Nielsen-polylogarithm
   notation/conversion layer covers words 0^n 1^p; it does not reduce arbitrary
   HPL words to Nielsen functions.
 - **Numerical assurance:** cut-boundary evaluation maps the exact argument
@@ -76,18 +77,11 @@ real-cut additions:
   Mathematica syntax/API compatibility. No real upstream-kernel comparison
   suite has been run.
 
-### Next substantive algorithm
+### Further symbolic coverage
 
-The smallest useful remaining symbolic milestone is **all mixed-sign ternary
-weight-three HPLs in classical functions on the real interval**. Over the
-ordered alphabet `-1 < 0 < 1`, weight three has eight Lyndon basis words. Two
-genuinely ternary representatives remain beyond the implemented two-letter primitives:
-`(-1,0,1)` and `(-1,1,0)`.
-
-A native implementation can derive the remaining two logarithm/dilogarithm/trilogarithm
-primitives, fix each constant by the origin limit, and reconstruct all 27
-words through the existing shuffle algebra. Acceptance should check every
-exact differentiated recursion, the origin normalization and independent
-numerical values. Branch-safe real argument choices are part of the proof;
-blind substitution across polylogarithm cuts is not acceptable. This is a
-proposed next algorithm, **not an implemented feature claim**.
+All ternary cubic words now reduce through proved square-log, Möbius and
+shuffle identities, with real classical arguments on the stated interval.
+Near-one power/log expansions and combined ternary rational-pole limits are
+also implemented with explicit remainder and resource contracts. Remaining
+symbolic work includes higher-weight named-function and constant-basis
+reductions; it is not hidden behind the cubic coverage claim.

@@ -38,5 +38,5 @@ def test_negative_new_formula_origin_and_real_arguments():
 
 
 def test_true_ternary_cubic_stays_lossless():
-    atom = HPL((1, 0, -1), Z)
+    atom = HPL((1, 0, -1, 0), Z)
     assert classical_hpl(atom, Z, **DOMAIN) == atom

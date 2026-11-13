@@ -41,7 +41,7 @@ def test_integral_primitive_derivative_and_origin(word):
     assert s.limit(result, Z, 0, dir="+") == 0
 
 
-def test_true_ternary_primitives_preserved():
-    for word in [(-1, 0, 1), (-1, 1, 0)]:
+def test_higher_ternary_words_preserved():
+    for word in [(-1, 0, 1, 0), (-1, 1, 0, 1)]:
         atom = HPL(word, Z)
         assert classical_hpl(atom, Z, **DOMAIN) == atom

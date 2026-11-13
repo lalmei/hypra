@@ -1,5 +1,7 @@
 # Classical reduction of binary weight-three HPLs
 
+**Update:** All genuinely ternary weight-three words are now also reduced; see [the complete construction](hpl-classical-ternary-three.md). The scope below records this intermediate derivation.
+
 `classical_hpl(expression, z, domain="0<z<1")` now reduces every binary
 weight-three word to real logarithms and classical polylogarithms. Existing
 weight-two ternary reductions and simple all-weight words remain supported.

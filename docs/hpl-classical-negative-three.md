@@ -1,5 +1,7 @@
 # Real classical weight-three reduction over {0,-1}
 
+**Update:** All genuinely ternary weight-three words are now also reduced; see [the complete construction](hpl-classical-ternary-three.md). The scope below records this intermediate derivation.
+
 `classical_hpl(..., domain="0<z<1")` reduces all eight weight-three words
 over `{0,-1}`, in addition to `{0,1}`. Words involving both `1` and `-1`
 at weight three remain lossless HPL objects.

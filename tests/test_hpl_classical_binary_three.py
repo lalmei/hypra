@@ -35,5 +35,5 @@ def test_new_irreducible_formula_origin_constant():
 
 
 def test_higher_mixed_words_remain_lossless():
-    atom = HPL((-1, 0, 1), Z)
+    atom = HPL((-1, 0, 1, 0), Z)
     assert classical_hpl(atom, Z, **DOMAIN) == atom
