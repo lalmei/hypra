@@ -1,5 +1,7 @@
 # Additional mixed-sign weight-three classical reductions
 
+**Update:** All genuinely ternary weight-three words are now also reduced; see [the complete construction](hpl-classical-ternary-three.md). The scope below records this intermediate derivation.
+
 `classical_hpl(..., domain="0<z<1")` now reduces every weight-three word
 using at most two distinct letters of `{-1,0,1}`. This adds all words over
 `{-1,1}`. The two remaining genuinely ternary Lyndon primitives

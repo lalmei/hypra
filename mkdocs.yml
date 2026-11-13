@@ -76,6 +76,7 @@ nav:
       - Nielsen polylogarithms: nielsen-polylogarithms.md
       - Numerical evaluation: hpl-numerics.md
       - Interior Taylor series: hpl-taylor.md
+      - Near-one power and log series: hpl-near-one-series.md
       - Exact values at i: hpl-at-i.md
       - Radial numerical continuation: hpl-continuation.md
       - Real-cut boundary numerics: hpl-boundary-numerics.md
@@ -83,6 +84,7 @@ nav:
       - Classical polylogarithms: hpl-classical-binary-three.md
       - Negative-letter classical reduction: hpl-classical-negative-three.md
       - Mixed-sign classical reduction: hpl-classical-mixed-three.md
+      - Complete cubic classical reduction: hpl-classical-ternary-three.md
       - Explicit shuffle regularization: hpl-regularization.md
       - Binary endpoints and MZVs: hpl-endpoints.md
       - Endpoint constant products: hpl-stuffle.md

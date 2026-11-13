@@ -18,7 +18,7 @@ def test_combined_rational_log_limit_not_separate_divergences():
 
 
 def test_divergent_and_unsupported_reflection_reject():
-    for expr in (s.log(1-z),HPL((-1,0),z),HPL((0,)*8+(1,),z),s.polylog(2,s.sqrt(z))):
+    for expr in (s.log(1-z),HPL((1,-1),z),HPL((0,)*8+(1,),z),s.polylog(2,s.sqrt(z))):
         with pytest.raises(UnsupportedExpressionError):
             hpl_limit_at_one(expr,z)
 

@@ -89,7 +89,7 @@ reduction is explicit and does not claim arbitrary analytic continuation.
 
 Additional native HPL operations include exact at-i values for low weights,
 explicit upper/lower real-cut numerical values, ordinary-point Taylor series,
-classical reduction of all cubic words with at most two distinct letters,
+classical reduction of all 27 ternary cubic words, near-one power/log series,
 alternating endpoints, MZV/EulerSum stuffle products and explicitly named
 shuffle-regularization APIs. Each has documented domain/resource limits;
 regularized constants are never silently treated as ordinary finite limits.

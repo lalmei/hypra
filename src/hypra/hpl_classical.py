@@ -3,14 +3,14 @@
 import sympy as s
 
 from .errors import UnsupportedExpressionError
-from .hpl_reduce import _extract, extract_hpl_logs
+from .hpl_reduce import _extract, extract_hpl_logs, lyndon_reduce
 from .symbolic import HPL, reduce_known_hpl
 
 
 def classical_hpl(expression, z, *, domain):
-    """Reduce weight two and all weight-three words using at most two letters.
+    """Reduce every weight-two and weight-three ternary HPL at z.
 
-    Requires the declared real interval 0<z<1. Weight-three words using all three letters and higher mixed words remain HPLs;
+    Requires the declared real interval 0<z<1. Higher mixed words remain HPLs;
     this does not claim a complete high-weight classical-function basis.
     """
     if not isinstance(expression, s.Expr) or not isinstance(z, s.Symbol):
@@ -61,6 +61,9 @@ def classical_hpl(expression, z, *, domain):
         - s.log(1 + z) * formulas[(1, -1)]
         + plus_minus_minus
     )
+    ternary_a = (
+        s.log(1 + z) * s.polylog(2, z) + binary_011.subs(z, z**2) / 2 - negative_011 - binary_011
+    )
     changes = {}
     for atom in result.atoms(HPL):
         if atom.argument != z:
@@ -98,6 +101,38 @@ def classical_hpl(expression, z, *, domain):
                 {HPL((-1, -1, 1), z): minus_minus_plus, HPL((-1, 1, 1), z): minus_plus_plus}
             )
             changes[atom] = reduce_known_hpl(relabeled.xreplace(replacements))
+        elif len(word) == 3:
+            # A square-log identity proves A=H(-1,0,1). Pulling A back by
+            # M(z)=(1-z)/(1+z) and reducing its shuffle words solves for the
+            # other genuinely ternary Lyndon primitive B=H(-1,1,0).
+            a_at_one = (
+                s.log(2) * s.zeta(2)
+                - s.Rational(3, 2) * s.zeta(3)
+                + s.polylog(3, s.S.Half)
+                + s.log(2) * s.polylog(2, s.S.Half)
+                + s.log(2) ** 3 / 3
+            )
+            hm = HPL((-1,), z)
+            hm1 = HPL((-1, 1), z)
+            known = (
+                a_at_one
+                - s.zeta(2) * hm
+                - s.log(2) * hm**2 / 2
+                + hm**3 / 6
+                - s.log(2) * hm1
+                + hm1 * hm
+                - HPL((-1, -1, 0), z)
+                - 2 * HPL((-1, -1, 1), z)
+            )
+            ternary_b = classical_hpl(known, z, domain=domain) - ternary_a.subs(
+                z, (1 - z) / (1 + z)
+            )
+            reduced = lyndon_reduce(atom).xreplace(
+                {HPL((-1, 0, 1), z): ternary_a, HPL((-1, 1, 0), z): ternary_b}
+            )
+            # Remaining words use at most two letters, so recursion decreases
+            # the number of genuinely ternary primitive atoms to zero.
+            changes[atom] = classical_hpl(reduced, z, domain=domain)
         elif word in formulas:
             changes[atom] = formulas[word]
     return result.xreplace(changes)

@@ -25,6 +25,7 @@ from .hpl_continuation import analytic_continue_hpl
 from .hpl_continue import HPLContinuationResult, continue_hpl
 from .hpl_endpoints import hpl_at_one, reduce_mzv
 from .hpl_inversion import invert_hpl
+from .hpl_limits import hpl_limit_at_one
 from .hpl_maps import fractional_hpl, square_hpl
 from .hpl_mobius import mobius_hpl
 from .hpl_notation import compress_indices, expand_indices, hpl_pm, letters_to_pm, pm_to_letters
@@ -40,6 +41,7 @@ from .hpl_regularized import (
     hpl_expression_endpoint_polynomial,
     shuffle_regularized_hpl_at_one,
 )
+from .hpl_series_one import hpl_series_at_one
 from .hpl_special import hpl_at_i
 from .hpl_stuffle import stuffle_expand_constants
 from .hpl_taylor import hpl_taylor
@@ -105,8 +107,10 @@ __all__ = [
     "hpl_endpoint_polynomial",
     "hpl_evalf",
     "hpl_expression_endpoint_polynomial",
+    "hpl_limit_at_one",
     "hpl_pm",
     "hpl_series",
+    "hpl_series_at_one",
     "hpl_taylor",
     "hpl_to_nielsen",
     "hypergeometric",

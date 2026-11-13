@@ -40,3 +40,7 @@ are not a claim of additional parameter or branch coverage.
 ::: hypra.nielsen.nielsen_to_hpl
 
 ::: hypra.nielsen.reduce_nielsen
+
+::: hypra.hpl_series_one.hpl_series_at_one
+
+::: hypra.hpl_limits.hpl_limit_at_one

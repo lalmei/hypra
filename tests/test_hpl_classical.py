@@ -20,5 +20,5 @@ def test_all_weight_two_differential_and_origin(word):
         assert s.limit(result,z,0,dir='+')==0
 
 def test_higher_mixed_words_remain_exact():
-    value=HPL((1,-1,0),z)
+    value=HPL((1,-1,0,1),z)
     assert classical_hpl(value,z,domain='0<z<1')==value
