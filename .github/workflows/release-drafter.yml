@@ -1,0 +1,158 @@
+name: Preview draft release notes
+
+# Manual only; read-only preview by default. Applying edits requires explicit opt-in.
+on:
+  workflow_dispatch:
+    inputs:
+      apply:
+        description: 'Update only the generated region in the existing draft after tag-ancestry checks'
+        type: boolean
+        default: false
+        required: true
+
+permissions:
+  contents: read
+  pull-requests: read
+
+concurrency:
+  group: release-drafter-preview-v0.1.0a0
+  cancel-in-progress: false
+
+jobs:
+  preview:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    outputs:
+      body: ${{ steps.drafter.outputs.body }}
+      release_id: ${{ steps.snapshot.outputs.release_id }}
+      updated_at: ${{ steps.snapshot.outputs.updated_at }}
+      body_hash: ${{ steps.snapshot.outputs.body_hash }}
+    steps:
+      - name: Snapshot the existing draft and immutable tag
+        id: snapshot
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
+        with:
+          script: |
+            const {data: commit} = await github.rest.repos.getCommit({
+              ...context.repo, ref: 'v0.1.0a0'
+            });
+            if (commit.sha !== 'e1c13fc82a9077720a6b27350a5729993e772a83') {
+              throw new Error('The release tag no longer matches the approved immutable commit.');
+            }
+            const releases = await github.paginate(github.rest.repos.listReleases, context.repo);
+            const matches = releases.filter(r => r.tag_name === 'v0.1.0a0');
+            if (matches.length !== 1 || !matches[0].draft) throw new Error('Require one existing, unpublished alpha draft');
+            const release = matches[0];
+            const hash = require('crypto').createHash('sha256').update(release.body || '').digest('hex');
+            core.setOutput('release_id', String(release.id));
+            core.setOutput('updated_at', release.updated_at);
+            core.setOutput('body_hash', hash);
+      - name: Generate a proposal without modifying any release
+        id: drafter
+        uses: release-drafter/release-drafter@978bb0b30c5ee8cdd332ced253758157150d43f0 # v7.10.0
+        with:
+          config-name: release-drafter.yml
+          dry-run: true
+          publish: false
+          latest: false
+          prerelease: true
+          # Internal SemVer input only; the actual tag/name stay PEP 440.
+          version: '0.1.0-alpha.0'
+          tag: 'v0.1.0a0'
+          name: 'Hypra 0.1.0a0'
+          commitish: 'e1c13fc82a9077720a6b27350a5729993e772a83'
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+      - name: Save the proposed notes as data
+        env:
+          PROPOSED_NOTES: ${{ steps.drafter.outputs.body }}
+        run: |
+          python - <<'PY'
+          import os
+          from pathlib import Path
+          body = os.environ.get('PROPOSED_NOTES', '')
+          if not body.strip():
+              raise SystemExit('Release Drafter returned no preview body')
+          Path('release-notes-preview.md').write_text(body, encoding='utf-8')
+          with open(os.environ['GITHUB_STEP_SUMMARY'], 'a') as summary:
+              summary.write('Preview generated for immutable v0.1.0a0. '
+                            'Download the artifact for review. No release notes, '
+                            'assets, tags or publication state were changed.\n')
+          PY
+      - name: Upload review artifact only
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: release-notes-preview-v0.1.0a0
+          path: release-notes-preview.md
+          if-no-files-found: error
+          retention-days: 14
+
+  apply:
+    if: inputs.apply
+    needs: preview
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+      pull-requests: read
+    steps:
+      - name: Filter by immutable tag ancestry and preserve curated notes
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
+        env:
+          PROPOSED_NOTES: ${{ needs.preview.outputs.body }}
+          RELEASE_ID: ${{ needs.preview.outputs.release_id }}
+          SNAPSHOT_UPDATED_AT: ${{ needs.preview.outputs.updated_at }}
+          SNAPSHOT_BODY_HASH: ${{ needs.preview.outputs.body_hash }}
+        with:
+          script: |
+            const tag = 'v0.1.0a0';
+            const sha = 'e1c13fc82a9077720a6b27350a5729993e772a83';
+            const start = '<!-- release-drafter:start -->';
+            const end = '<!-- release-drafter:end -->';
+            const hash = text => require('crypto').createHash('sha256').update(text).digest('hex');
+            const {data: tagged} = await github.rest.repos.getCommit({...context.repo, ref: tag});
+            if (tagged.sha !== sha) throw new Error('Immutable tag moved; refusing update');
+            const proposal = process.env.PROPOSED_NOTES;
+            if (proposal.split(start).length !== 2 || proposal.split(end).length !== 2 || proposal.indexOf(start) >= proposal.indexOf(end)) {
+              throw new Error('Generated proposal has invalid or extra delimiter markers');
+            }
+            const accepted = [], seen = new Set();
+            for (const line of proposal.split(/\r?\n/)) {
+              if (!line.startsWith('- ')) continue;
+              if (line === '- No merged pull requests were identified for this comparison. Direct commits are not a complete PR changelog.') continue;
+              const match = line.match(/^- (.+) \(#([0-9]+)\)$/);
+              if (!match) throw new Error('Malformed generated PR entry; refusing update');
+              const number = Number(match[2]);
+              if (seen.has(number)) continue;
+              seen.add(number);
+              const {data: pr} = await github.rest.pulls.get({...context.repo, pull_number: number});
+              if (!pr.merged || !pr.merge_commit_sha) throw new Error('Unmerged generated PR entry');
+              const {data: comparison} = await github.rest.repos.compareCommitsWithBasehead({
+                ...context.repo, basehead: `${pr.merge_commit_sha}...${sha}`
+              });
+              if (!['ahead', 'identical'].includes(comparison.status)) continue;
+              // Never splice PR content into executable code; titles are escaped Markdown data.
+              if (pr.title.includes(start) || pr.title.includes(end)) throw new Error('PR title contains a reserved delimiter');
+              const title = pr.title.replace(/[\\`*_{}\[\]<>#@&]/g, character => '\\' + character).replace(/[\r\n]/g, ' ');
+              accepted.push(`- ${title} (#${number})`);
+            }
+            const release_id = Number(process.env.RELEASE_ID);
+            const {data: current} = await github.rest.repos.getRelease({...context.repo, release_id});
+            const body = current.body || '';
+            if (!current.draft || current.tag_name !== tag || current.updated_at !== process.env.SNAPSHOT_UPDATED_AT || hash(body) !== process.env.SNAPSHOT_BODY_HASH) {
+              throw new Error('Draft changed while generating notes; rerun instead of overwriting');
+            }
+            if (body.split(start).length !== 2 || body.split(end).length !== 2 || body.indexOf(start) >= body.indexOf(end)) {
+              throw new Error('Require exactly one ordered reserved notes region');
+            }
+            const {data: finalTag} = await github.rest.repos.getCommit({...context.repo, ref: tag});
+            if (finalTag.sha !== sha) throw new Error('Tag changed during validation');
+            const prefix = body.slice(0, body.indexOf(start) + start.length);
+            const suffix = body.slice(body.indexOf(end));
+            const notes = accepted.length ? accepted.join('\n') : '- No merged PR entries verified in this immutable tag; see the curated release overview.';
+            const replacement = `${prefix}\n## Generated pull-request notes\n\n${notes}\n${suffix}`;
+            if (replacement !== body) {
+              // Only body is PATCHed: no draft/publication, asset, tag or target fields.
+              await github.rest.repos.updateRelease({...context.repo, release_id, body: replacement});
+            }
+            await core.summary.addRaw(`Updated only the reserved notes region with ${accepted.length} ancestry-verified PR entries. Draft status, curated notes and assets were not changed.`).write();

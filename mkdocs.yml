@@ -100,4 +100,5 @@ nav:
       - Upstream sources and attribution: upstream-source.md
       - Documentation maintenance: docs-maintenance.md
       - Release process: releasing.md
+      - Draft release notes: release-drafter.md
       - Mathematics PDF: mathematics.pdf
