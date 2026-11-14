@@ -105,7 +105,7 @@ def test_meromorphic_fixed_excess_pole_rejected():
 
 
 def test_excess_recurrence_agrees_with_independent_convergent_series():
-    from hypra.endpoints import rewrite_endpoints
+    from hypra.native.endpoints import rewrite_endpoints
 
     h = hypergeometric([half, 1, 1], [half-1+e, 2], 1)
     rewritten = rewrite_endpoints(h, e, meromorphic=True)

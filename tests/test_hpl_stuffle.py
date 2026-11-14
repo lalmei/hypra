@@ -4,7 +4,7 @@ import pytest
 import sympy as s
 
 from hypra.errors import UnsupportedExpressionError
-from hypra.hpl_stuffle import stuffle_expand_constants as expand
+from hypra.hpl.stuffle import stuffle_expand_constants as expand
 from hypra.symbolic import MZV, EulerSum
 
 

@@ -5,8 +5,8 @@ import pytest
 import sympy as s
 
 from hypra.errors import UnsupportedExpressionError
-from hypra.hpl_algebra import shuffle_words
-from hypra.hpl_numeric import HPLNumericalConvergenceError, evaluate_hpl, hpl_evalf
+from hypra.hpl.algebra import shuffle_words
+from hypra.hpl.numeric import HPLNumericalConvergenceError, evaluate_hpl, hpl_evalf
 
 
 def close_to(actual, expected, digits=45):

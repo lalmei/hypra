@@ -15,38 +15,38 @@ from .backend import (
 )
 from .config import BackendConfig
 from .errors import HypraError, IncompleteExpansionError, UnsupportedExpressionError
-from .hpl_algebra import hpl_series, integrate_from_zero, primitive_hpl, shuffle_expand
-from .hpl_alternating import hpl_alternating_at_one, reduce_euler_sum
-from .hpl_arguments import transform_hpl_arguments
-from .hpl_boundary_numeric import HPLBoundaryNumericResult, evaluate_hpl_boundary
-from .hpl_classical import classical_hpl
-from .hpl_constants import ConstantNumericResult, evaluate_euler_sum, evaluate_mzv
-from .hpl_continuation import analytic_continue_hpl
-from .hpl_continue import HPLContinuationResult, continue_hpl
-from .hpl_endpoints import hpl_at_one, reduce_mzv
-from .hpl_inversion import invert_hpl
-from .hpl_limits import hpl_limit_at_one
-from .hpl_maps import fractional_hpl, square_hpl
-from .hpl_mobius import mobius_hpl
-from .hpl_named_constants import HPLs6, HPLs7a, HPLs7b, HPLs8a, HPLs8b, HPLs8c, HPLs8d
-from .hpl_notation import compress_indices, expand_indices, hpl_pm, letters_to_pm, pm_to_letters
-from .hpl_numeric import (
+from .hpl.algebra import hpl_series, integrate_from_zero, primitive_hpl, shuffle_expand
+from .hpl.alternating import hpl_alternating_at_one, reduce_euler_sum
+from .hpl.arguments import transform_hpl_arguments
+from .hpl.boundary_numeric import HPLBoundaryNumericResult, evaluate_hpl_boundary
+from .hpl.classical import classical_hpl
+from .hpl.constants import ConstantNumericResult, evaluate_euler_sum, evaluate_mzv
+from .hpl.endpoints import hpl_at_one, reduce_mzv
+from .hpl.inversion import invert_hpl
+from .hpl.limits import hpl_limit_at_one
+from .hpl.maps import fractional_hpl, square_hpl
+from .hpl.mobius import mobius_hpl
+from .hpl.named_constants import HPLs6, HPLs7a, HPLs7b, HPLs8a, HPLs8b, HPLs8c, HPLs8d
+from .hpl.notation import compress_indices, expand_indices, hpl_pm, letters_to_pm, pm_to_letters
+from .hpl.numeric import (
     HPLNumericalConvergenceError,
     HPLNumericResult,
     evaluate_hpl,
     hpl_evalf,
 )
-from .hpl_reduce import extract_hpl_logs, lyndon_factors, lyndon_reduce
-from .hpl_regularized import (
+from .hpl.radial_continuation import HPLContinuationResult, continue_hpl
+from .hpl.real_continuation import analytic_continue_hpl
+from .hpl.reduction import extract_hpl_logs, lyndon_factors, lyndon_reduce
+from .hpl.regularization import (
     hpl_endpoint_polynomial,
     hpl_expression_endpoint_polynomial,
     shuffle_regularized_hpl_at_one,
 )
-from .hpl_series_one import hpl_series_at_one
-from .hpl_special import hpl_at_i
-from .hpl_stuffle import stuffle_expand_constants
-from .hpl_taylor import hpl_taylor
-from .hpl_transform import negate_hpl, reflect_hpl
+from .hpl.series_one import hpl_series_at_one
+from .hpl.special import hpl_at_i
+from .hpl.stuffle import stuffle_expand_constants
+from .hpl.taylor import hpl_taylor
+from .hpl.transforms import negate_hpl, reflect_hpl
 from .hypexp_integrals import beta_log_moment, hypergeometric_log_moment
 from .native import NativeBackend, NativeConfig
 from .nielsen import NielsenPolylog, hpl_to_nielsen, nielsen_to_hpl, reduce_nielsen
@@ -67,13 +67,6 @@ def hypergeometric(upper, lower, argument):
 
 __all__ = [
     "HPL",
-    "HPLs6",
-    "HPLs7a",
-    "HPLs7b",
-    "HPLs8a",
-    "HPLs8b",
-    "HPLs8c",
-    "HPLs8d",
     "MZV",
     "BackendConfig",
     "BackendError",
@@ -87,6 +80,13 @@ __all__ = [
     "HPLContinuationResult",
     "HPLNumericResult",
     "HPLNumericalConvergenceError",
+    "HPLs6",
+    "HPLs7a",
+    "HPLs7b",
+    "HPLs8a",
+    "HPLs8b",
+    "HPLs8c",
+    "HPLs8d",
     "HypraError",
     "IncompleteExpansionError",
     "NativeBackend",

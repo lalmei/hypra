@@ -5,8 +5,8 @@ from itertools import pairwise, product
 import pytest
 import sympy as s
 
-from hypra.hpl_algebra import shuffle_expand
-from hypra.hpl_reduce import lyndon_factors, lyndon_reduce
+from hypra.hpl.algebra import shuffle_expand
+from hypra.hpl.reduction import lyndon_factors, lyndon_reduce
 from hypra.symbolic import HPL
 
 Z = s.Symbol("z")

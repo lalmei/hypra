@@ -4,7 +4,7 @@ import pytest
 import sympy as s
 
 from hypra.errors import UnsupportedExpressionError
-from hypra.hpl_algebra import (
+from hypra.hpl.algebra import (
     integrate_from_zero,
     inverse_theta_plus,
     shuffle_expand,
@@ -125,7 +125,7 @@ def test_resource_limits_fail_closed():
 
 
 def test_hpl_local_series_matches_log_and_dilog_series():
-    from hypra.hpl_algebra import hpl_series
+    from hypra.hpl.algebra import hpl_series
 
     expression = h(0, 1) + h(1, 1) + h(-1)
     actual = hpl_series(expression, Z, 6)
@@ -134,7 +134,7 @@ def test_hpl_local_series_matches_log_and_dilog_series():
 
 
 def test_hpl_local_series_handles_trailing_zero_and_rational_pole():
-    from hypra.hpl_algebra import hpl_series
+    from hypra.hpl.algebra import hpl_series
 
     # H_(1,0)= -log(z)log(1-z)-Li2(z), with vanishing regularized origin.
     expression = h(1, 0) / Z**2

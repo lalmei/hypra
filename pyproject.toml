@@ -15,7 +15,7 @@ dependencies = [
 ]
 
 [project.scripts]
-hypra = "hypra.__main__:main"
+hypra = "hypra.cli:main"
 
 [dependency-groups]
 dev = [

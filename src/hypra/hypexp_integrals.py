@@ -5,8 +5,8 @@ from functools import cache
 import sympy as s
 
 from .errors import UnsupportedExpressionError
-from .hpl_algebra import _linear_terms, integrate_from_zero, shuffle_expand
-from .hpl_regularized import hpl_endpoint_polynomial
+from .hpl.algebra import _linear_terms, integrate_from_zero, shuffle_expand
+from .hpl.regularization import hpl_endpoint_polynomial
 
 
 def _integers(*values):

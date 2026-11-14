@@ -7,8 +7,8 @@ import pytest
 import sympy as s
 
 from hypra.errors import UnsupportedExpressionError
-from hypra.hpl_algebra import shuffle_words
-from hypra.hpl_endpoints import dual_indices, hpl_at_one, reduce_mzv
+from hypra.hpl.algebra import shuffle_words
+from hypra.hpl.endpoints import dual_indices, hpl_at_one, reduce_mzv
 from hypra.serialization import SerializationError, decode_expr, encode_expr
 from hypra.symbolic import MZV
 

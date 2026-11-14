@@ -5,7 +5,7 @@ import pytest
 import sympy as s
 
 from hypra.errors import UnsupportedExpressionError
-from hypra.hpl_special import hpl_at_i
+from hypra.hpl.special import hpl_at_i
 from hypra.symbolic import HPL
 
 

@@ -2,7 +2,7 @@ import pytest
 import sympy as s
 
 from hypra import HPL, UnsupportedExpressionError
-from hypra.hpl_arguments import transform_hpl_arguments
+from hypra.hpl.arguments import transform_hpl_arguments
 from hypra.symbolic import reduce_known_hpl
 
 z=s.Symbol('z',positive=True)

@@ -2,7 +2,7 @@ import pytest
 import sympy as s
 
 from hypra.errors import UnsupportedExpressionError
-from hypra.hpl_continuation import analytic_continue_hpl
+from hypra.hpl.real_continuation import analytic_continue_hpl
 from hypra.symbolic import HPL, reduce_known_hpl
 
 X = s.Symbol("x", real=True)
@@ -39,7 +39,7 @@ def test_negative_far_dilog_is_real_and_correct(boundary):
     # Independent classical inversion Li2(-2)+Li2(-1/2)=-pi²/6-log²2/2.
     expected = -s.polylog(2, -s.Rational(1, 2)) - s.pi**2 / 6 - s.log(2) ** 2 / 2
     # Remaining HPLs are at positive 1/2 and reduce by shuffle extraction.
-    from hypra.hpl_reduce import extract_hpl_logs
+    from hypra.hpl.reduction import extract_hpl_logs
 
     result = extract_hpl_logs(result)
     assert abs(s.N(result - expected, 35)) < s.Float("1e-30")

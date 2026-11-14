@@ -8,7 +8,7 @@ import pytest
 import sympy as s
 
 from hypra import NativeConfig, expand_epsilon
-from hypra.hpl_algebra import hpl_series
+from hypra.hpl.algebra import hpl_series
 
 E, Z = s.symbols("epsilon z")
 DOMAIN = s.And(Z > 0, Z < 1)

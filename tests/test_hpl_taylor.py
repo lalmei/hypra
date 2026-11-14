@@ -2,7 +2,7 @@ import pytest
 import sympy as s
 
 from hypra.errors import UnsupportedExpressionError
-from hypra.hpl_taylor import hpl_taylor
+from hypra.hpl.taylor import hpl_taylor
 from hypra.symbolic import HPL
 
 z=s.Symbol('z');h=s.Symbol('h');c=s.Rational(1,3)

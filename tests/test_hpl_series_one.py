@@ -5,8 +5,8 @@ import pytest
 import sympy as s
 
 from hypra.errors import UnsupportedExpressionError
-from hypra.hpl_numeric import hpl_evalf
-from hypra.hpl_series_one import hpl_series_at_one
+from hypra.hpl.numeric import hpl_evalf
+from hypra.hpl.series_one import hpl_series_at_one
 
 t = s.Symbol('t', positive=True)
 

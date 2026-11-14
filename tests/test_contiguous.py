@@ -3,11 +3,11 @@
 import pytest
 import sympy as s
 
-from hypra.contiguous import expand_contiguous, plan_contiguous
+from hypra.native.contiguous import expand_contiguous, plan_contiguous
 from hypra.errors import UnsupportedExpressionError
-from hypra.hpl_algebra import hpl_series
-from hypra.nested_sums import canonical_hyper_series
-from hypra.planning import laurent_coefficient
+from hypra.hpl.algebra import hpl_series
+from hypra.native.nested_sums import canonical_hyper_series
+from hypra.native.planning import laurent_coefficient
 from hypra.symbolic import reduce_known_hpl
 
 E, Z = s.symbols("epsilon z")
@@ -97,7 +97,7 @@ def test_resource_limits_and_fixed_lower_pole_reject():
 
 def test_shifted_unmatched_half_3f2_through_cubic_order():
     """Canonical differential system plus shift, checked against defining sum."""
-    from hypra.canonical import build_canonical, canonical_bases
+    from hypra.native.canonical import build_canonical, canonical_bases
     from hypra.symbolic import HPL
 
     upper = [(s.Rational(3, 2), s.S.One), (s.S.Zero, s.S.One), (s.S.Zero, -s.S.One)]

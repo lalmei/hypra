@@ -110,7 +110,7 @@ class HPL(Function):
         digits = max(2, prec_to_dps(prec) + 8)
         word = tuple(self.word)
         if z.is_real is False and digits <= 500:
-            from .hpl_continue import continue_hpl
+            from .hpl.radial_continuation import continue_hpl
 
             value = continue_hpl(
                 word, z, domain="principal-cut-plane", path="radial", dps=digits
@@ -119,7 +119,7 @@ class HPL(Function):
                     + I*Float(mp.nstr(value.imag, n=digits), precision=prec))
         if z.is_positive is not True or (1-z).is_positive is not True or digits > 1000:
             return self
-        from .hpl_numeric import hpl_evalf
+        from .hpl.numeric import hpl_evalf
 
         value = hpl_evalf(word, z, dps=digits)
         return Float(mp.nstr(value, n=digits), precision=prec)
@@ -155,7 +155,7 @@ class HPL(Function):
         only where its omitted powers give a valid Order term after composition.
         """
         from .errors import UnsupportedExpressionError
-        from .hpl_algebra import hpl_series
+        from .hpl.algebra import hpl_series
 
         if not self.word:
             return Integer(1)
@@ -166,7 +166,7 @@ class HPL(Function):
             return exact._eval_nseries(x, n, logx, cdir=cdir)
         center = self.argument.subs(x, 0)
         if center.is_Rational and 0 < center < 1:
-            from .hpl_taylor import hpl_taylor
+            from .hpl.taylor import hpl_taylor
 
             delta = self.argument - center
             leading = delta.as_leading_term(x, logx=logx, cdir=cdir)
@@ -180,7 +180,7 @@ class HPL(Function):
         if self.word[-1] == 0:
             raise UnsupportedExpressionError(
                 "Mixed trailing-zero HPL words have logarithmic germs; use "
-                "hypra.hpl_algebra.hpl_series for explicit local terms"
+                "hypra.hpl.algebra.hpl_series for explicit local terms"
             )
         _, power = self._zero_germ_argument(x, logx, cdir)
         # Expand strictly deeper than required: omitted analytic argument powers
@@ -193,7 +193,7 @@ class HPL(Function):
 
     def _eval_as_leading_term(self, x, logx=None, cdir=0):
         from .errors import UnsupportedExpressionError
-        from .hpl_algebra import hpl_series
+        from .hpl.algebra import hpl_series
 
         if not self.word:
             return Integer(1)
@@ -225,7 +225,7 @@ def _constant_evalf(atom, prec, evaluator, arguments):
     from sympy import Float
     from sympy.core.evalf import prec_to_dps
 
-    from .hpl_mobius import _MAX_MOBIUS_WEIGHT
+    from .hpl.mobius import _MAX_MOBIUS_WEIGHT
 
     digits = max(2, prec_to_dps(prec) + 8)
     if sum(atom.indices) > _MAX_MOBIUS_WEIGHT or digits > 900:
@@ -240,7 +240,7 @@ class MZV(Function):
     MZV((s1,...,sd)) = sum_{n1>...>nd>=1} prod(nj**(-sj)), where every
     index is a positive integer and s1 >= 2. The empty word evaluates to one.
     No divergent regularization or numerical fitting is implied. Reduction to
-    ordinary zeta values is opt-in through ``hypra.hpl_endpoints.reduce_mzv``.
+    ordinary zeta values is opt-in through ``hypra.hpl.endpoints.reduce_mzv``.
     """
 
     nargs = 1
@@ -273,7 +273,7 @@ class MZV(Function):
         return self.args[0]
 
     def _eval_evalf(self, prec):
-        from .hpl_constants import evaluate_mzv
+        from .hpl.constants import evaluate_mzv
 
         return _constant_evalf(self, prec, evaluate_mzv, (self.indices,))
 
@@ -328,7 +328,7 @@ class EulerSum(Function):
         return self.args[1]
 
     def _eval_evalf(self, prec):
-        from .hpl_constants import evaluate_euler_sum
+        from .hpl.constants import evaluate_euler_sum
 
         return _constant_evalf(self, prec, evaluate_euler_sum, (self.indices, self.colors))
 

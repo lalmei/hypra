@@ -3,7 +3,7 @@
 import mpmath as mp
 import pytest
 
-from hypra.hpl_constants import evaluate_euler_sum
+from hypra.hpl.constants import evaluate_euler_sum
 
 
 @pytest.mark.parametrize("colors,sign,argument", [((-1, -1), -1, 1), ((-1, 1), -1, -1)])

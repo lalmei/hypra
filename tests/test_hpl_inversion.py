@@ -1,8 +1,8 @@
 import pytest
 import sympy as s
 
-from hypra.hpl_algebra import shuffle_expand
-from hypra.hpl_inversion import invert_hpl
+from hypra.hpl.algebra import shuffle_expand
+from hypra.hpl.inversion import invert_hpl
 from hypra.symbolic import reduce_known_hpl
 
 Z = s.Symbol("z", positive=True)

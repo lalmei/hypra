@@ -3,7 +3,7 @@ from itertools import product
 import pytest
 import sympy as s
 
-from hypra.hpl_classical import classical_hpl
+from hypra.hpl.classical import classical_hpl
 from hypra.symbolic import HPL, reduce_known_hpl
 
 z=s.Symbol('z',positive=True)

@@ -6,7 +6,7 @@ from typing import Any
 import sympy as s
 
 from .errors import IncompleteExpansionError, UnsupportedExpressionError
-from .planning import laurent_coefficient, plan_expansion
+from .native.planning import laurent_coefficient, plan_expansion
 
 
 @dataclass(frozen=True)
@@ -181,8 +181,8 @@ def expand_epsilon(expr, epsilon, through=3, assumptions=None, *, config=None, b
         declared[symbol.name] = symbol
     original_ast = expression_ast
     if backend is None or backend == "native":
-        from .endpoints import rewrite_endpoints
         from .native import NativeBackend
+        from .native.endpoints import rewrite_endpoints
 
         active = NativeBackend(config)
         expr = rewrite_endpoints(

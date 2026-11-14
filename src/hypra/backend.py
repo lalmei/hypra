@@ -16,6 +16,7 @@ from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any
 
+from ._json import strict_json_loads
 from .config import BackendConfig
 
 PROTOCOL_VERSION = 1
@@ -60,23 +61,6 @@ class BackendInfo:
 
 def _canonical(value: Any) -> bytes:
     return json.dumps(value, sort_keys=True, separators=(",", ":"), allow_nan=False).encode()
-
-
-def _strict_json_loads(text: str) -> Any:
-    """Reject duplicate object keys and JSON's nonstandard nonfinite constants."""
-
-    def unique_pairs(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
-        result: dict[str, Any] = {}
-        for key, value in pairs:
-            if key in result:
-                raise ValueError(f"Duplicate JSON key: {key}")
-            result[key] = value
-        return result
-
-    def reject_constant(value: str) -> Any:
-        raise ValueError(f"Nonfinite JSON constant: {value}")
-
-    return json.loads(text, object_pairs_hook=unique_pairs, parse_constant=reject_constant)
 
 
 def _file_hash(path: Path) -> str:
@@ -170,7 +154,7 @@ class WolframBackend:
             if not response_path.is_file() or response_path.stat().st_size > MAX_RESPONSE_BYTES:
                 raise BackendProtocolError("Missing or oversized Wolfram response")
             try:
-                response = _strict_json_loads(response_path.read_text())
+                response = strict_json_loads(response_path.read_text())
             except (OSError, UnicodeError, ValueError) as exc:
                 raise BackendProtocolError("Wolfram response is not valid JSON") from exc
         if (
@@ -274,7 +258,7 @@ class WolframBackend:
             try:
                 if cache_path.stat().st_size > MAX_RESPONSE_BYTES:
                     raise ValueError("oversized cache")
-                envelope = _strict_json_loads(cache_path.read_text())
+                envelope = strict_json_loads(cache_path.read_text())
                 if not isinstance(envelope, dict):
                     raise TypeError("invalid cache envelope")
                 if envelope.get("key") != digest:

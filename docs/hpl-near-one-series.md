@@ -7,7 +7,7 @@ it retains the subleading powers as well as the leading logarithms.
 
 ```python
 import sympy as s
-from hypra.hpl_series_one import hpl_series_at_one
+from hypra.hpl.series_one import hpl_series_at_one
 
 t = s.Symbol("t", positive=True)
 result = hpl_series_at_one((0, 1), t, through=2)

@@ -8,7 +8,7 @@ Indices and colors have the exact conventions of [alternating endpoints](hpl-alt
 Divergent constants are rejected rather than regularized.
 
 ```python
-from hypra.hpl_constants import evaluate_euler_sum, evaluate_mzv
+from hypra.hpl.constants import evaluate_euler_sum, evaluate_mzv
 
 print(evaluate_euler_sum((1, 2), (-1, -1), dps=60).value)
 print(evaluate_mzv((4, 2), dps=60).value)

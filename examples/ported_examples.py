@@ -21,7 +21,7 @@ from dataclasses import dataclass
 import sympy as s
 
 from hypra import HPL, NativeConfig, expand_epsilon
-from hypra.hpl_reduce import extract_hpl_logs
+from hypra import extract_hpl_logs
 
 EPSILON = s.Symbol('epsilon', real=True)
 Z = s.Symbol('z', positive=True)

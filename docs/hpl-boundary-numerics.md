@@ -6,7 +6,7 @@ offset. This separates a genuine `x±i0` limit from an uncontrolled choice of
 an imaginary epsilon.
 
 ```python
-from hypra.hpl_boundary_numeric import evaluate_hpl_boundary
+from hypra.hpl.boundary_numeric import evaluate_hpl_boundary
 
 result = evaluate_hpl_boundary((0, 1), 2,
     region="x>1", boundary="upper", dps=60)

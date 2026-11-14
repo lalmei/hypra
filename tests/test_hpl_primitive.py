@@ -2,7 +2,7 @@ import pytest
 import sympy as s
 
 from hypra import HPL, UnsupportedExpressionError, integrate_from_zero, primitive_hpl
-from hypra.hpl_algebra import shuffle_expand
+from hypra.hpl.algebra import shuffle_expand
 
 z=s.Symbol('z',positive=True)
 

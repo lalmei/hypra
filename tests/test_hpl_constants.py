@@ -3,8 +3,8 @@ import pytest
 import sympy as s
 
 from hypra.errors import UnsupportedExpressionError
-from hypra.hpl_constants import _remainder, evaluate_euler_sum, evaluate_mzv
-from hypra.hpl_numeric import HPLNumericalConvergenceError
+from hypra.hpl.constants import _remainder, evaluate_euler_sum, evaluate_mzv
+from hypra.hpl.numeric import HPLNumericalConvergenceError
 from hypra.symbolic import MZV, EulerSum
 
 

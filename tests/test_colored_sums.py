@@ -5,7 +5,7 @@ from functools import cache
 import pytest
 import sympy as s
 
-from hypra.colored_sums import (
+from hypra.native.colored_sums import (
     canonical_colored_hyper_series,
     colored_add,
     colored_exp,

@@ -2,7 +2,7 @@
 import sympy as s
 
 from hypra import MZV, reduce_mzv
-from hypra.hpl_endpoints import _height_one, dual_indices
+from hypra.hpl.endpoints import _height_one, dual_indices
 
 
 def test_known_height_one_values():

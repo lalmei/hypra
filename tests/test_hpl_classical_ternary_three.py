@@ -4,11 +4,11 @@ import mpmath as mp
 import pytest
 import sympy as s
 
-from hypra.hpl_alternating import hpl_alternating_at_one
-from hypra.hpl_classical import classical_hpl
-from hypra.hpl_mobius import mobius_hpl
-from hypra.hpl_numeric import evaluate_hpl
-from hypra.hpl_reduce import lyndon_reduce
+from hypra.hpl.alternating import hpl_alternating_at_one
+from hypra.hpl.classical import classical_hpl
+from hypra.hpl.mobius import mobius_hpl
+from hypra.hpl.numeric import evaluate_hpl
+from hypra.hpl.reduction import lyndon_reduce
 from hypra.symbolic import HPL
 
 Z = s.Symbol("z", positive=True)
