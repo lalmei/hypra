@@ -122,13 +122,17 @@ def _continue_unit(upper, lower, excess, epsilon):
     return s.Add(*(weight*leaf for leaf, weight in raise_until_convergent(atom).items()))
 
 
-def rewrite_endpoints(expr, epsilon, assumptions=s.true, *, meromorphic=False):
+def rewrite_endpoints(expr, epsilon, assumptions=s.true, *, meromorphic=False, excess_shift=None):
     """Rewrite terminating sums and unit endpoints before Laurent planning.
 
     Other nonterminating arguments are unchanged. With meromorphic=True,
     continue supported unit endpoints in the parameters. A fixed nonpositive lower parameter is rejected before
     termination, since its definition can depend on a limiting convention.
     """
+    if excess_shift is not None and (
+        not meromorphic or type(excess_shift) is not int or excess_shift < 1
+    ):
+        raise ValueError("excess_shift requires meromorphic mode and a positive index")
     if assumptions is None:
         assumptions = s.true
     if not isinstance(expr, s.Expr) or not isinstance(epsilon, s.Symbol):
@@ -166,6 +170,21 @@ def rewrite_endpoints(expr, epsilon, assumptions=s.true, *, meromorphic=False):
                                          (s.factorial(n)*s.prod(s.rf(b, n) for b in lower))
                                          for n in range(degree+1)))
             continue
+        if excess_shift is not None and len(upper) == len(lower)+1 and lower:
+            excess = s.expand(sum(lower)-sum(upper))
+            if _fixed_nonpositive_integer(excess, epsilon):
+                if excess_shift > len(lower):
+                    raise UnsupportedExpressionError(
+                        "Unit excess shift index exceeds the reduced lower parameter count"
+                    )
+                # Move transversely before any rank reduction or excess
+                # raising. Lower parameters follow SymPy's canonical order.
+                lower[excess_shift-1] += epsilon
+                shifted = s.hyper(upper, lower, 1, evaluate=False)
+                replacements[atom] = rewrite_endpoints(
+                    shifted, epsilon, assumptions, meromorphic=True
+                )
+                continue
         if len(upper) == 1 and not lower:
             # Binomial theorem at its convergent endpoint; often obtained by
             # exact cancellation in a Gauss sum. This is not continuation.
