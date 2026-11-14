@@ -22,12 +22,67 @@ negative powers. For `gamma(eps)*P`, the planner requests a deeper expansion of
 `P` before multiplying and truncating; do not expand factors independently at
 insufficient depth.
 
+## Hypergeometric unit endpoints
+
+```python
+import sympy as s
+from hypra import NativeConfig, expand_epsilon, hypergeometric
+
+eps = s.Symbol("eps", real=True)
+convergent = hypergeometric([1, 1, 1 + eps], [2, 2 + eps], 1)
+result = expand_epsilon(convergent, eps, through=1)
+assert result.coefficient(0) == s.zeta(2)
+assert result.coefficient(1) == s.zeta(2) - s.zeta(3)
+
+negative_excess = hypergeometric([1, 1, 1], [2, eps], 1)
+result = expand_epsilon(
+    negative_excess, eps, through=-2,
+    config=NativeConfig(unit_endpoint="meromorphic"),
+)
+assert result.coefficient(-2) == -1
+
+fixed_excess = hypergeometric([1, 1], [2], 1)
+result = expand_epsilon(
+    fixed_excess, eps, through=0,
+    config=NativeConfig(unit_endpoint="meromorphic", unit_excess_shift=1),
+)
+assert result.coefficient(-1) == 1
+assert result.coefficient(0) == 1
+```
+
+The first series converges on a neighborhood of `eps=0`. The second uses
+meromorphic continuation in the parameters at fixed `z=1`. The final
+example adds `eps` to the sole lower parameter before continuation,
+specifying the path used to extract the Laurent coefficients. See the
+[endpoint conditions](endpoints.md) for convergence criteria and resource
+limits.
+
+## Exact expansion at a complex point
+
+```python
+import sympy as s
+from hypra import NativeConfig, expand_epsilon, hypergeometric
+
+eps = s.Symbol("eps")
+P = hypergeometric([1, -eps], [1 - 2*eps], 2*s.I)
+result = expand_epsilon(
+    P, eps, through=1,
+    config=NativeConfig(argument_domain="principal-cut-plane"),
+)
+assert result.coefficient(1) == s.log(1 - 2*s.I)
+```
+
+This argument lies outside the unit disk and off the real cuts. See the
+[exact domain rules](scope.md#principal-complex-arguments) for branch choices.
+
 ## Exact HPL objects and endpoint constants
 
-```python title="Lossless HPL transport and exact endpoint constants" linenums="1" hl_lines="5 7-8"
+```python title="Lossless HPL transport and exact endpoint constants"
+import sympy as s
 from hypra import HPL, encode_expr, decode_expr
 from hypra import hpl_at_one, hpl_alternating_at_one
 
+z = s.Symbol("z")
 h = HPL((0, 1, -1), z)
 assert decode_expr(encode_expr(h)) == h
 print(s.diff(h, z))
@@ -41,7 +96,8 @@ reductions are separate operations with documented domains.
 
 ## High-precision numerical values
 
-```python title="Explicit complex branch and numerical accuracy metadata" linenums="1" hl_lines="6 8"
+```python title="Explicit complex branch and numerical accuracy metadata"
+import sympy as s
 from hypra import evaluate_hpl
 
 real = evaluate_hpl((1, 0), s.Rational(1, 3), dps=60)

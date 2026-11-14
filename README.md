@@ -22,17 +22,19 @@ list of hard-coded low-order answers:
   and all-half families. Combined with the sum kernels, their canonical
   parameter-count coverage matches the HypExp 2 whitelist; this is not a
   claim of complete upstream API or analytic-continuation parity.
-- Exact fixed terminating sums and convergent Gauss `2F1` unit-endpoint
-  rewriting, with explicit rejection when convergence cannot be established.
+- Exact terminating sums and convergent `z=1` values for Gauss `2F1` and
+  supported higher-rank integer and half-integer families. An explicit
+  meromorphic mode continues supported unit endpoints in the parameters.
+- Exact definite logarithmic moments through `beta_log_moment` and
+  `hypergeometric_log_moment`, including supported real mixed-log kernels.
 - HPL shuffle products, rational-HPL integration with a verified finite origin
   constant, exact local HPL series, shuffle logarithm extraction, convergent
   binary endpoints/MZVs, and branch-explicit negation/reflection transforms.
 
-The main nonterminating argument domain is real `0 < z < 1`; use exact
-affine exact parameters; singular symbolic lower slopes need explicit nonzero assumptions. See the [capability map](docs/scope.md) for module contracts,
-public-dispatch distinctions and restrictions. The P/Q recurrence and two
-special half-integer closed forms remain useful optimized cases, not the
-extent of the native algorithms.
+The default nonterminating interior domain is real `0 < z < 1`. Use exact
+affine parameters and explicit nonzero assumptions for singular symbolic
+lower slopes. See the [capability map](docs/scope.md) for parameter families,
+principal complex domains and resource limits.
 
 The complete expression may include Gamma functions, rational singular
 prefactors, products and sums. Pole-aware order planning expands each
@@ -123,14 +125,16 @@ and compiled [PDF](docs/mathematics.pdf). Runnable examples include
 
 ## Boundaries
 
-- Nonterminating general `pFq` outside `pF(p-1)`, uncovered half-integer
-  patterns, full HPL reduction/analytic continuation, and generic integration
-  remain unsupported. See [roadmap](docs/roadmap.md).
-- Hypergeometric arguments must be regulator-independent and in the documented
-  real domain. `z=0` is handled directly. Only documented terminating/Gauss
-  identities cover `z=1`; arbitrary unit endpoints and complex continuation
-  are not supported. Unknown valuations and essential/fractional-power
-  regulator singularities fail closed.
+- Nonterminating expansion kernels cover supported `pF(p-1)` families.
+  General HPL reduction, unrestricted continuation and generic integration
+  remain open. See the [roadmap](docs/roadmap.md).
+- Hypergeometric arguments must be regulator-independent. The native engine
+  handles `z=0` directly and applies the documented
+  [convergence or continuation rules at `z=1`](docs/endpoints.md).
+  For finite exact off-cut complex points, select
+  `NativeConfig(argument_domain="principal-cut-plane")`.
+  Unknown valuations and essential or fractional-power regulator
+  singularities fail closed.
 - Use exact `Rational` values, never binary floats. Unknown functions, invalid
   identifiers and contradictory/unsupported domain assumptions are rejected.
 - `NativeConfig(max_internal_order=12)` is the default complexity limit; it can

@@ -13,6 +13,17 @@ are not a claim of additional parameter or branch coverage.
 
 ::: hypra.native.NativeConfig
 
+::: hypra.hypergeometric
+
+Use `hypergeometric` when every supplied parameter needs to remain visible
+for validation. See the [exceptional-parameter rules](scope.md#preserving-exceptional-input-parameters).
+
+`NativeConfig.argument_domain` selects the [interior branch](scope.md#principal-complex-arguments).
+`NativeConfig.unit_endpoint` selects the [unit-endpoint policy](endpoints.md).
+`NativeConfig.unit_excess_shift` selects a lower parameter to shift at a
+[fixed excess pole](endpoints.md#fixed-excess-poles).
+See the [runnable examples](api-examples.md) for these settings.
+
 ::: hypra.symbolic.HPL
 
 ::: hypra.hpl_classical.classical_hpl
@@ -51,8 +62,8 @@ are not a claim of additional parameter or branch coverage.
 `beta_log_moment(n, m, p)` integrates
 \(u^p \log^n(u) \log^m(1-u)\) from zero to one. It normalizes the
 rational-HPL primitive at zero and combines its finite endpoint limit at
-one. The powers are explicit integers and convergence at zero requires
-`p + m >= 0`.
+one. The powers are explicit integers with `n, m >= 0`, `n + m <= 7`,
+and `-32 <= p <= 64`. Convergence at zero requires `p + m >= 0`.
 
 `hypergeometric_log_moment(p, n, m, k, q, z)` adds the factor
 \(\log^k(1-zu)/(zu-1)^q\). All five powers are nonnegative integers.

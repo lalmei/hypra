@@ -89,10 +89,10 @@ in (0,1). A uses t=i sqrt(z/(1-z)), on the positive imaginary axis. Continuing
 the origin germ into the upper half-plane and along this axis crosses
 neither HPL singularity +1 nor -1. The complete germ is regular at zero,
 so its continuation needs no prescription for a divergent origin integral.
-The principal HPL continuation along that path is therefore the intended
-value. This does **not** assert that an arbitrary complex branch or a path
-winding around a singularity is equivalent. z=1 limits and endpoint
-integrations require a separate analysis and are not justified here.
+The principal HPL continuation along that path gives the intended value.
+The [principal complex argument rules](scope.md#principal-complex-arguments)
+specify the accepted branches. The [unit-endpoint derivation](endpoints.md)
+establishes when the Laurent coefficients can be taken to `z=1`.
 
 ## Verification
 

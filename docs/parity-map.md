@@ -7,7 +7,8 @@ The reference source is read only; no upstream reduction tables are copied.
 
 | Mathematical operation | Python implementation | Current boundary |
 |---|---|---|
-| Hypergeometric regulator expansion | `expand_epsilon` | HypExp 2 listed class patterns; exact affine parameters; explicit domain and resource guards |
+| Hypergeometric regulator expansion | `expand_epsilon` | HypExp 2 listed class patterns, exact affine parameters and [explicit argument domains](scope.md#exactness-branches-and-failure-behavior) |
+| Hypergeometric unit endpoints | `expand_epsilon` with `z=1` | [Convergent Gauss and supported higher-rank cases](endpoints.md), plus opt-in meromorphic parameter continuation |
 | HPL objects and derivatives | `HPL`, SymPy differentiation | Expanded letters 0,±1; no eager branch rewrite |
 | Compressed index conversion | `expand_indices`, `compress_indices`, `HPL.from_compressed` | Exact signed integers; bounded output weight |
 | Plus/minus kernel notation | `hpl_pm`, `pm_to_letters`, `letters_to_pm` | Exact multilinear conversion; bounded output size |

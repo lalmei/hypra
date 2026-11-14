@@ -28,22 +28,22 @@ required for the native engine.
 | --- | --- |
 | Integer-base `pF(p-1)` and supported half-integer families | Native exact algorithms, with documented limits |
 | Laurent poles and Gamma prefactors | Pole-aware internal order planning |
+| [Unit endpoints](endpoints.md) | Convergent Gauss and supported higher-rank values, with opt-in meromorphic parameter continuation |
+| [Definite logarithmic integrals](python-api.md#definite-logarithmic-integrals) | Exact beta-log and real mixed-log moments within documented budgets |
 | HPL algebra, endpoints and argument transformations | Exact operations with explicit scope and branch rules |
 | HPL numerical evaluation and radial continuation | Approximate high precision; no interval roundoff certification |
 | Optional Wolfram comparison bridge | Experimental and not validated as a real-backend oracle |
 | Full HypExp/HPL parity | Not claimed; see the [roadmap](roadmap.md) |
 
-The primary nonterminating hypergeometric domain is real `0 < z < 1`.
-Separate HPL tools can expose broader domains only through explicit options.
-Use exact rational parameter data; numerical validation is secondary evidence,
-not a substitute for symbolic derivations.
+The default nonterminating interior domain is real `0 < z < 1`.
+Select a [principal complex domain](scope.md#principal-complex-arguments)
+explicitly for exact numerical hypergeometric arguments. The HPL numerical
+APIs have their own domain and cut-side options.
 
 ### Local documentation
 
-This site runs only on this Mac at `http://127.0.0.1:8000/`. Search, styles,
-fonts and mathematical rendering are local; no account or hosted site is used.
-
-To restart it from the project directory:
+Serve the documentation at `http://127.0.0.1:8000/` from the project
+directory. Search, styles, fonts and math rendering use bundled assets.
 
 ```sh
 uv run properdocs serve --dev-addr 127.0.0.1:8000
