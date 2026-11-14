@@ -2,7 +2,7 @@
 
 ```mermaid
 flowchart TD
-    A[Exact SymPy input] --> B[Validate assumptions and endpoints]
+    A[Exact SymPy input] --> B[Validate input and rewrite supported endpoints]
     B --> C[Plan Laurent pole budget]
     C --> D[Select canonical native kernel]
     D --> E[Apply contiguous shifts]
@@ -11,5 +11,7 @@ flowchart TD
 ```
 
 Canonical kernels use strict nested sums, colored sums or rationalized HPL
-systems. Numerical evaluation is a separate API and is never silently used as
-an exact expansion backend. Unsupported cases fail explicitly.
+systems. Termination, Gauss summation and excess-raising rewrites run before
+Laurent planning, which accounts for any poles in their prefactors.
+Higher-rank unit endpoints with positive base excess use exact limits of
+the complete Laurent coefficients. See the [endpoint algorithms](endpoints.md).

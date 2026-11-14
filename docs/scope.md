@@ -16,7 +16,8 @@ complete public API coverage or full upstream parity.
 | `contiguous.py` / `canonical.py` | Generic upper/lower contiguous differential operators, Laurent convolution, one-parameter removable-limit regularization | Supported canonical families only; bounded shift count/depth; unresolved singular limits fail closed |
 | `half_system.py` | Canonical rationalized epsilon ODE systems A/B/C/D | Patterns specified below; rank at least two; guarded polynomial symbolic slopes; symbolic singular lower slopes need explicit nonzero assumptions |
 | `hpl_algebra.py` | Shuffle linearization, rational-HPL primitives, definite origin integration, local exact series | Rational poles only 0/±1; finite origin constant must be proved; explicit weight/pole/term budgets |
-| `endpoints.py` | Finite terminating sums; Gauss and higher-rank convergent unit endpoints | Fixed nonpositive upper termination only; supported affine integer and half-integer kernels; proven convergence; no divergent endpoint continuation |
+| `endpoints.py` / `unit_limit.py` | Finite terminating sums, convergent unit endpoints, opt-in meromorphic continuation at `z=1` | Termination requires a fixed nonpositive integer upper parameter. Higher-rank endpoints require supported affine integer or half-integer families and bounded HPL limits |
+| `hypexp_integrals.py` | Exact definite beta-log and mixed-log moments | Real kernels and explicit convergence, weight and power bounds. See the [integral APIs](python-api.md#definite-logarithmic-integrals) |
 
 The native dispatcher uses integer and matched-half reductions. The canonical half-system kernels cover:
 
@@ -30,8 +31,11 @@ canonical patterns, including unmatched-half A/B at arbitrary rank and all-half 
 by HypExp 2, not every conceivable half-count pattern or full upstream API.
 For example mixed `3F2` with two half-upper and one half-lower remains unsupported. See
 [half-system derivation](half-system.md) and [integer identities](integer-port.md).
-Endpoint rewriting must run before pole planning to include hidden Gamma
-poles; see [endpoint conditions](endpoints.md).
+Endpoint rewriting runs before Laurent planning so Gamma quotients and
+excess-raising recurrences can expose additional regulator poles. The default
+requires defining-series convergence. Select
+`NativeConfig(unit_endpoint="meromorphic")` to continue in the parameters at
+fixed `z=1`. See the [endpoint conditions and budgets](endpoints.md).
 
 ## HPL 2-inspired native layer
 
@@ -44,7 +48,7 @@ claim that every upstream special-value table has been reproduced.
 
 ## Exactness, branches and failure behavior
 
-The main public nonterminating domain remains real `0<z<1` with
+The default nonterminating interior domain is real `0<z<1` with
 regulator-independent argument and affine exact parameter data. In case A,
 the internal HPL variable is imaginary; this is a documented analytic
 continuation of the regular origin germ, not permission for arbitrary
@@ -55,9 +59,9 @@ The HPL alphabet convention is H1(z)=-log(1-z). Colored negative signs mean
 use shuffle; strict finite sums use stuffle including a merged-index term.
 
 Laurent prefactors and intermediate parameter-shift poles require deeper
-coefficient orders. Resource bounds, unsupported structures, unproved origin
-limits and unproved endpoint convergence raise errors rather than returning
-an incomplete expression as a success. There is no external-backend fallback.
+coefficient orders. Unsupported structures, unproved limits or convergence,
+and requests exceeding resource bounds raise errors. The native backend
+reports these errors directly.
 
 ## Evidence and remaining scope
 
@@ -108,7 +112,9 @@ with a terminating numerator. Identical moving parameters can be canceled
 meromorphically in the regulator; original and planned expressions are both
 recorded in provenance.
 
-## Exact complex points inside the disk
+## Principal complex arguments
+
+### Exact complex points inside the disk
 
 `NativeConfig(argument_domain="principal-disk")` explicitly permits exact
 numerical complex hypergeometric arguments with `0<|z|<1`, off the negative
@@ -117,7 +123,9 @@ The identities are analytic continuations of their regular origin germs;
 principal square roots/logarithms are used consistently on this slit disk.
 The default remains the real interval. Symbolic complex-domain assertions,
 unit-circle endpoints and points outside the disk are still rejected by this
-mode; numerical HPL continuation does not silently authorize them.
+mode.
+
+### Exact points on the principal cut plane
 
 For exact numerical points outside the unit disk, explicitly select
 `NativeConfig(argument_domain="principal-cut-plane")`. The supported domain is

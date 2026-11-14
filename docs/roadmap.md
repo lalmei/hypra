@@ -15,7 +15,9 @@
   truncation estimates and separate high-precision stability checks.
 - Principal off-cut complex and interior real SymPy `HPL.evalf()`.
 - Optional hard native-backend deadline and exceptional-parameter validation.
-- Exact terminating sums and condition-checked Gauss endpoint rewriting.
+- Exact terminating sums, convergent Gauss and supported higher-rank unit
+  endpoints, and opt-in meromorphic continuation in the parameters at `z=1`.
+- Exact beta-log and real mixed-log definite integrals within explicit budgets.
 - Whole-expression Laurent prefactors, exact serialization, LaTeX, provenance,
   cache and native API/CLI.
 
@@ -30,20 +32,18 @@ prerequisite.
    endpoint preprocessing and complete-expression pole budgets. Include mixed
    families and cancellation-sensitive products, not only isolated functions.
 2. Complete exceptional-parameter and branch coverage within the supported
-   HypExp class patterns. The exact hypergeometric API has explicit real-interval and
-   restricted principal-complex domains; broader numerical HPL domains do not
-   automatically widen that contract.
+   HypExp class patterns, including more unit-endpoint benchmarks. The exact
+   hypergeometric API supports the real interval and explicit principal
+   complex domains for exact numerical arguments.
 3. Expand independent exact coefficient benchmarks, higher-rank cases and
    complexity/performance measurements. Optimize algebra without weakening
    fail-closed checks or origin-limit verification.
 4. Extend the existing alternating endpoint, height-one MZV and symbolic-map
-   implementations with independently proved higher-weight reductions. Binary
-   weight-three classical reduction and explicit real shuffle regularization
-   are now available; neither is full upstream special-value-table parity.
-5. Add explicit boundary/winding-path continuation where needed; the numerical
-   API currently supports only its stated off-cut radial path. Broader contour
-   integration is not inferred. Divergent endpoint regularization is available
-   only through explicitly named shuffle-regularization APIs, never as a limit.
+   implementations with independently proved higher-weight reductions. The
+   current classical reduction covers all 27 ternary weight-three words.
+5. Extend continuation beyond the existing off-cut radial path and supported
+   real-cut boundary values. Explicit shuffle regularization covers the
+   real HPL endpoint at one.
 
 Full HypExp 2/HPL parity is incomplete. A future comparison oracle may help,
 but the retained external adapter is experimental, unvalidated and optional.

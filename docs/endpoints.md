@@ -1,7 +1,10 @@
 # Endpoint and terminating-series preprocessing
 
-`rewrite_endpoints(expr, epsilon, assumptions)` runs before Laurent-order
-planning. It uses the convergence conditions and identities below.
+The native API validates and rewrites unit endpoints before Laurent-order
+planning. For a nonterminating `pF(p-1)` at `z=1`, the parameter excess
+is $\Delta=\sum b_j-\sum a_i$. The default policy requires convergence
+of the defining series. Use [meromorphic mode](#opt-in-meromorphic-continuation-in-the-parameters)
+to expand the parameter continuation at fixed `z=1`.
 
 ## Finite terminating sums
 
@@ -42,9 +45,9 @@ side. For example, 2F1(1,1;2-epsilon;1) is convergent for real epsilon<0 and
 its exact Gamma expression simplifies to (epsilon-1)/epsilon. Its pole is
 therefore included in the prefactor-order budget after rewriting.
 
-A negative base excess, identically zero excess, or unproven convergence is
-rejected. The Gamma quotient may have a meromorphic continuation beyond the
-convergent domain, and is available in the explicit meromorphic mode below. Higher-rank unit endpoints use the reductions below.
+The default policy rejects a negative base excess, identically zero excess,
+or unproven convergence. Meromorphic mode uses the same Gamma quotient
+across the convergence boundary.
 
 ## Sources and implementation provenance
 
@@ -88,9 +91,11 @@ R(n)=\prod_i(n+a_i)+(\Delta-n)\prod_j(n+b_j).
 
 The two highest powers cancel. Expanding $R(n)$ in falling factorials
 and shifting the summation index expresses the original series as a
-linear combination of same-rank series with excess $\Delta+1$, divided
-by $\Delta$. This rewrite runs before Laurent planning so the new pole
-and any external poles are budgeted together. The zero-base-excess
+linear combination of same-rank series with excess $\Delta+q-j$, divided
+by $\Delta$, where $q$ is the number of lower parameters and
+$0\leq j\leq q-1$ is the falling-factorial degree. This rewrite runs
+before Laurent planning so the new pole and any external poles are
+budgeted together. The zero-base-excess
 rewrite requires assumptions proving $\Re\Delta>0$ on a punctured
 regulator side. Negative base excess requires the explicit meromorphic mode below.
 
@@ -160,11 +165,17 @@ the negative-integer excess. Each additive branch is budgeted separately
 so independent poles in different terms do not compound the requested
 Taylor depth.
 
-The higher-rank recurrence supports rank up to eight and at most eight
-excess-raising steps along any branch. The shifted series must be
-supported by the native endpoint kernels. A fixed nonpositive integer
-excess requires an explicit transverse prescription. Fixed singular
-lower parameters remain rejected.
+The higher-rank recurrence requires rank at most eight and
+`floor(-Delta_0) + 1 <= 8`, where `Delta_0` is the base excess of
+the series entering the recurrence. Rank reduction uses exact positive
+integer upper/lower differences through eight. Shifted series must be
+supported by the native endpoint kernels. Fixed singular lower parameters
+are rejected before endpoint processing.
+
+### Fixed excess poles
+
+The Gauss quotient and excess-raising recurrence require an explicit
+transverse shift if the excess is a fixed nonpositive integer.
 
 Pass `NativeConfig(unit_endpoint="meromorphic", unit_excess_shift=1)`
 to add the expansion regulator to the first lower parameter. The index
@@ -174,8 +185,10 @@ atom whose reduced excess is a fixed nonpositive integer. It increases
 the excess slope by one. Other parameter slopes persist, so the result
 includes all cross terms along the selected path.
 
-The result is the full Laurent expansion along that path. Select
-`result.coefficient(0)` for the path-dependent finite part.
+The result is the Laurent expansion along that path through the requested
+order. Request `through=0` or higher to read the path-dependent finite part
+with `result.coefficient(0)`.
 For example, shifting the sole lower parameter of
-`hypergeometric([1, 1], [2], 1)` gives `1/epsilon + 1`.
+[`hypergeometric([1, 1], [2], 1)`](api-examples.md#hypergeometric-unit-endpoints)
+gives `1/epsilon + 1`.
 The result provenance records the index and the rewritten input.
