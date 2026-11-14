@@ -44,8 +44,7 @@ therefore included in the prefactor-order budget after rewriting.
 
 A negative base excess, identically zero excess, or unproven convergence is
 rejected. The Gamma quotient may have a meromorphic continuation beyond the
-convergent domain, but that fact is not used to assign a value to a divergent
-hypergeometric endpoint. Higher-rank unit endpoints use the reductions below.
+convergent domain, and is available in the explicit meromorphic mode below. Higher-rank unit endpoints use the reductions below.
 
 ## Sources and implementation provenance
 
@@ -93,8 +92,7 @@ linear combination of same-rank series with excess $\Delta+1$, divided
 by $\Delta$. This rewrite runs before Laurent planning so the new pole
 and any external poles are budgeted together. The zero-base-excess
 rewrite requires assumptions proving $\Re\Delta>0$ on a punctured
-regulator side. Negative base excess and identically zero excess
-remain unsupported.
+regulator side. Negative base excess requires the explicit meromorphic mode below.
 
 ### Why the coefficient endpoint limit is justified
 
@@ -136,3 +134,34 @@ rational sum `sum 6/[(n-1)(n+1)(n+2)(n+3)]=7/48`. An external 1/epsilon
 prefactor test checks that endpoint evaluation preserves deeper-order planning.
 The unit-series convergence criterion is also summarized in DLMF16.2:
 https://dlmf.nist.gov/16.2 .
+
+## Opt-in meromorphic continuation in the parameters
+
+Use `NativeConfig(unit_endpoint="meromorphic")` with `expand_epsilon` to
+continue the unit endpoint as a function of the parameters. The default
+`"convergent"` mode retains the defining-series convergence checks.
+Parameter continuation evaluates at fixed `z=1` and is distinct from
+taking the limit of a divergent function of `z`.
+
+The Gauss Gamma quotient gives the continuation at rank two. At higher
+rank, the telescoping identity holds on an open convergence domain and
+therefore extends as a meromorphic identity. Apply it recursively to each
+shifted term until that term's base excess is positive. The term indexed
+by the falling-factorial degree `j` raises excess by `q-j`, where `q`
+is the number of lower parameters. Rational weights of duplicate leaves
+are combined before Laurent planning. Exact positive integer upper/lower
+differences can also lower the rank by expanding their Pochhammer ratio
+as a polynomial in the summation index.
+
+For example, the meromorphic continuation of
+`hypergeometric([1, 1, 1], [2, epsilon], 1)` starts with
+`-1/epsilon**2`. The two powers come from the moving lower parameter and
+the negative-integer excess. Each additive branch is budgeted separately
+so independent poles in different terms do not compound the requested
+Taylor depth.
+
+The higher-rank recurrence supports rank up to eight and at most eight
+excess-raising steps along any branch. The shifted series must be
+supported by the native endpoint kernels. A fixed nonpositive integer
+excess in the recurrence requires a separate transverse prescription
+and raises an error. Fixed singular lower parameters remain rejected.
