@@ -30,7 +30,7 @@ jobs:
       - name: Build strict offline-capable documentation
         env:
           HYPRA_SITE_URL: https://lalmei.github.io/hypra/
-        run: uv run --no-sync mkdocs build --strict
+        run: uv run --no-sync properdocs build --strict
       - name: Check local rendering assets and generated reference pages
         run: uv run --no-sync python scripts/check_docs_build.py
       - name: Upload documentation for review

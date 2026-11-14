@@ -1,5 +1,10 @@
 # Building and maintaining the documentation
 
+[ProperDocs](https://properdocs.org/) builds the site from `properdocs.yml`.
+MaterialX and the reference and diagram plugins still use the MkDocs plugin
+interface, so the lockfile also includes MkDocs as a dependency of those
+packages.
+
 The theme is **MaterialX**, installed as `mkdocs-materialx` from PyPI and
 configured as `theme.name: materialx`. It is the project at
 https://github.com/jaywhj/mkdocs-materialx, not the similarly named original
@@ -8,9 +13,9 @@ they provide overlapping Python/theme files.
 
 ```sh
 uv sync --locked --group docs
-uv run --no-sync mkdocs build --strict
+uv run --no-sync properdocs build --strict
 uv run --no-sync python scripts/check_docs_build.py
-uv run --no-sync mkdocs serve --dev-addr 127.0.0.1:8000
+uv run --no-sync properdocs serve --dev-addr 127.0.0.1:8000
 ```
 
 The `docs` dependency group is optional for mathematical package use. The lock

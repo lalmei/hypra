@@ -185,7 +185,7 @@ These numerical diagnostics do not certify floating-point roundoff.
 
 ```sh
 uv sync
-uv run mkdocs serve --dev-addr 127.0.0.1:8000
+uv run properdocs serve --dev-addr 127.0.0.1:8000
 ```
 
 Open http://127.0.0.1:8000/ on the same computer. The documentation includes
