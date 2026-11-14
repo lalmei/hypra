@@ -11,7 +11,7 @@ from .algebra import _as_hpl, _expansion_size, _origin_constant
 from .transforms import reflect_hpl
 
 
-def hpl_limit_at_one(expression, z):
+def hpl_limit_at_one(expression: s.Expr, z: s.Symbol) -> s.Expr:
     """Prove the combined finite real endpoint, or raise on unsupported data.
 
     Coefficients must be rational in z, with ordinary HPLs/logs/polylogs at z.
@@ -19,6 +19,14 @@ def hpl_limit_at_one(expression, z):
     near-one series (individual weight<=8, total polynomial weight<=12,
     rational pole order<=16, numeric rational-function coefficients). No complex branch choice or
     divergent regularization is inferred. A failure is not an infinite value.
+
+    Args:
+        expression: Exact rational-HPL expression, with singular terms combined.
+        z: Argument approaching one from below.
+
+    Raises:
+        UnsupportedExpressionError: The limit is outside the supported scope or
+            finiteness could not be established.
     """
     if not isinstance(expression,s.Expr) or not isinstance(z,s.Symbol):
         raise TypeError('Expected a SymPy expression and symbolic argument')

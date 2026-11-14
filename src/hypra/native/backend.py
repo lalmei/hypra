@@ -12,6 +12,7 @@ import os
 import tempfile
 from dataclasses import asdict, dataclass
 from pathlib import Path
+from typing import Any, Literal
 
 import sympy as s
 
@@ -24,15 +25,32 @@ from .planning import plan_expansion
 
 @dataclass(frozen=True)
 class NativeConfig:
+    """Settings for the native SymPy expansion engine.
+
+    Attributes:
+        max_internal_order: Maximum internal power after accounting for poles
+            and reductions.
+        use_cache: Reuse exact expansions from the local disk cache.
+        cache_dir: Override the default native cache directory.
+        timeout_seconds: Optional worker-process timeout in seconds.
+        argument_domain: Domain contract for interior hypergeometric arguments.
+        unit_endpoint: Require convergence at z=1 or allow supported
+            meromorphic parameter continuation.
+        unit_excess_shift: One-based index of a lower parameter to shift at a
+            fixed excess pole in meromorphic mode.
+    """
+
     max_internal_order: int = 12
     use_cache: bool = True
     cache_dir: str | None = None
     timeout_seconds: float | None = None
-    argument_domain: str = "real-interval"
-    unit_endpoint: str = "convergent"
+    argument_domain: Literal["real-interval", "principal-disk", "principal-cut-plane"] = (
+        "real-interval"
+    )
+    unit_endpoint: Literal["convergent", "meromorphic"] = "convergent"
     unit_excess_shift: int | None = None
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         if self.unit_endpoint not in ("convergent", "meromorphic"):
             raise ValueError("unit_endpoint must be convergent or meromorphic")
         if self.unit_excess_shift is not None and (
@@ -55,26 +73,36 @@ class NativeConfig:
 
 @dataclass(frozen=True)
 class NativeInfo:
+    """Availability and version details for the native engine."""
+
     available: bool = True
     backend: str = "native-sympy"
     algorithm_version: str = "native-contiguous-nested-sums-v3"
     sympy_version: str = s.__version__
     error: str | None = None
 
-    def as_dict(self):
+    def as_dict(self) -> dict[str, Any]:
+        """Return availability and version details as a JSON-compatible mapping."""
         return asdict(self)
 
 
 class NativeBackend:
-    def __init__(self, config=None):
+    """Execute exact AST expansion requests with the native recurrence engine.
+
+    Args:
+        config: Native settings. Omit to use the defaults.
+    """
+
+    def __init__(self, config: NativeConfig | None = None) -> None:
         self.config = config or NativeConfig()
         if not isinstance(self.config, NativeConfig):
             raise TypeError("Native backend requires NativeConfig")
 
-    def info(self):
+    def info(self) -> NativeInfo:
+        """Return availability and version information."""
         return NativeInfo()
 
-    def _fingerprint(self):
+    def _fingerprint(self) -> str:
         digest = hashlib.sha256()
         package = Path(__file__).resolve().parents[1]
         for name in (
@@ -104,14 +132,22 @@ class NativeBackend:
             digest.update((package / name).read_bytes())
         return digest.hexdigest()
 
-    def expand(self, request):
+    def expand(self, request: dict[str, Any]) -> dict[str, Any]:
+        """Execute a protocol expansion request and return the exact result AST.
+
+        Args:
+            request: Mapping containing encoded input and the requested orders.
+
+        Returns:
+            Protocol response with the result, achieved order, and provenance.
+        """
         if self.config.timeout_seconds is not None:
             from .worker import run_bounded
 
             return run_bounded(request, self.config)
         return self._expand(request)
 
-    def _expand(self, request):
+    def _expand(self, request: dict[str, Any]) -> dict[str, Any]:
         expr, eps = decode_expr(request["expression"]), decode_expr(request["epsilon"])
         assumptions = decode_expr(request["assumptions"])
         plan = plan_expansion(expr, eps, request["through"], assumptions)

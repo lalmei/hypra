@@ -29,7 +29,7 @@ def _stuffle(left, right):
     return tuple(terms.items())
 
 
-def stuffle_expand_constants(expression):
+def stuffle_expand_constants(expression: s.Expr) -> s.Expr:
     """Linearize polynomials in MZV/EulerSum using exact strict stuffle products.
 
     Colors multiply when equal summation indices merge. The identity holds at
@@ -39,6 +39,9 @@ def stuffle_expand_constants(expression):
     cannot themselves contain endpoint constants inside arbitrary functions.
     Output uses MZV for all-positive colors, EulerSum otherwise. Maximum total
     weight is twelve, powers eight, and intermediate linear terms 8192.
+
+    Args:
+        expression: Exact polynomial in multiple zeta values and Euler sums.
     """
     if not isinstance(expression, s.Expr):
         raise TypeError('Use an exact SymPy expression')

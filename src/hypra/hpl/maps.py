@@ -4,6 +4,7 @@ from functools import lru_cache
 
 import sympy as s
 
+from .._typing import Boundary, IntegerWord, Interval
 from ..errors import UnsupportedExpressionError
 from ..symbolic import HPL
 from .reduction import _extract
@@ -42,21 +43,34 @@ def _expression(word, z, mode):
     )
 
 
-def square_hpl(word, z, *, domain=None):
+def square_hpl(word: IntegerWord, z: s.Symbol, *, domain: Interval | None = None) -> s.Expr:
     """Express H_word(z**2) at z for binary words, real 0<z<1.
 
     The alphabet expands to {-1,0,1}; all trailing-zero constants follow from
     log(z**2)=2*log(z) on this declared interval.
+
+    Args:
+        word: Expanded binary word of weight at most ten.
+        z: SymPy symbol for the interior coordinate.
+        domain: Declare `"0<z<1"` explicitly.
     """
     return _expression(_check(word, z, domain), z, "square")
 
 
-def fractional_hpl(word, z, *, boundary, domain=None):
+def fractional_hpl(
+    word: IntegerWord, z: s.Symbol, *, boundary: Boundary, domain: Interval | None = None,
+) -> s.Expr:
     """Express H_word(z/(z-1) +/- i0), with explicit upper/lower boundary.
 
     Original letters must be binary. Mixed trailing zeros are extracted by
     shuffle before imposing log(z/(z-1))=H_0(z)+H_1(z)+/-i*pi.
     Origin-analytic words have identical boundary values on this negative ray.
+
+    Args:
+        word: Expanded binary word of weight at most ten.
+        z: SymPy symbol for the interior coordinate.
+        boundary: Side of approach to z/(z-1).
+        domain: Declare `"0<z<1"` explicitly.
     """
     word = _check(word, z, domain)
     if boundary not in ("upper", "lower"):

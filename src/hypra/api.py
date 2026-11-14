@@ -1,21 +1,38 @@
 """Public expansion API with exact input and checked Laurent output."""
 
 from dataclasses import asdict, dataclass
-from typing import Any
+from typing import Any, Literal, Protocol, cast
 
 import sympy as s
+from sympy.logic.boolalg import Boolean
 
+from .config import BackendConfig
 from .errors import IncompleteExpansionError, UnsupportedExpressionError
+from .native import NativeBackend, NativeConfig
 from .native.planning import laurent_coefficient, plan_expansion
+
+type BackendName = Literal["native", "wolfram"]
+
+
+class ExpansionBackend(Protocol):
+    """Structural interface for an injected expansion backend."""
+
+    def expand(self, request: dict[str, Any], /) -> dict[str, Any]:
+        """Return a certified expansion response for the exact AST request."""
+        ...
 
 
 @dataclass(frozen=True)
 class ExpansionResult:
     """Exact Laurent polynomial plus its remainder and reproducibility record.
 
-    ``expression`` is a SymPy expression including O(epsilon**(through+1)).
-    ``polynomial`` omits the remainder, for coefficient algebra. The result's
-    ``_sympy_`` hook also allows ``sympy.sympify(result)``.
+    ``sympy.sympify(result)`` includes the order remainder.
+
+    Attributes:
+        polynomial: Exact Laurent polynomial used for coefficient algebra.
+        epsilon: Regulator expanded about zero.
+        through: Highest certified Laurent power.
+        provenance: Input ASTs, plan, backend details, and branch conventions.
     """
 
     polynomial: s.Expr
@@ -24,10 +41,20 @@ class ExpansionResult:
     provenance: dict[str, Any]
 
     @property
-    def expression(self):
+    def expression(self) -> s.Expr:
+        """Exact Laurent expansion including the SymPy order remainder."""
         return self.polynomial + s.Order(self.epsilon ** (self.through + 1), (self.epsilon, 0))
 
-    def coefficient(self, power: int):
+    def coefficient(self, power: int) -> s.Expr:
+        """Return the coefficient of the requested Laurent power.
+
+        Args:
+            power: Integer exponent of the regulator.
+
+        Raises:
+            TypeError: The exponent is not an integer.
+            ValueError: The exponent exceeds the certified order.
+        """
         if not isinstance(power, int) or isinstance(power, bool):
             raise TypeError("power must be an integer")
         if power > self.through:
@@ -35,13 +62,18 @@ class ExpansionResult:
         return laurent_coefficient(self.polynomial, self.epsilon, power)
 
     def latex(self, *, include_order: bool = True) -> str:
-        """Render exact mathematics, including symbolic HPL words, as LaTeX."""
+        """Render exact mathematics, including symbolic HPL words, as LaTeX.
+
+        Args:
+            include_order: Include the SymPy order remainder.
+        """
         return s.latex(self.expression if include_order else self.polynomial)
 
-    def _sympy_(self):
+    def _sympy_(self) -> s.Expr:
         return self.expression
 
-    def to_dict(self):
+    def to_dict(self) -> dict[str, Any]:
+        """Return the exact JSON-compatible ASTs, LaTeX, and provenance."""
         from .serialization import encode_expr
 
         return {
@@ -54,23 +86,37 @@ class ExpansionResult:
         }
 
 
-def backend_info(config=None, *, backend="native"):
-    """Report native backend capabilities, or explicitly inspect external Wolfram."""
-    if backend == "native":
-        from .native import NativeBackend
+def backend_info(
+    config: NativeConfig | BackendConfig | None = None,
+    *,
+    backend: BackendName = "native",
+) -> dict[str, Any]:
+    """Report native backend capabilities or inspect an external Wolfram installation.
 
-        active = NativeBackend(config)
+    Args:
+        config: Configuration for the selected backend.
+        backend: Engine to inspect.
+
+    Returns:
+        A JSON-compatible capability record including engine availability.
+
+    Raises:
+        ValueError: The backend name is unknown.
+    """
+    if backend == "native":
+        info = NativeBackend(cast(NativeConfig | None, config)).info()
     elif backend == "wolfram":
         from .backend import WolframBackend
 
-        active = WolframBackend(config)
+        info = WolframBackend(cast(BackendConfig | None, config)).info()
     else:
         raise ValueError("backend must be 'native' or 'wolfram'")
-    info = active.info()
     return info.as_dict() if hasattr(info, "as_dict") else asdict(info)
 
 
-def _checked_polynomial(expr, epsilon, through, lower_bound):
+def _checked_polynomial(
+    expr: s.Expr, epsilon: s.Symbol, through: int, lower_bound: int,
+) -> s.Expr:
     if expr.has(
         s.Float, s.nan, s.zoo, s.oo, -s.oo, s.Derivative, s.Subs, s.Integral, s.Sum, s.hyper
     ):
@@ -91,7 +137,15 @@ def _checked_polynomial(expr, epsilon, through, lower_bound):
     return expanded
 
 
-def expand_epsilon(expr, epsilon, through=3, assumptions=None, *, config=None, backend=None):
+def expand_epsilon(
+    expr: s.Expr,
+    epsilon: s.Symbol,
+    through: int = 3,
+    assumptions: Boolean | None = None,
+    *,
+    config: NativeConfig | BackendConfig | None = None,
+    backend: BackendName | ExpansionBackend | None = None,
+) -> ExpansionResult:
     """Expand the complete expression through the inclusive Laurent order.
 
     The default backend is native Python/SymPy and supports documented integer and half-integer
@@ -99,24 +153,25 @@ def expand_epsilon(expr, epsilon, through=3, assumptions=None, *, config=None, b
     when poles require it. Unsupported cases fail closed without fallback.
     Set backend="wolfram" explicitly to use the experimental external bridge.
 
-    Parameters
-    ----------
-    expr : sympy.Expr
-        Exact symbolic input (no strings or binary floating-point atoms).
-    epsilon : sympy.Symbol
-        Regulator expanded at zero.
-    through : int
-        Inclusive order, e.g. 3 includes all negative powers and epsilon**3.
-    assumptions : SymPy Boolean, optional
-        Explicit relational assumptions, e.g. And(w > 0, w < 1).
-        Symbol assumptions on inputs are also preserved. This API does not
-        exchange integrals/limits or change branches by power simplification.
-    config : NativeConfig or BackendConfig, optional
-        Configuration matching the selected backend. NativeConfig can opt in
-        to meromorphic parameter continuation at z=1.
-    backend : "native", "wolfram" or backend object, optional
-        Native is the default. Custom objects are marked as injected in
-        provenance; there is no silent substitution between implementations.
+    Args:
+        expr: Exact symbolic input without floating-point atoms.
+        epsilon: Regulator expanded at zero.
+        through: Inclusive order. For example, 3 includes all poles and epsilon**3.
+        assumptions: Explicit relational assumptions, such as `And(w > 0, w < 1)`.
+            Assumptions attached to input symbols are preserved.
+        config: Settings for the selected backend. Native settings can opt in
+            to meromorphic parameter continuation at z=1.
+        backend: Native, Wolfram, or a custom engine implementing `expand`.
+            The result records a custom engine as injected.
+
+    Returns:
+        Exact Laurent polynomial, order remainder, and provenance.
+
+    Raises:
+        TypeError: The input, regulator, assumptions, or configuration has the wrong type.
+        ValueError: The backend name is unknown.
+        UnsupportedExpressionError: The expression or its domain is unsupported.
+        IncompleteExpansionError: The backend could not certify a complete exact result.
     """
     from .backend import WolframBackend
     from .serialization import decode_expr, encode_expr
@@ -127,7 +182,7 @@ def expand_epsilon(expr, epsilon, through=3, assumptions=None, *, config=None, b
         raise TypeError("epsilon must be a SymPy Symbol")
     if assumptions is None:
         assumptions = s.true
-    if not isinstance(assumptions, s.logic.boolalg.Boolean):
+    if not isinstance(assumptions, Boolean):
         raise TypeError("assumptions must be a SymPy Boolean expression")
     if s.simplify(assumptions) is s.false:
         raise UnsupportedExpressionError("Contradictory assumptions are not a valid domain")
@@ -172,31 +227,37 @@ def expand_epsilon(expr, epsilon, through=3, assumptions=None, *, config=None, b
     # identifiers, exact constants and assumption syntax against a whitelist.
     expression_ast, epsilon_ast = encode_expr(expr), encode_expr(epsilon)
     assumption_ast = encode_expr(assumptions)
-    declared = {}
-    for symbol in expr.free_symbols | assumptions.free_symbols | {epsilon}:
+    declared: dict[str, s.Symbol] = {}
+    input_symbols = cast(set[s.Symbol], expr.free_symbols | assumptions.free_symbols | {epsilon})
+    for symbol in input_symbols:
         if symbol.name in declared and declared[symbol.name] != symbol:
             raise UnsupportedExpressionError(
                 "Symbols with the same name and different assumptions are ambiguous"
             )
         declared[symbol.name] = symbol
     original_ast = expression_ast
+    native: NativeBackend | None = None
     if backend is None or backend == "native":
-        from .native import NativeBackend
         from .native.endpoints import rewrite_endpoints
 
-        active = NativeBackend(config)
+        native = NativeBackend(cast(NativeConfig | None, config))
         expr = rewrite_endpoints(
-            expr, epsilon, assumptions, meromorphic=active.config.unit_endpoint == "meromorphic",
-            excess_shift=active.config.unit_excess_shift,
+            expr, epsilon, assumptions, meromorphic=native.config.unit_endpoint == "meromorphic",
+            excess_shift=native.config.unit_excess_shift,
         )
         expression_ast = encode_expr(expr)
     plan = plan_expansion(expr, epsilon, through, assumptions)
-    injected = backend is not None and not isinstance(backend, str)
+    active: ExpansionBackend
     if backend == "wolfram":
-        active = WolframBackend(config)
-    elif injected:
+        active = WolframBackend(cast(BackendConfig | None, config))
+        injected = False
+    elif backend is not None and not isinstance(backend, str):
         active = backend
-    elif backend not in (None, "native"):
+        injected = True
+    elif native is not None:
+        active = native
+        injected = False
+    else:
         raise ValueError("Unknown backend; choose 'native' or 'wolfram'")
     request = {
         "protocol": 1,
@@ -225,10 +286,11 @@ def expand_epsilon(expr, epsilon, through=3, assumptions=None, *, config=None, b
         raise IncompleteExpansionError("Backend returned an invalid symbolic result") from exc
     if not isinstance(polynomial, s.Expr):
         raise IncompleteExpansionError("Backend result must be a scalar SymPy expression")
-    if any(symbol.name not in declared for symbol in polynomial.free_symbols):
+    output_symbols = cast(set[s.Symbol], polynomial.free_symbols)
+    if any(symbol.name not in declared for symbol in output_symbols):
         raise IncompleteExpansionError("Backend introduced undeclared symbols")
-    polynomial = polynomial.xreplace(
-        {symbol: declared[symbol.name] for symbol in polynomial.free_symbols}
+    polynomial = cast(
+        s.Expr, polynomial.xreplace({symbol: declared[symbol.name] for symbol in output_symbols}),
     )
     polynomial = _checked_polynomial(polynomial, epsilon, through, plan.valuation_lower_bound)
     backend_record = response.get("backend", {})
@@ -248,8 +310,8 @@ def expand_epsilon(expr, epsilon, through=3, assumptions=None, *, config=None, b
         "order_basis": response.get("order_basis"),
         "injected_backend": injected,
         "branch_convention": "Principal branches",
-        "unit_endpoint": active.config.unit_endpoint if backend in (None, "native") else None,
-        "unit_excess_shift": active.config.unit_excess_shift if backend in (None, "native") else None,
+        "unit_endpoint": native.config.unit_endpoint if native is not None else None,
+        "unit_excess_shift": native.config.unit_excess_shift if native is not None else None,
         "certificate_scope": "Conditional on backend correctness and the stated input domain",
     }
     return ExpansionResult(polynomial, epsilon, through, provenance)

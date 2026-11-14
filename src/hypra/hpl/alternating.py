@@ -3,6 +3,7 @@ from functools import lru_cache
 
 import sympy as s
 
+from .._typing import ExactScalar, IntegerWord
 from ..errors import UnsupportedExpressionError
 from ..symbolic import MZV, EulerSum
 from .algebra import shuffle_words
@@ -10,8 +11,12 @@ from .endpoints import reduce_mzv
 from .numeric import _word
 
 
-def reduce_euler_sum(expression):
-    """Proved eta, MZV, repeated-letter and finite-cutoff Newton identities."""
+def reduce_euler_sum(expression: ExactScalar) -> s.Expr:
+    """Proved eta, MZV, repeated-letter and finite-cutoff Newton identities.
+
+    Args:
+        expression: Exact symbolic expression containing Euler-sum atoms.
+    """
     def one(atom):
         indices, colors = tuple(atom.indices), tuple(atom.colors)
         if len(indices) > 1 and len(set(indices)) == len(set(colors)) == 1:
@@ -72,12 +77,16 @@ def _endpoint(word):
     return factor * EulerSum(indices, colors)
 
 
-def hpl_alternating_at_one(word, *, reduced=True):
+def hpl_alternating_at_one(word: IntegerWord, *, reduced: bool = True) -> s.Expr:
     """Limit from real 0<z<1 for expanded 0,+1,-1 words, weight <=24.
 
     Conditional sums use the outer-index cutoff, not arbitrary reordered sums.
     Mixed trailing zeros are removed by shuffle with log(z), which vanishes
     at one even multiplied by any finite power of log(1-z).
+
+    Args:
+        word: Expanded ternary word with a convergent endpoint.
+        reduced: Apply supported exact constant reductions.
     """
     if type(reduced) is not bool:
         raise TypeError("reduced must be Boolean")

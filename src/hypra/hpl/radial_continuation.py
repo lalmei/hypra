@@ -4,14 +4,19 @@ The mathematical truncation bound excludes floating-point roundoff. A second
 higher-precision run is a stability check, not an interval certificate.
 """
 from dataclasses import dataclass
+from typing import Literal
 
 import mpmath as mp
 import sympy as s
 
+from .._typing import IntegerWord
 from ..errors import UnsupportedExpressionError
 from .numeric import (
     _DECIMAL,
     HPLNumericalConvergenceError,
+    MPReal,
+    NumericArgument,
+    NumericValue,
     _word,
     evaluate_hpl,
 )
@@ -19,9 +24,11 @@ from .numeric import (
 
 @dataclass(frozen=True)
 class HPLContinuationResult:
-    value: object
-    tail_bound: object
-    stability_gap: object
+    """Numerical radial continuation and its truncation and precision diagnostics."""
+
+    value: NumericValue
+    tail_bound: MPReal
+    stability_gap: MPReal
     steps: int
     max_degree: int
     dps: int
@@ -102,13 +109,35 @@ def _run(word, argument, dps, working, max_steps, max_degree, max_terms):
     return values[0],error,steps,degree_used
 
 
-def continue_hpl(word, argument, *, domain, path, dps=50, max_steps=4096,
-                 max_degree=1024, max_terms=100000):
+def continue_hpl(
+    word: IntegerWord,
+    argument: NumericArgument,
+    *,
+    domain: Literal["principal-cut-plane"],
+    path: Literal["radial"],
+    dps: int = 50,
+    max_steps: int = 4096,
+    max_degree: int = 1024,
+    max_terms: int = 100000,
+) -> HPLContinuationResult:
     """Numerically continue along an explicitly requested principal radial path.
 
     Required choices: domain='principal-cut-plane', path='radial'. Real input
     is permitted only between zero and one. Complex paths must be off the real
     cuts. No boundary value, winding path or exact symbolic identity is inferred.
+
+    Args:
+        word: Expanded HPL letters, up to weight 24.
+        argument: Finite target point off the cuts.
+        domain: Principal cut plane.
+        path: Straight radial continuation from the origin germ.
+        dps: Requested decimal precision.
+        max_steps: Maximum number of Taylor continuation steps.
+        max_degree: Highest Taylor degree allowed in each step.
+        max_terms: Maximum terms in each initial interior HPL series.
+
+    Returns:
+        Approximation with propagated truncation bound and precision diagnostics.
     """
     if domain!='principal-cut-plane' or path!='radial':
         raise UnsupportedExpressionError('Specify domain="principal-cut-plane", path="radial" explicitly')

@@ -2,16 +2,22 @@
 
 import sympy as s
 
+from .._typing import Interval
 from ..errors import UnsupportedExpressionError
 from ..symbolic import HPL, reduce_known_hpl
 from .reduction import _extract, extract_hpl_logs, lyndon_reduce
 
 
-def classical_hpl(expression, z, *, domain):
+def classical_hpl(expression: s.Expr, z: s.Symbol, *, domain: Interval) -> s.Expr:
     """Reduce every weight-two and weight-three ternary HPL at z.
 
     Requires the declared real interval 0<z<1. Higher mixed words remain HPLs;
     this does not claim a complete high-weight classical-function basis.
+
+    Args:
+        expression: Exact expression containing HPL atoms.
+        z: Argument of the HPLs to reduce.
+        domain: Declared real interval, `"0<z<1"`.
     """
     if not isinstance(expression, s.Expr) or not isinstance(z, s.Symbol):
         raise TypeError("Use a SymPy expression and symbolic argument")

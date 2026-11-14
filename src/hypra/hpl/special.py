@@ -2,18 +2,22 @@
 
 import sympy as s
 
+from .._typing import IntegerWord
 from ..errors import UnsupportedExpressionError
 from ..symbolic import HPL, reduce_known_hpl
 from .classical import classical_hpl
 from .numeric import _word
 
 
-def hpl_at_i(word):
+def hpl_at_i(word: IntegerWord) -> s.Expr:
     """Exact H_word(i) on continuation from the origin through the upper quadrant.
 
     All ternary words of weight <=2, pure repeated letters, and classical
     words 0**(n-1), +/-1 through weight24 are supported. Unsupported mixed
     words fail closed. Irreducible dilogarithms are retained exactly.
+
+    Args:
+        word: Expanded ternary word evaluated at the positive imaginary unit.
     """
     word = _word(word)
     if not word:

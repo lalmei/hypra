@@ -4,24 +4,38 @@ from functools import cache
 
 import sympy as s
 
+from ._typing import ExactInteger, ExactScalar
 from .errors import UnsupportedExpressionError
 from .hpl.algebra import _linear_terms, integrate_from_zero, shuffle_expand
 from .hpl.regularization import hpl_endpoint_polynomial
 
 
-def _integers(*values):
+def _integers(*values: ExactInteger) -> tuple[ExactInteger, ...]:
     if any(isinstance(value, bool) or not isinstance(value, (int, s.Integer))
            for value in values):
         raise TypeError("Moment powers must be explicit integers")
     return values
 
 
-def beta_log_moment(n, m, p):
+def beta_log_moment(n: ExactInteger, m: ExactInteger, p: ExactInteger) -> s.Expr:
     r"""Return the integral of u**p log(u)**n log(1-u)**m from zero to one.
 
     The origin requires p + m >= 0. The result uses exact HPL endpoint
     constants. The implementation supports log weight through seven, negative
     powers through -32, and polynomial degrees through 64.
+
+    Args:
+        n: Nonnegative power of the origin logarithm.
+        m: Nonnegative power of the endpoint logarithm.
+        p: Integer power of the integration variable.
+
+    Returns:
+        Exact value of the definite integral.
+
+    Raises:
+        TypeError: A power is not an explicit integer.
+        ValueError: A logarithm power is negative.
+        UnsupportedExpressionError: The integral diverges or exceeds the supported bounds.
     """
     n, m, p = _integers(n, m, p)
     if n < 0 or m < 0:
@@ -45,12 +59,31 @@ def beta_log_moment(n, m, p):
     return endpoint
 
 
-def hypergeometric_log_moment(p, n, m, k, q, z):
+def hypergeometric_log_moment(
+    p: ExactInteger, n: ExactInteger, m: ExactInteger, k: ExactInteger, q: ExactInteger,
+    z: ExactScalar,
+) -> s.Expr:
     r"""Integrate u**p log(u)**n log(1-u)**m log(1-z*u)**k / (z*u-1)**q.
 
     Integration runs from zero to one. Powers are nonnegative integers.
     Endpoints z=0 and z=1 are handled exactly when convergent. Symbolic z
     is interpreted on the real interval 0<z<1 unless it is provably negative.
+
+    Args:
+        p: Power of the integration variable.
+        n: Power of the origin logarithm.
+        m: Power of the endpoint logarithm.
+        k: Power of the moving-argument logarithm.
+        q: Power of the moving denominator.
+        z: Exact real kernel argument, or a symbol with the stated domain.
+
+    Returns:
+        Exact value of the definite integral.
+
+    Raises:
+        TypeError: A power is not an explicit integer.
+        ValueError: A power is negative.
+        UnsupportedExpressionError: The argument, powers, or convergence are unsupported.
     """
     p, n, m, k, q = _integers(p, n, m, k, q)
     if min(p, n, m, k, q) < 0:

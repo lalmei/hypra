@@ -1,15 +1,28 @@
 """Exact HPL index and plus/minus kernel notation conversions."""
 from itertools import product
+from typing import Literal
 
 import sympy as s
 
+from .._typing import IntegerWord
 from ..errors import UnsupportedExpressionError
 from ..symbolic import HPL
 from .algebra import _word
 
+type PMLetter = Literal[0, "plus", "minus"]
+type PMWord = tuple[PMLetter, ...] | list[PMLetter] | s.Tuple
 
-def expand_indices(indices):
-    """Expand signed compressed indices; a standalone zero stays a zero."""
+
+def expand_indices(indices: IntegerWord) -> tuple[int, ...]:
+    """Expand signed compressed indices.
+
+    Args:
+        indices: Each nonzero index becomes `abs(index) - 1` zero letters
+            followed by its sign. A standalone zero stays a zero.
+
+    Returns:
+        Expanded letters in their original order.
+    """
     if not isinstance(indices,(tuple,list,s.Tuple)) or any(
         isinstance(n,bool) or not isinstance(n,(int,s.Integer)) for n in indices
     ):
@@ -20,8 +33,15 @@ def expand_indices(indices):
                  for letter in ((0,) if n==0 else (0,)*(abs(int(n))-1)+(int(s.sign(n)),)))
 
 
-def compress_indices(word):
-    """Canonical compression: zero runs attach to the next nonzero letter."""
+def compress_indices(word: IntegerWord) -> tuple[int, ...]:
+    """Compress an expanded word into signed indices.
+
+    Args:
+        word: Expanded letters. Zero runs attach to the next nonzero letter.
+
+    Returns:
+        Compressed indices with any final zero letters retained.
+    """
     word=_word(word)
     result,zeros=[],0
     for letter in word:
@@ -43,8 +63,15 @@ def _linear_choices(choices):
     return result
 
 
-def pm_to_letters(word):
-    """Word coefficient dictionary for f_plus=f_1+f_-1, f_minus=f_1-f_-1."""
+def pm_to_letters(word: PMWord) -> dict[tuple[int, ...], s.Expr]:
+    """Expand the kernels `f_plus=f_1+f_-1` and `f_minus=f_1-f_-1`.
+
+    Args:
+        word: Sequence containing zero, `"plus"`, or `"minus"`.
+
+    Returns:
+        Coefficients indexed by expanded HPL words.
+    """
     if not isinstance(word,(tuple,list,s.Tuple)):
         raise TypeError("Plus/minus word must be a sequence")
     choices=[]
@@ -60,8 +87,15 @@ def pm_to_letters(word):
     return _linear_choices(choices)
 
 
-def letters_to_pm(word):
-    """Inverse word dictionary: f_±1=(f_plus ± f_minus)/2."""
+def letters_to_pm(word: IntegerWord) -> dict[tuple[PMLetter, ...], s.Expr]:
+    """Expand the kernels `f_±1=(f_plus ± f_minus)/2`.
+
+    Args:
+        word: Expanded HPL letters.
+
+    Returns:
+        Coefficients indexed by plus/minus words.
+    """
     choices=[]
     for letter in _word(word):
         choices.append(((0,s.S.One),) if letter==0 else
@@ -69,8 +103,13 @@ def letters_to_pm(word):
     return _linear_choices(choices)
 
 
-def hpl_pm(word, argument):
-    """Construct plus/minus notation as an exact sum of ordinary HPL objects."""
+def hpl_pm(word: PMWord, argument: s.Expr) -> s.Expr:
+    """Construct plus/minus notation as an exact sum of ordinary HPL objects.
+
+    Args:
+        word: Sequence containing zero, `"plus"`, or `"minus"`.
+        argument: SymPy argument of each HPL in the sum.
+    """
     if not isinstance(argument,s.Expr):
         raise TypeError("Argument must be a SymPy expression")
     return sum((coefficient*(HPL(letters,argument) if letters else s.S.One)

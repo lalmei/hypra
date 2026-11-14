@@ -6,8 +6,10 @@ recurrences can introduce regulator poles.
 from __future__ import annotations
 
 from functools import cache
+from typing import cast
 
 import sympy as s
+from sympy.logic.boolalg import Boolean
 
 from ..errors import UnsupportedExpressionError
 from .planning import _positive
@@ -122,7 +124,14 @@ def _continue_unit(upper, lower, excess, epsilon):
     return s.Add(*(weight*leaf for leaf, weight in raise_until_convergent(atom).items()))
 
 
-def rewrite_endpoints(expr, epsilon, assumptions=s.true, *, meromorphic=False, excess_shift=None):
+def rewrite_endpoints(
+    expr: s.Expr,
+    epsilon: s.Symbol,
+    assumptions: Boolean | None = s.true,
+    *,
+    meromorphic: bool = False,
+    excess_shift: int | None = None,
+) -> s.Expr:
     """Rewrite terminating sums and unit endpoints before Laurent planning.
 
     Other nonterminating arguments are unchanged. With meromorphic=True,
@@ -221,4 +230,4 @@ def rewrite_endpoints(expr, epsilon, assumptions=s.true, *, meromorphic=False, e
         if not meromorphic and not _convergent(excess, epsilon, assumptions):
             raise UnsupportedExpressionError("Gauss z=1 convergence is not proven on a regulator neighborhood or punctured side")
         replacements[atom] = s.gamma(c)*s.gamma(excess)/(s.gamma(c-a)*s.gamma(c-b))
-    return expr.xreplace(replacements)
+    return cast(s.Expr, expr.xreplace(replacements))

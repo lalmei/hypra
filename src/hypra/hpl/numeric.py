@@ -14,11 +14,20 @@ from __future__ import annotations
 import math
 import re
 from dataclasses import dataclass
+from typing import Literal
 
 import mpmath as mp
 import sympy as s
+from mpmath.ctx_mp_python import _mpc as MPComplex
+from mpmath.ctx_mp_python import _mpf as MPReal
 
+from .._typing import IntegerWord
 from ..errors import UnsupportedExpressionError
+
+# mpmath creates new mpf and mpc subclasses for each cloned context.
+type NumericArgument = s.Expr | int | float | complex | str | MPReal | MPComplex
+type NumericValue = MPReal | MPComplex
+type NumericDomain = Literal["real", "principal-disk"]
 
 _DECIMAL = re.compile(r"[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?\Z")
 _MAX_WEIGHT = 24
@@ -30,17 +39,23 @@ class HPLNumericalConvergenceError(ArithmeticError):
 
 @dataclass(frozen=True)
 class HPLNumericResult:
-    """Numerical value and honest truncation/precision metadata.
+    """Numerical value with series and working-precision diagnostics.
 
-    ``tail_bound`` bounds mathematical series truncation (zero for direct
-    elementary/classical calls), not floating-point roundoff. ``stability_gap``
-    is the difference between two working-precision calculations, not a proof
-    of correctness. Requested precision cannot recover digits absent in input.
+    Attributes:
+        value: Real or complex mpmath approximation.
+        tail_bound: Mathematical series truncation bound, excluding roundoff.
+            Zero for direct elementary and classical calculations.
+        stability_gap: Absolute difference between the two precision runs.
+        terms: Number of terms used in the evaluation.
+        dps: Requested decimal precision.
+        working_dps: Working decimal precision of the returned value.
+        method: Evaluation method used.
+        domain: Domain and branch description.
     """
 
-    value: object
-    tail_bound: object
-    stability_gap: object
+    value: NumericValue
+    tail_bound: MPReal
+    stability_gap: MPReal
     terms: int
     dps: int
     working_dps: int
@@ -48,7 +63,7 @@ class HPLNumericResult:
     domain: str = "real 0 < z < 1; principal real HPL branch"
 
 
-def _word(value):
+def _word(value: IntegerWord) -> tuple[int, ...]:
     if not isinstance(value, (tuple, list, s.Tuple)):
         raise TypeError("Numerical HPL input must be a word of exact -1, 0, 1 letters")
     if any(
@@ -200,7 +215,14 @@ def _evaluate(word, argument, dps, target_digits, max_terms, domain):
     return _series(word, z, target_digits, max_terms, ctx)
 
 
-def evaluate_hpl(word, argument, *, dps=50, max_terms=100000, domain="real"):
+def evaluate_hpl(
+    word: IntegerWord,
+    argument: NumericArgument,
+    *,
+    dps: int = 50,
+    max_terms: int = 100000,
+    domain: NumericDomain = "real",
+) -> HPLNumericResult:
     """Evaluate a finite {0,±1} word in an explicitly selected branch domain.
 
     The requested ``dps`` is checked by a stricter analytic truncation target
@@ -213,6 +235,20 @@ def evaluate_hpl(word, argument, *, dps=50, max_terms=100000, domain="real"):
     domain="principal-disk" allows 0 < |z| < 1 off the negative real axis,
     using principal log(z). No continuation beyond this slit disk is applied.
     Endpoints are rejected; use hpl_at_one for supported exact endpoints.
+
+    Args:
+        word: Expanded HPL letters, up to weight 24.
+        argument: Numeric point in the selected domain.
+        dps: Requested decimal precision, from 2 to 1000.
+        max_terms: Maximum number of series terms.
+        domain: Real interior or principal slit-disk domain.
+
+    Returns:
+        Numerical value, series tail bound, and precision diagnostics.
+
+    Raises:
+        UnsupportedExpressionError: The word or argument is outside the supported domain.
+        HPLNumericalConvergenceError: The series or precision check failed.
     """
     word = _word(word)
     if domain not in ("real", "principal-disk"):
@@ -237,6 +273,21 @@ def evaluate_hpl(word, argument, *, dps=50, max_terms=100000, domain="real"):
     return HPLNumericResult(second, tail, gap, terms, dps, dps + 40, method, domain_description)
 
 
-def hpl_evalf(word, argument, *, dps=50, max_terms=100000, domain="real"):
-    """Return only the mpmath value; see evaluate_hpl for diagnostics."""
+def hpl_evalf(
+    word: IntegerWord,
+    argument: NumericArgument,
+    *,
+    dps: int = 50,
+    max_terms: int = 100000,
+    domain: NumericDomain = "real",
+) -> NumericValue:
+    """Return the mpmath value from `evaluate_hpl`.
+
+    Args:
+        word: Expanded HPL letters, up to weight 24.
+        argument: Numeric point in the selected domain.
+        dps: Requested decimal precision.
+        max_terms: Maximum number of series terms.
+        domain: Real interior or principal slit-disk domain.
+    """
     return evaluate_hpl(word, argument, dps=dps, max_terms=max_terms, domain=domain).value

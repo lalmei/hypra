@@ -2,6 +2,7 @@
 
 import sympy as s
 
+from .._typing import Boundary, IntegerWord, Interval
 from ..errors import UnsupportedExpressionError
 from ..symbolic import HPL
 from .algebra import _as_hpl
@@ -27,12 +28,20 @@ def _map_hpl(expression, z, transform):
     )
 
 
-def invert_hpl(word, z, *, boundary, domain=None):
+def invert_hpl(
+    word: IntegerWord, z: s.Symbol, *, boundary: Boundary, domain: Interval | None = None,
+) -> s.Expr:
     """Return H_word(1/z +/- i0), for explicitly real 0<z<1.
 
     boundary='upper' selects +i0; 'lower' selects -i0. These choices refer
     to the argument 1/z, not the direction of the intermediate negative cut.
     Supports ternary words through weight six, with exact endpoint constants.
+
+    Args:
+        word: Expanded ternary word of weight at most six.
+        z: SymPy symbol for the interior coordinate.
+        boundary: Side of approach to 1/z.
+        domain: Declare `"0<z<1"` explicitly.
     """
     word = _validate(word, z, domain)
     if boundary not in ("upper", "lower"):

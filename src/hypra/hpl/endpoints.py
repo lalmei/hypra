@@ -20,6 +20,7 @@ from functools import lru_cache
 
 import sympy as s
 
+from .._typing import ExactScalar, IntegerWord
 from ..errors import UnsupportedExpressionError
 from ..symbolic import MZV
 from .algebra import shuffle_words
@@ -89,13 +90,16 @@ def _height_one(first, depth):
     return s.expand(coefficient)
 
 
-def reduce_mzv(expression):
+def reduce_mzv(expression: ExactScalar) -> s.Expr:
     """Apply proved duality, height-one and weight-four identities, opt-in.
 
     Height-one beta-generating reductions are bounded at weight twelve.
     General irreducible MZVs remain exact symbolic objects. Duality selects the
     representative with smaller depth (then lexicographic order); it does not
     make unproved basis-completeness or transcendence claims.
+
+    Args:
+        expression: Exact symbolic expression containing multiple zeta values.
     """
     if type(expression) is int:
         expression = s.Integer(expression)
@@ -143,7 +147,7 @@ def _endpoint(word):
     return s.expand(result / multiplicity)
 
 
-def hpl_at_one(word, *, reduced=True):
+def hpl_at_one(word: IntegerWord, *, reduced: bool = True) -> s.Expr:
     """Evaluate a convergent {0,1} HPL word at z=1 from the real interval.
 
     The input is the discrete word, e.g. ``hpl_at_one((0,1)) == pi**2/6``.
@@ -151,6 +155,10 @@ def hpl_at_one(word, *, reduced=True):
     Empty words give one, nonempty all-zero words give zero. Other alphabets
     and genuinely divergent endpoints raise UnsupportedExpressionError.
     This is not a limit engine for arbitrary rational-HPL combinations.
+
+    Args:
+        word: Expanded binary word with a convergent endpoint.
+        reduced: Apply supported exact MZV reductions.
     """
     if type(reduced) is not bool:
         raise TypeError("reduced must be a Boolean")

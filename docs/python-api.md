@@ -1,17 +1,34 @@
 # Python API reference
 
-These signatures and docstrings come from the actual Python implementation,
-using `mkdocstrings-python`. For complete mathematical conditions, read
-[scope](scope.md) and the linked algorithm chapters. Generated API descriptions
-are not a claim of additional parameter or branch coverage.
+The package root `hypra` exports the public functions and classes below.
+The custom backend protocol lives in `hypra.api`. The signatures and
+Google-style docstrings are rendered from the implementation by
+`mkdocstrings-python`. See [API examples](api-examples.md) for runnable
+examples and [capabilities and limits](scope.md) for supported domains.
+
+An `IntegerWord` is a tuple, list, or SymPy tuple of Python or SymPy integers.
+An `ExactScalar` is a SymPy expression or a Python integer. Individual functions
+describe any extra requirements on letters, exactness, and argument domains.
+
+## Expansion and backends
 
 ::: hypra.api.expand_epsilon
 
 ::: hypra.api.backend_info
 
 ::: hypra.api.ExpansionResult
+    options:
+      members: [expression, coefficient, latex, to_dict]
+
+::: hypra.api.ExpansionBackend
 
 ::: hypra.native.NativeConfig
+
+::: hypra.native.NativeBackend
+
+::: hypra.config.BackendConfig
+    options:
+      members: [from_env, resolved_executable, resolved_cache_dir]
 
 ::: hypra.hypergeometric
 
@@ -24,27 +41,49 @@ for validation. See the [exceptional-parameter rules](scope.md#preserving-except
 [fixed excess pole](endpoints.md#fixed-excess-poles).
 See the [runnable examples](api-examples.md) for these settings.
 
+## Exact transport
+
+::: hypra.serialization.encode_expr
+
+::: hypra.serialization.decode_expr
+
+::: hypra.serialization.SerializationError
+
+## Expansion errors
+
+::: hypra.errors.HypraError
+
+::: hypra.errors.UnsupportedExpressionError
+
+::: hypra.errors.IncompleteExpansionError
+
+::: hypra.backend.BackendError
+
+::: hypra.backend.BackendUnavailableError
+
+::: hypra.backend.BackendTimeoutError
+
+::: hypra.backend.BackendProtocolError
+
+## Symbolic functions and notation
+
 ::: hypra.symbolic.HPL
+    options:
+      members: [__new__, from_compressed, word, argument]
 
-::: hypra.hpl.classical.classical_hpl
+::: hypra.hpl.notation.expand_indices
 
-::: hypra.hpl.regularization.hpl_endpoint_polynomial
+::: hypra.hpl.notation.compress_indices
 
-::: hypra.hpl.regularization.shuffle_regularized_hpl_at_one
+::: hypra.hpl.notation.pm_to_letters
 
-::: hypra.hpl.stuffle.stuffle_expand_constants
+::: hypra.hpl.notation.letters_to_pm
 
-::: hypra.hpl.regularization.hpl_expression_endpoint_polynomial
-
-::: hypra.hpl.special.hpl_at_i
-
-::: hypra.hpl.taylor.hpl_taylor
-
-::: hypra.hpl.boundary_numeric.evaluate_hpl_boundary
-
-::: hypra.hpl.boundary_numeric.HPLBoundaryNumericResult
+::: hypra.hpl.notation.hpl_pm
 
 ::: hypra.nielsen.NielsenPolylog
+    options:
+      members: [__new__, n, p, argument, as_hpl]
 
 ::: hypra.nielsen.hpl_to_nielsen
 
@@ -52,10 +91,113 @@ See the [runnable examples](api-examples.md) for these settings.
 
 ::: hypra.nielsen.reduce_nielsen
 
+## Algebra and integration
+
+::: hypra.hpl.algebra.shuffle_expand
+
+::: hypra.hpl.algebra.primitive_hpl
+
+::: hypra.hpl.algebra.integrate_from_zero
+
+::: hypra.hpl.algebra.hpl_series
+
+::: hypra.hpl.classical.classical_hpl
+
+::: hypra.hpl.reduction.extract_hpl_logs
+
+::: hypra.hpl.reduction.lyndon_factors
+
+::: hypra.hpl.reduction.lyndon_reduce
+
+::: hypra.hpl.taylor.hpl_taylor
+
+## Endpoints and constants
+
+::: hypra.symbolic.MZV
+    options:
+      members: [__new__, indices]
+
+::: hypra.symbolic.EulerSum
+    options:
+      members: [__new__, indices, colors]
+
+::: hypra.hpl.endpoints.hpl_at_one
+
+::: hypra.hpl.endpoints.reduce_mzv
+
+::: hypra.hpl.alternating.hpl_alternating_at_one
+
+::: hypra.hpl.alternating.reduce_euler_sum
+
+::: hypra.hpl.regularization.hpl_endpoint_polynomial
+
+::: hypra.hpl.regularization.shuffle_regularized_hpl_at_one
+
+::: hypra.hpl.regularization.hpl_expression_endpoint_polynomial
+
+::: hypra.hpl.stuffle.stuffle_expand_constants
+
+::: hypra.hpl.special.hpl_at_i
+
 ::: hypra.hpl.series_one.hpl_series_at_one
 
 ::: hypra.hpl.limits.hpl_limit_at_one
 
+::: hypra.hpl.named_constants.HPLs6
+
+::: hypra.hpl.named_constants.HPLs7a
+
+::: hypra.hpl.named_constants.HPLs7b
+
+::: hypra.hpl.named_constants.HPLs8a
+
+::: hypra.hpl.named_constants.HPLs8b
+
+::: hypra.hpl.named_constants.HPLs8c
+
+::: hypra.hpl.named_constants.HPLs8d
+
+## Argument maps
+
+::: hypra.hpl.arguments.transform_hpl_arguments
+
+::: hypra.hpl.transforms.negate_hpl
+
+::: hypra.hpl.transforms.reflect_hpl
+
+::: hypra.hpl.maps.square_hpl
+
+::: hypra.hpl.maps.fractional_hpl
+
+::: hypra.hpl.mobius.mobius_hpl
+
+::: hypra.hpl.inversion.invert_hpl
+
+::: hypra.hpl.real_continuation.analytic_continue_hpl
+
+## Numerical evaluation
+
+::: hypra.hpl.numeric.evaluate_hpl
+
+::: hypra.hpl.numeric.hpl_evalf
+
+::: hypra.hpl.numeric.HPLNumericResult
+
+::: hypra.hpl.numeric.HPLNumericalConvergenceError
+
+::: hypra.hpl.radial_continuation.continue_hpl
+
+::: hypra.hpl.radial_continuation.HPLContinuationResult
+
+::: hypra.hpl.boundary_numeric.evaluate_hpl_boundary
+
+::: hypra.hpl.boundary_numeric.HPLBoundaryNumericResult
+
+::: hypra.hpl.constants.evaluate_mzv
+
+::: hypra.hpl.constants.evaluate_euler_sum
+
+::: hypra.hpl.constants.ConstantNumericResult
 
 ## Definite logarithmic integrals
 
@@ -87,3 +229,7 @@ z = Symbol("z")
 beta_log_moment(0, 1, -1)                       # -pi**2/6
 hypergeometric_log_moment(0, 0, 0, 0, 1, z)    # -HPL((1,), z)/z
 ```
+
+::: hypra.hypexp_integrals.beta_log_moment
+
+::: hypra.hypexp_integrals.hypergeometric_log_moment

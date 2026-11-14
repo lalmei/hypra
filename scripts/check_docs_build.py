@@ -3,6 +3,8 @@ import re
 from html.parser import HTMLParser
 from pathlib import Path
 
+import hypra
+
 ROOT = Path(__file__).resolve().parents[1]
 SITE = ROOT / 'site'
 
@@ -19,8 +21,14 @@ def main():
         raise SystemExit(f'Missing generated files: {missing}')
     api = (SITE/'python-api/index.html').read_text()
     cli = (SITE/'cli-reference/index.html').read_text()
-    if 'hypra.api.expand_epsilon' not in api or 'doc-signature' not in api:
-        raise SystemExit('mkdocstrings API reference did not render')
+    rendered_exports = set(re.findall(r'id="hypra\.(?:[\w.]+\.)?(\w+)"', api))
+    missing_exports = sorted(
+        name for name in hypra.__all__ if not name.startswith('_') and name not in rendered_exports
+    )
+    if missing_exports:
+        raise SystemExit(f'Missing generated API entries: {missing_exports}')
+    if 'doc-signature' not in api or 'class="doc-section-title">Parameters:' not in api:
+        raise SystemExit('mkdocstrings signatures or Google-style parameters did not render')
     if 'backend-info' not in cli or '--latex' not in cli or '::: mkdocs-typer2' in cli:
         raise SystemExit('Real Typer command documentation did not render')
     for path in (SITE/'assets/mermaid').glob('*'):

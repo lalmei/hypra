@@ -11,8 +11,24 @@ otherwise. It does not encode a separate continuation path.
 
 from __future__ import annotations
 
-from sympy import Basic, Dummy, Function, Integer, Order, Tuple, ceiling, factorial, log, polylog
+from typing import Self, cast
+
+from sympy import (
+    Basic,
+    Dummy,
+    Expr,
+    Function,
+    Integer,
+    Order,
+    Tuple,
+    ceiling,
+    factorial,
+    log,
+    polylog,
+)
 from sympy.core.function import ArgumentIndexError, PoleError
+
+from ._typing import ExactScalar, IntegerWord
 
 
 class HPL(Function):
@@ -26,7 +42,14 @@ class HPL(Function):
 
     nargs = 2
 
-    def __new__(cls, word, argument, **options):
+    def __new__(cls, word: IntegerWord, argument: ExactScalar, **options: object) -> Self:
+        """Construct the exact SymPy function.
+
+    Args:
+            word: Expanded exact letters from {-1, 0, 1}, in integration order.
+            argument: SymPy argument of the harmonic polylogarithm.
+            **options: Keyword options forwarded to SymPy's function constructor.
+        """
         # Validate before Function's cache: Python (1.0,) compares equal to
         # (1,), and otherwise a cached exact object can bypass eval validation.
         if not isinstance(word, (tuple, list, Tuple)):
@@ -38,7 +61,7 @@ class HPL(Function):
             for letter in word
         ):
             raise ValueError("HPL requires exact expanded letters -1, 0, or 1")
-        return super().__new__(cls, Tuple(*word), argument, **options)
+        return cast(Self, super().__new__(cls, Tuple(*word), argument, **options))
 
     @classmethod
     def eval(cls, word, argument):
@@ -48,8 +71,16 @@ class HPL(Function):
             raise ValueError("HPL requires expanded letters -1, 0, or 1; use from_compressed")
 
     @classmethod
-    def from_compressed(cls, word, argument):
-        """Expand signed integer indices without changing their order."""
+    def from_compressed(cls, word: IntegerWord, argument: ExactScalar) -> Self:
+        """Expand signed integer indices without changing their order.
+
+        Args:
+            word: Signed compressed indices. A standalone zero is one zero letter.
+            argument: SymPy argument of the harmonic polylogarithm.
+
+        Returns:
+            An HPL with the corresponding expanded word.
+        """
         if not isinstance(word, (tuple, list, Tuple)):
             raise TypeError("Compressed HPL indices must be a tuple or list of integers")
         letters = []
@@ -69,15 +100,16 @@ class HPL(Function):
         return cls(Tuple(*letters), argument)
 
     @property
-    def word(self):
+    def word(self) -> Tuple:
         """Expanded letters, as a SymPy Tuple."""
-        return self.args[0]
+        return cast(Tuple, self.args[0])
 
     @property
-    def argument(self):
-        return self.args[1]
+    def argument(self) -> Expr:
+        """Argument of the harmonic polylogarithm."""
+        return cast(Expr, self.args[1])
 
-    def fdiff(self, argindex=2):
+    def fdiff(self, argindex: int = 2) -> Expr:
         """Differentiate with respect to the argument, not the discrete word.
 
         The kernel is 1/z for a leading 0, 1/(1-z) for 1 and
@@ -245,7 +277,13 @@ class MZV(Function):
 
     nargs = 1
 
-    def __new__(cls, indices, **options):
+    def __new__(cls, indices: IntegerWord, **options: object) -> Expr:
+        """Construct the exact SymPy function.
+
+    Args:
+            indices: Positive summation exponents with first index at least two.
+            **options: Keyword options forwarded to SymPy's function constructor.
+        """
         if not isinstance(indices, (tuple, list, Tuple)):
             raise TypeError("MZV indices must be a tuple/list of exact integers")
         if any(
@@ -255,7 +293,7 @@ class MZV(Function):
             raise ValueError("MZV indices must be exact positive integers")
         if indices and indices[0] < 2:
             raise ValueError("A convergent MZV requires first index >= 2")
-        return super().__new__(cls, Tuple(*indices), **options)
+        return cast(Expr, super().__new__(cls, Tuple(*indices), **options))
 
     @classmethod
     def eval(cls, indices):
@@ -269,8 +307,9 @@ class MZV(Function):
             raise ValueError("A convergent MZV requires first index >= 2")
 
     @property
-    def indices(self):
-        return self.args[0]
+    def indices(self) -> Tuple:
+        """Strict descending summation exponents."""
+        return cast(Tuple, self.args[0])
 
     def _eval_evalf(self, prec):
         from .hpl.constants import evaluate_mzv
@@ -301,7 +340,14 @@ class EulerSum(Function):
 
     nargs = 2
 
-    def __new__(cls, indices, colors, **options):
+    def __new__(cls, indices: IntegerWord, colors: IntegerWord, **options: object) -> Expr:
+        """Construct the exact SymPy function.
+
+    Args:
+            indices: Positive summation exponents.
+            colors: One sign (-1 or 1) per index.
+            **options: Keyword options forwarded to SymPy's function constructor.
+        """
         if not isinstance(indices, (tuple, list, Tuple)) or not isinstance(colors, (tuple, list, Tuple)):
             raise TypeError("EulerSum indices and colors must be exact tuples/lists")
         if len(indices) != len(colors):
@@ -312,7 +358,7 @@ class EulerSum(Function):
             raise ValueError("EulerSum colors must be exact -1 or 1")
         if indices and indices[0] == 1 and colors[0] == 1:
             raise ValueError("Divergent EulerSum; no regularized value is assigned")
-        return super().__new__(cls, Tuple(*indices), Tuple(*colors), **options)
+        return cast(Expr, super().__new__(cls, Tuple(*indices), Tuple(*colors), **options))
 
     @classmethod
     def eval(cls, indices, colors):
@@ -320,12 +366,14 @@ class EulerSum(Function):
             return Integer(1)
 
     @property
-    def indices(self):
-        return self.args[0]
+    def indices(self) -> Tuple:
+        """Strict descending summation exponents."""
+        return cast(Tuple, self.args[0])
 
     @property
-    def colors(self):
-        return self.args[1]
+    def colors(self) -> Tuple:
+        """Sign raised to the corresponding summation index."""
+        return cast(Tuple, self.args[1])
 
     def _eval_evalf(self, prec):
         from .hpl.constants import evaluate_euler_sum
@@ -344,7 +392,7 @@ class EulerSum(Function):
         return rf"\operatorname{{ES}}\!\left[\begin{{matrix}}{indices}\\{colors}\end{{matrix}}\right]"
 
 
-def reduce_known_hpl(expression):
+def reduce_known_hpl(expression: ExactScalar) -> Expr:
     """Reduce selected HPL words to exact logarithms and classical polylogs.
 
     This is deliberately opt-in: construction/serialization retain HPL objects.

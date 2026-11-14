@@ -3,12 +3,15 @@
 from dataclasses import dataclass
 
 import sympy as s
+from sympy.logic.boolalg import Boolean
 
 from ..errors import UnsupportedExpressionError
 
 
 @dataclass(frozen=True)
 class ExpansionPlan:
+    """Conservative orders used to compute and certify the Laurent expansion."""
+
     through: int
     pole_bound: int
     internal_order: int
@@ -80,7 +83,9 @@ def _exact_rational_valuation(expr, epsilon, assumptions):
     return orders[0] - orders[1]
 
 
-def plan_expansion(expr, epsilon, through, assumptions=s.true):
+def plan_expansion(
+    expr: s.Expr, epsilon: s.Symbol, through: int, assumptions: Boolean = s.true,
+) -> ExpansionPlan:
     """Bound every omitted hypergeometric term after multiplying all prefactors.
 
     If the total negative valuation bound is p, request each hypergeometric
@@ -229,13 +234,13 @@ def plan_expansion(expr, epsilon, through, assumptions=s.true):
     return ExpansionPlan(through, negative_budget, internal, lower)
 
 
-def laurent_coefficient(expr, epsilon, power):
+def laurent_coefficient(expr: s.Expr, epsilon: s.Symbol, power: int) -> s.Expr:
     """Extract a Laurent coefficient without assuming epsilon is factored visually.
 
     SymPy expand may put epsilon inside a rational denominator; its Expr.coeff
     then misses poles. as_coeff_exponent separates those powers exactly.
     """
-    result = s.S.Zero
+    result: s.Expr = s.S.Zero
     for term in s.Add.make_args(s.expand(expr)):
         if term == 0:
             continue

@@ -10,6 +10,8 @@ from __future__ import annotations
 
 import re
 from collections.abc import Mapping
+from collections.abc import Set as AbstractSet
+from typing import Any
 
 import sympy as sp
 from sympy.core.assumptions import _assume_defined
@@ -86,13 +88,13 @@ _RELATIONS = {"Equal", "Unequal", "Less", "LessEqual", "Greater", "GreaterEqual"
 _LOGIC = {"And", "Or", "Not"}
 
 
-def _name(name):
+def _name(name: object) -> str:
     if not isinstance(name, str) or not _NAME.fullmatch(name):
         raise SerializationError("Symbol names must be ASCII letters followed by letters/digits/_")
     return name
 
 
-def _assumptions(facts):
+def _assumptions(facts: object) -> dict[str, bool]:
     if not isinstance(facts, dict):
         raise SerializationError("Symbol assumptions must be a dictionary")
     if any(key not in _assume_defined or type(value) is not bool for key, value in facts.items()):
@@ -100,7 +102,7 @@ def _assumptions(facts):
     return facts
 
 
-def _number(value):
+def _number(value: object) -> int:
     if not isinstance(value, str) or len(value) > MAX_DIGITS or not _INTEGER.fullmatch(value):
         raise SerializationError("Exact integer must be a canonical decimal string")
     try:
@@ -111,12 +113,21 @@ def _number(value):
         ) from exc
 
 
-def encode_expr(expression):
+def encode_expr(expression: sp.Basic | int | bool) -> dict[str, Any]:
     """Encode a supported exact SymPy expression or Boolean condition.
 
     Python integers and booleans are accepted. Strings, floats, integrals,
     derivatives, unevaluated orders and all unknown function heads are rejected.
     Symbol names deliberately exclude Wolfram contexts and source syntax.
+
+    Args:
+        expression: Exact expression, symbolic condition, or supported scalar.
+
+    Returns:
+        A JSON-compatible symbolic AST.
+
+    Raises:
+        SerializationError: The expression uses an unsupported head or field.
     """
     budget = [MAX_NODES]
 
@@ -163,11 +174,20 @@ def encode_expr(expression):
     return encode(expression, 0)
 
 
-def decode_expr(payload):
+def decode_expr(payload: object) -> sp.Basic:
     """Reconstruct a whitelisted data-only AST, rejecting malformed fields.
 
     This API accepts already parsed JSON values. JSON parsers should also reject
-    duplicate object keys before calling it. No node can contain executable code.
+    duplicate object keys before calling it.
+
+    Args:
+        payload: Parsed JSON object representing a supported symbolic AST.
+
+    Returns:
+        The reconstructed SymPy object.
+
+    Raises:
+        SerializationError: The AST is malformed or outside the supported protocol.
     """
     budget = [MAX_NODES]
 
@@ -268,7 +288,11 @@ def decode_expr(payload):
     return decode(payload, 0)
 
 
-def _keys(node, required, optional=frozenset()):
+def _keys(
+    node: Mapping[str, object],
+    required: AbstractSet[str],
+    optional: AbstractSet[str] = frozenset(),
+) -> None:
     if not required <= node.keys() or node.keys() - required - optional:
         raise SerializationError("Unexpected or missing AST fields")
 
