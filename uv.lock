@@ -255,6 +255,7 @@ docs = [
     { name = "mkdocs-mermaid2-plugin" },
     { name = "mkdocs-typer2", extra = ["mkdocs"] },
     { name = "mkdocstrings-python" },
+    { name = "properdocs" },
 ]
 
 [package.metadata]
@@ -274,6 +275,7 @@ docs = [
     { name = "mkdocs-mermaid2-plugin", specifier = "==1.2.3" },
     { name = "mkdocs-typer2", extras = ["mkdocs"], specifier = "==0.4.1" },
     { name = "mkdocstrings-python", specifier = "==2.0.11" },
+    { name = "properdocs", specifier = "==1.6.7" },
 ]
 
 [[package]]

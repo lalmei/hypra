@@ -46,8 +46,8 @@ fonts and mathematical rendering are local; no account or hosted site is used.
 To restart it from the project directory:
 
 ```sh
-uv run mkdocs serve --dev-addr 127.0.0.1:8000
+uv run properdocs serve --dev-addr 127.0.0.1:8000
 ```
 
-To build static HTML: `uv run mkdocs build`. Generated files are not package
+To build static HTML: `uv run properdocs build`. Generated files are not package
 source. Edits to these Markdown pages refresh the development server.
