@@ -5,7 +5,7 @@ from functools import cache
 import pytest
 import sympy as s
 
-from hypra.nested_sums import (
+from hypra.native.nested_sums import (
     canonical_hyper_series,
     generating_sum,
     harmonic_add,

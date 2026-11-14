@@ -1,11 +1,16 @@
 import json
 
 from hypra.__main__ import main
+from hypra.cli import CliApplication
 
 
-def test_backend_info_reports_missing(monkeypatch, capsys):
-    monkeypatch.setattr("hypra.__main__.backend_info", lambda **kwargs: {"available": False, "error": "missing"})
-    assert main(["backend-info"]) == 2
+def test_backend_info_reports_missing(capsys):
+    def get_backend_info(*, backend):
+        assert backend == "wolfram"
+        return {"available": False, "error": "missing"}
+
+    cli = CliApplication(get_backend_info=get_backend_info)
+    assert cli.run(["backend-info", "--backend", "wolfram"]) == 2
     assert json.loads(capsys.readouterr().out)["available"] is False
 
 

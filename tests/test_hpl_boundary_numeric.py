@@ -3,7 +3,7 @@ import pytest
 import sympy as s
 
 from hypra.errors import UnsupportedExpressionError
-from hypra.hpl_boundary_numeric import evaluate_hpl_boundary
+from hypra.hpl.boundary_numeric import evaluate_hpl_boundary
 
 
 @pytest.mark.parametrize('point,region', [(s.Rational(-1,2),'-1<x<0'),(2,'x>1'),(-2,'x<-1')])
@@ -64,7 +64,7 @@ def test_general_mixed_weight_three_conjugate_boundaries():
 
 
 def test_numerical_failure_and_global_context():
-    from hypra.hpl_numeric import HPLNumericalConvergenceError
+    from hypra.hpl.numeric import HPLNumericalConvergenceError
     original = mp.mp.dps
     with pytest.raises(HPLNumericalConvergenceError):
         evaluate_hpl_boundary((1,0,-1),s.Rational(1,2),region='0<x<1',

@@ -1,7 +1,7 @@
 import pytest
 import sympy as s
 
-from hypra.endpoints import rewrite_endpoints
+from hypra.native.endpoints import rewrite_endpoints
 from hypra.errors import UnsupportedExpressionError
 
 e, z = s.symbols('e z', real=True)

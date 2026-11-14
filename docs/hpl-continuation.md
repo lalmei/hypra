@@ -2,7 +2,7 @@
 
 ```python
 import sympy as s
-from hypra.hpl_continue import continue_hpl
+from hypra.hpl.radial_continuation import continue_hpl
 
 answer = continue_hpl((0, 1), 3*s.I, dps=40,
                       domain="principal-cut-plane", path="radial")

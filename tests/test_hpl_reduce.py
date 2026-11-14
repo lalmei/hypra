@@ -1,8 +1,8 @@
 import pytest
 import sympy as s
 
-from hypra.hpl_algebra import hpl_series
-from hypra.hpl_reduce import extract_hpl_logs
+from hypra.hpl.algebra import hpl_series
+from hypra.hpl.reduction import extract_hpl_logs
 from hypra.symbolic import HPL
 
 z=s.Symbol('z',positive=True)
@@ -27,7 +27,7 @@ def test_flags_and_validation():
 def test_lyndon_factorization_and_basis():
     from itertools import product
 
-    from hypra.hpl_reduce import lyndon_factors, lyndon_reduce
+    from hypra.hpl.reduction import lyndon_factors, lyndon_reduce
     for weight in range(1,4):
         for word in product((-1,0,1),repeat=weight):
             factors=lyndon_factors(word)
@@ -41,7 +41,7 @@ def test_lyndon_factorization_and_basis():
 
 def test_lyndon_repeated_and_limits():
     from hypra.errors import UnsupportedExpressionError
-    from hypra.hpl_reduce import lyndon_reduce
+    from hypra.hpl.reduction import lyndon_reduce
     assert lyndon_reduce(HPL((1,1,1),z))==HPL((1,),z)**3/6
     with pytest.raises(UnsupportedExpressionError,match='eight'):
         lyndon_reduce(HPL((0,)*8+(1,),z))

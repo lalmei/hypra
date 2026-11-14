@@ -2,10 +2,10 @@ import pytest
 import sympy as s
 
 from hypra.errors import UnsupportedExpressionError
-from hypra.hpl_algebra import shuffle_words
-from hypra.hpl_alternating import hpl_alternating_at_one
-from hypra.hpl_regularized import hpl_endpoint_polynomial as polynomial
-from hypra.hpl_regularized import shuffle_regularized_hpl_at_one as regularized
+from hypra.hpl.algebra import shuffle_words
+from hypra.hpl.alternating import hpl_alternating_at_one
+from hypra.hpl.regularization import hpl_endpoint_polynomial as polynomial
+from hypra.hpl.regularization import shuffle_regularized_hpl_at_one as regularized
 
 T = s.Symbol('T')
 
@@ -47,7 +47,7 @@ def test_regularization_resource_budget():
 
 
 def test_expression_endpoint_cancellations_and_products():
-    from hypra.hpl_regularized import hpl_expression_endpoint_polynomial as endpoint
+    from hypra.hpl.regularization import hpl_expression_endpoint_polynomial as endpoint
     from hypra.symbolic import HPL
 
     z, a = s.symbols('z a')
@@ -61,7 +61,7 @@ def test_expression_endpoint_cancellations_and_products():
 
 @pytest.mark.parametrize('kind', ['inverse','pole','regular_z','function','argument','float','T','power'])
 def test_expression_endpoint_outside_ring_rejected(kind):
-    from hypra.hpl_regularized import hpl_expression_endpoint_polynomial as endpoint
+    from hypra.hpl.regularization import hpl_expression_endpoint_polynomial as endpoint
     from hypra.symbolic import HPL
 
     z = s.Symbol('z')
@@ -74,7 +74,7 @@ def test_expression_endpoint_outside_ring_rejected(kind):
 
 
 def test_expression_endpoint_validates_symbols_and_text():
-    from hypra.hpl_regularized import hpl_expression_endpoint_polynomial as endpoint
+    from hypra.hpl.regularization import hpl_expression_endpoint_polynomial as endpoint
     z = s.Symbol('z')
     with pytest.raises(TypeError):
         endpoint('HPL((1,),z)',z,T)

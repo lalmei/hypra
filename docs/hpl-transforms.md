@@ -1,6 +1,6 @@
 # Branch-explicit HPL argument transformations
 
-`hypra.hpl_transform` provides `negate_hpl(word, z, domain="0<z<1")`
+`hypra.hpl.transforms` provides `negate_hpl(word, z, domain="0<z<1")`
 and `reflect_hpl(word, z, domain="0<z<1")`. Each returns an exact SymPy
 expression for the indicated HPL, not a numerical approximation. The domain
 argument is a caller assertion: the implementation does not infer it from an

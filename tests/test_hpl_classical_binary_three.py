@@ -6,8 +6,8 @@ import mpmath as mp
 import pytest
 import sympy as s
 
-from hypra.hpl_classical import classical_hpl
-from hypra.hpl_numeric import evaluate_hpl
+from hypra.hpl.classical import classical_hpl
+from hypra.hpl.numeric import evaluate_hpl
 from hypra.symbolic import HPL
 
 Z = s.Symbol("z", positive=True)

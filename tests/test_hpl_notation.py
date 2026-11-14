@@ -3,7 +3,7 @@ from itertools import product
 import pytest
 import sympy as s
 
-from hypra.hpl_notation import (
+from hypra.hpl.notation import (
     compress_indices,
     expand_indices,
     hpl_pm,

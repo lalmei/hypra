@@ -6,8 +6,8 @@ import pytest
 import sympy as s
 
 from hypra.errors import UnsupportedExpressionError
-from hypra.hpl_algebra import shuffle_expand
-from hypra.hpl_mobius import mobius_hpl
+from hypra.hpl.algebra import shuffle_expand
+from hypra.hpl.mobius import mobius_hpl
 from hypra.symbolic import HPL, reduce_known_hpl
 
 Z = s.Symbol("z", positive=True)

@@ -10,7 +10,7 @@ from hypra import (
     encode_expr,
     expand_epsilon,
 )
-from hypra.planning import plan_expansion
+from hypra.native.planning import plan_expansion
 
 E, W = s.symbols("eps w")
 P = s.hyper([1, -E], [1 - 2 * E], W)

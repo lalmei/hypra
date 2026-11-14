@@ -2,8 +2,8 @@ import pytest
 import sympy as s
 
 from hypra.errors import UnsupportedExpressionError
-from hypra.hpl_alternating import hpl_alternating_at_one
-from hypra.hpl_limits import hpl_limit_at_one as limit
+from hypra.hpl.alternating import hpl_alternating_at_one
+from hypra.hpl.limits import hpl_limit_at_one as limit
 from hypra.symbolic import HPL
 
 z=s.Symbol('z',positive=True)

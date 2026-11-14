@@ -4,8 +4,8 @@ import pytest
 import sympy as s
 
 from hypra.errors import UnsupportedExpressionError
-from hypra.hpl_algebra import hpl_series, shuffle_expand
-from hypra.hpl_transform import negate_hpl, reflect_hpl
+from hypra.hpl.algebra import hpl_series, shuffle_expand
+from hypra.hpl.transforms import negate_hpl, reflect_hpl
 from hypra.symbolic import HPL, reduce_known_hpl
 
 Z = s.Symbol("z", positive=True)

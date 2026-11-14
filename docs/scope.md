@@ -9,14 +9,14 @@ complete public API coverage or full upstream parity.
 
 | Module | Implemented mathematical work | Important restrictions |
 | --- | --- | --- |
-| `nested_sums.py` | Strict harmonic-sum product algebra, formal exponential, canonical integer hypergeometric coefficients to HPLs | Canonical upper bases 0/1 and lower base 1; exact rational or guarded polynomial symbolic slopes |
-| `integer.py` | Integer-base `pF(p-1)` reduction, upper raising/lower shifting, finite-prefix/tail reindexing | Fixed singular lower parameters rejected; moving lower poles require extra orders; high offsets can be expensive |
-| `colored_sums.py` | Signed strict sums, colored stuffle products, even-index projection, canonical matched-half coefficients | Equal half-upper/lower counts; alphabet signs ±1; guarded exact slopes; HPL argument `sqrt(z)` |
-| `matched_half.py` | Integer-offset reduction around matched half-integer bases, including prefix/tail reindexing | `pF(p-1)` with equal counts of half-integral upper/lower bases; fixed singular lower rejected |
-| `contiguous.py` / `canonical.py` | Generic upper/lower contiguous differential operators, Laurent convolution, one-parameter removable-limit regularization | Supported canonical families only; bounded shift count/depth; unresolved singular limits fail closed |
-| `half_system.py` | Canonical rationalized epsilon ODE systems A/B/C/D | Patterns specified below; rank at least two; guarded polynomial symbolic slopes; symbolic singular lower slopes need explicit nonzero assumptions |
-| `hpl_algebra.py` | Shuffle linearization, rational-HPL primitives, definite origin integration, local exact series | Rational poles only 0/±1; finite origin constant must be proved; explicit weight/pole/term budgets |
-| `endpoints.py` / `unit_limit.py` | Finite terminating sums, convergent unit endpoints, opt-in meromorphic continuation at `z=1` | Termination requires a fixed nonpositive integer upper parameter. Higher-rank endpoints require supported affine integer or half-integer families and bounded HPL limits |
+| `native/nested_sums.py` | Strict harmonic-sum product algebra, formal exponential, canonical integer hypergeometric coefficients to HPLs | Canonical upper bases 0/1 and lower base 1; exact rational or guarded polynomial symbolic slopes |
+| `native/integer.py` | Integer-base `pF(p-1)` reduction, upper raising/lower shifting, finite-prefix/tail reindexing | Fixed singular lower parameters rejected; moving lower poles require extra orders; high offsets can be expensive |
+| `native/colored_sums.py` | Signed strict sums, colored stuffle products, even-index projection, canonical matched-half coefficients | Equal half-upper/lower counts; alphabet signs ±1; guarded exact slopes; HPL argument `sqrt(z)` |
+| `native/matched_half.py` | Integer-offset reduction around matched half-integer bases, including prefix/tail reindexing | `pF(p-1)` with equal counts of half-integral upper/lower bases; fixed singular lower rejected |
+| `native/contiguous.py` / `native/canonical.py` | Generic upper/lower contiguous differential operators, Laurent convolution, one-parameter removable-limit regularization | Supported canonical families only; bounded shift count/depth; unresolved singular limits fail closed |
+| `native/half_system.py` | Canonical rationalized epsilon ODE systems A/B/C/D | Patterns specified below; rank at least two; guarded polynomial symbolic slopes; symbolic singular lower slopes need explicit nonzero assumptions |
+| `hpl/algebra.py` | Shuffle linearization, rational-HPL primitives, definite origin integration, local exact series | Rational poles only 0/±1; finite origin constant must be proved; explicit weight/pole/term budgets |
+| `native/endpoints.py` / `native/unit_limit.py` | Finite terminating sums, convergent unit endpoints, opt-in meromorphic continuation at `z=1` | Termination requires a fixed nonpositive integer upper parameter. Higher-rank endpoints require supported affine integer or half-integer families and bounded HPL limits |
 | `hypexp_integrals.py` | Exact definite beta-log and mixed-log moments | Real kernels and explicit convergence, weight and power bounds. See the [integral APIs](python-api.md#definite-logarithmic-integrals) |
 
 The native dispatcher uses integer and matched-half reductions. The canonical half-system kernels cover:

@@ -2,7 +2,7 @@ import mpmath as mp
 import pytest
 import sympy as s
 
-from hypra.hpl_numeric import hpl_evalf
+from hypra.hpl.numeric import hpl_evalf
 from hypra.nielsen import NielsenPolylog, hpl_to_nielsen, nielsen_to_hpl, reduce_nielsen
 from hypra.serialization import SerializationError, decode_expr, encode_expr
 from hypra.symbolic import HPL, reduce_known_hpl

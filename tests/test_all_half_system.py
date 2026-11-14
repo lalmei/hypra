@@ -2,8 +2,8 @@
 import pytest
 import sympy as s
 
-from hypra.half_system import canonical_half_series
-from hypra.hpl_algebra import hpl_series
+from hypra.native.half_system import canonical_half_series
+from hypra.hpl.algebra import hpl_series
 
 z,e = s.symbols('z e')
 t = s.Symbol('t', positive=True)

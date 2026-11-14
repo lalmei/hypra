@@ -3,9 +3,9 @@ import pytest
 import sympy as s
 
 from hypra.errors import UnsupportedExpressionError
-from hypra.hpl_alternating import hpl_alternating_at_one as endpoint
-from hypra.hpl_alternating import reduce_euler_sum
-from hypra.hpl_endpoints import hpl_at_one
+from hypra.hpl.alternating import hpl_alternating_at_one as endpoint
+from hypra.hpl.alternating import reduce_euler_sum
+from hypra.hpl.endpoints import hpl_at_one
 from hypra.serialization import SerializationError, decode_expr, encode_expr
 from hypra.symbolic import EulerSum
 

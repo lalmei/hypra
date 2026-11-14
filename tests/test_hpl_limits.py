@@ -2,9 +2,9 @@ import pytest
 import sympy as s
 
 from hypra import NativeConfig, expand_epsilon
-from hypra.endpoints import rewrite_endpoints
+from hypra.native.endpoints import rewrite_endpoints
 from hypra.errors import UnsupportedExpressionError
-from hypra.hpl_limits import hpl_limit_at_one
+from hypra.hpl.limits import hpl_limit_at_one
 from hypra.symbolic import HPL
 
 e=s.Symbol('epsilon',real=True)

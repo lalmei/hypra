@@ -3,9 +3,9 @@ import pytest
 import sympy as s
 
 from hypra import NativeConfig, expand_epsilon
-from hypra.endpoints import rewrite_endpoints
+from hypra.native.endpoints import rewrite_endpoints
 from hypra.errors import UnsupportedExpressionError
-from hypra.planning import plan_expansion
+from hypra.native.planning import plan_expansion
 
 e,z=s.symbols('e z', real=True)
 domain=s.And(z>0,z<1)
@@ -66,8 +66,8 @@ def test_cancellation_reduces_rank_at_unit_endpoint():
 
 
 def test_degenerate_contiguous_pair_limit_recovers_exact_binomial():
-    from hypra.canonical import build_canonical
-    from hypra.contiguous import expand_contiguous, plan_contiguous
+    from hypra.native.canonical import build_canonical
+    from hypra.native.contiguous import expand_contiguous, plan_contiguous
     from hypra.symbolic import reduce_known_hpl
     upper,lower=[(s.Integer(2),s.S.Zero),(s.S.One,s.S.Zero)],[(s.Integer(2),s.S.Zero)]
     plan=plan_contiguous(upper,lower,[s.S.One,s.S.One],[s.S.One])

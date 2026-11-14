@@ -5,7 +5,7 @@ These APIs construct an endpoint polynomial or its constant term. They do
 
 ```python
 import sympy as s
-from hypra.hpl_regularized import (
+from hypra.hpl.regularization import (
     hpl_endpoint_polynomial, shuffle_regularized_hpl_at_one,
 )
 T = s.Symbol("T")
@@ -72,7 +72,7 @@ map to the polynomial ring in HPLs at exactly the same argument. For example:
 
 ```python
 from hypra import HPL
-from hypra.hpl_regularized import hpl_expression_endpoint_polynomial
+from hypra.hpl.regularization import hpl_expression_endpoint_polynomial
 z, T, a = s.symbols("z T a")
 hpl_expression_endpoint_polynomial(
     HPL((1,), z)**2 - 2*HPL((1, 1), z), z, T

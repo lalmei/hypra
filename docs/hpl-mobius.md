@@ -1,6 +1,6 @@
 # Real Möbius transformation of HPL arguments
 
-`hypra.hpl_mobius.mobius_hpl(word, z, domain="0<z<1")` expresses
+`hypra.hpl.mobius.mobius_hpl(word, z, domain="0<z<1")` expresses
 `H_word((1-z)/(1+z))` in HPLs at `z`. Every ternary word through weight eight
 is supported. The domain
 is an explicit caller assertion. The implementation makes no claim about

@@ -3,8 +3,8 @@ import pytest
 import sympy as s
 
 from hypra.errors import UnsupportedExpressionError
-from hypra.hpl_continue import continue_hpl
-from hypra.hpl_numeric import HPLNumericalConvergenceError
+from hypra.hpl.radial_continuation import continue_hpl
+from hypra.hpl.numeric import HPLNumericalConvergenceError
 
 
 def call(word,z,**kwargs):

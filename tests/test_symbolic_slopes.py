@@ -3,8 +3,8 @@ import sympy as s
 
 from hypra import HPL, expand_epsilon
 from hypra.errors import UnsupportedExpressionError
-from hypra.hpl_algebra import hpl_series
-from hypra.planning import _affine_rational
+from hypra.hpl.algebra import hpl_series
+from hypra.native.planning import _affine_rational
 
 eps, z, a, b, c = s.symbols('eps z a b c')
 assumptions = s.And(z > 0, z < 1)
@@ -51,8 +51,8 @@ def test_symbolic_poles_and_argument_dependent_slopes_fail_closed():
 
 
 def test_symbolic_contiguous_removable_equal_slope_specialization():
-    from hypra.contiguous import expand_contiguous
-    from hypra.nested_sums import canonical_hyper_series
+    from hypra.native.contiguous import expand_contiguous
+    from hypra.native.nested_sums import canonical_hyper_series
 
     def builder(bases, slopes, argument, regulator, depth):
         return canonical_hyper_series(list(zip(bases[0], slopes[0], strict=True)),
@@ -68,7 +68,7 @@ def test_moving_symbolic_lower_pole_requires_assumption_and_only_source_denomina
         expand_epsilon(h,eps,through=1,assumptions=assumptions)
     approved = s.And(assumptions,s.Ne(b,0))
     result = expand_epsilon(h,eps,through=1,assumptions=approved).polynomial
-    from hypra.contiguous import _hpl_pieces
+    from hypra.native.contiguous import _hpl_pieces
     assert all(s.cancel(b*v).is_polynomial(a,b) for v in _hpl_pieces(result).values())
     for values in [{a:0,b:1},{a:1,b:1},{a:-1,b:2}]:
         direct = expand_epsilon(h.subs(values),eps,through=1,assumptions=assumptions).polynomial
@@ -76,8 +76,8 @@ def test_moving_symbolic_lower_pole_requires_assumption_and_only_source_denomina
 
 
 def test_standalone_contiguous_lower_pole_requires_explicit_nonzero():
-    from hypra.contiguous import expand_contiguous
-    from hypra.nested_sums import canonical_hyper_series
+    from hypra.native.contiguous import expand_contiguous
+    from hypra.native.nested_sums import canonical_hyper_series
 
     def builder(bases,slopes,argument,regulator,depth):
         return canonical_hyper_series(list(zip(bases[0],slopes[0],strict=True)),slopes[1],
@@ -86,5 +86,5 @@ def test_standalone_contiguous_lower_pole_requires_explicit_nonzero():
     with pytest.raises(UnsupportedExpressionError, match='nonzero'):
         expand_contiguous(*arguments)
     result = expand_contiguous(*arguments,assumptions=s.Ne(b,0))
-    from hypra.contiguous import _hpl_pieces
+    from hypra.native.contiguous import _hpl_pieces
     assert all(s.cancel(b*v).is_polynomial(a,b) for v in _hpl_pieces(result).values())

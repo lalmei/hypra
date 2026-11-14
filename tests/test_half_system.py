@@ -4,7 +4,7 @@ import functools
 import pytest
 import sympy as s
 
-from hypra.half_system import canonical_half_series
+from hypra.native.half_system import canonical_half_series
 from hypra.symbolic import HPL
 
 z, e = s.symbols('z e')
