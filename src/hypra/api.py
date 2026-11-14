@@ -112,7 +112,8 @@ def expand_epsilon(expr, epsilon, through=3, assumptions=None, *, config=None, b
         Symbol assumptions on inputs are also preserved. This API does not
         exchange integrals/limits or change branches by power simplification.
     config : NativeConfig or BackendConfig, optional
-        Configuration matching the selected backend.
+        Configuration matching the selected backend. NativeConfig can opt in
+        to meromorphic parameter continuation at z=1.
     backend : "native", "wolfram" or backend object, optional
         Native is the default. Custom objects are marked as injected in
         provenance; there is no silent substitution between implementations.
@@ -181,21 +182,21 @@ def expand_epsilon(expr, epsilon, through=3, assumptions=None, *, config=None, b
     original_ast = expression_ast
     if backend is None or backend == "native":
         from .endpoints import rewrite_endpoints
-
-        expr = rewrite_endpoints(expr, epsilon, assumptions)
-        expression_ast = encode_expr(expr)
-    plan = plan_expansion(expr, epsilon, through, assumptions)
-    injected = backend is not None and not isinstance(backend, str)
-    if backend is None or backend == "native":
         from .native import NativeBackend
 
         active = NativeBackend(config)
-    elif backend == "wolfram":
+        expr = rewrite_endpoints(
+            expr, epsilon, assumptions, meromorphic=active.config.unit_endpoint == "meromorphic"
+        )
+        expression_ast = encode_expr(expr)
+    plan = plan_expansion(expr, epsilon, through, assumptions)
+    injected = backend is not None and not isinstance(backend, str)
+    if backend == "wolfram":
         active = WolframBackend(config)
-    elif isinstance(backend, str):
-        raise ValueError("Unknown backend; choose 'native' or 'wolfram'")
-    else:
+    elif injected:
         active = backend
+    elif backend not in (None, "native"):
+        raise ValueError("Unknown backend; choose 'native' or 'wolfram'")
     request = {
         "protocol": 1,
         "operation": "expand",
@@ -245,7 +246,8 @@ def expand_epsilon(expr, epsilon, through=3, assumptions=None, *, config=None, b
         "cache_hit": response.get("cache_hit", False),
         "order_basis": response.get("order_basis"),
         "injected_backend": injected,
-        "branch_convention": "Principal branches; no automatic analytic continuation or integral/limit interchange",
+        "branch_convention": "Principal branches",
+        "unit_endpoint": active.config.unit_endpoint if backend in (None, "native") else None,
         "certificate_scope": "Conditional on backend correctness and the stated input domain",
     }
     return ExpansionResult(polynomial, epsilon, through, provenance)

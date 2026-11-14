@@ -1,10 +1,11 @@
-"""Convergent endpoint identities and exact terminating hypergeometric sums.
+"""Unit endpoint identities and exact terminating hypergeometric sums.
 
-No divergent sum is assigned its analytic continuation. Endpoint rewriting
-precedes Laurent pole planning, since the resulting Gamma factors can have
-regulator poles even when the original notation hides them.
+Rewriting precedes Laurent planning because Gamma quotients and excess
+recurrences can introduce regulator poles.
 """
 from __future__ import annotations
+
+from functools import cache
 
 import sympy as s
 
@@ -71,15 +72,61 @@ def _raise_unit_excess(upper, lower, excess):
         remainder -= s.Poly(coefficient*s.ff(n, j), n)
         scale = s.prod(s.rf(a, j) for a in upper)/s.prod(s.rf(b, j+1) for b in lower)
         shifted = s.hyper([a+j for a in upper], [b+j+1 for b in lower], 1, evaluate=False)
-        terms.append(coefficient*scale*shifted)
-    return s.Add(*terms)/excess
+        terms.append((coefficient*scale, shifted))
+    return terms
 
 
-def rewrite_endpoints(expr, epsilon, assumptions=s.true):
-    """Rewrite fixed terminating hypergeometric sums and convergent 2F1(1).
+def _reduce_unit_rank(upper, lower):
+    """Remove an upper/lower pair whose ratio is polynomial in the index."""
+    for a in upper:
+        for b in lower:
+            shift = a-b
+            if not shift.is_Integer or not 1 <= shift <= 8:
+                continue
+            ap, bq = list(upper), list(lower)
+            ap.remove(a)
+            bq.remove(b)
+            # Expand (b+n)_shift in the falling factorials of n.
+            return s.Add(*(
+                s.binomial(shift, j) * s.rf(b+j, shift-j)
+                * s.prod(s.rf(value, j) for value in ap)
+                / (s.rf(b, shift) * s.prod(s.rf(value, j) for value in bq))
+                * s.hyper([value+j for value in ap], [value+j for value in bq],
+                          1, evaluate=False)
+                for j in range(int(shift)+1)
+            ))
+    return None
 
-    Other nonterminating arguments are unchanged. Unsupported/divergent z=1
-    atoms fail closed. A fixed nonpositive lower parameter is rejected before
+
+def _continue_unit(upper, lower, excess, epsilon):
+    """Iterate the convergent identity as a meromorphic parameter identity."""
+    base, slope = _affine(excess, epsilon)
+    steps = int(s.floor(-base)) + 1
+    if steps > 8 or len(upper) > 8:
+        raise UnsupportedExpressionError("Unit continuation exceeds eight shifts or rank eight")
+    if base.is_Integer and slope == 0:
+        raise UnsupportedExpressionError("Unit continuation lies on a fixed excess pole")
+
+    @cache
+    def raise_until_convergent(atom):
+        delta = s.expand(sum(atom.bq)-sum(atom.ap))
+        if delta.subs(epsilon, 0) > 0:
+            return {atom: s.S.One}
+        result = {}
+        for weight, shifted in _raise_unit_excess(atom.ap, atom.bq, delta):
+            for leaf, coefficient in raise_until_convergent(shifted).items():
+                result[leaf] = result.get(leaf, s.S.Zero) + weight*coefficient
+        return {leaf: s.cancel(coefficient/delta) for leaf, coefficient in result.items()}
+
+    atom = s.hyper(upper, lower, 1, evaluate=False)
+    return s.Add(*(weight*leaf for leaf, weight in raise_until_convergent(atom).items()))
+
+
+def rewrite_endpoints(expr, epsilon, assumptions=s.true, *, meromorphic=False):
+    """Rewrite terminating sums and unit endpoints before Laurent planning.
+
+    Other nonterminating arguments are unchanged. With meromorphic=True,
+    continue supported unit endpoints in the parameters. A fixed nonpositive lower parameter is rejected before
     termination, since its definition can depend on a limiting convention.
     """
     if assumptions is None:
@@ -122,7 +169,7 @@ def rewrite_endpoints(expr, epsilon, assumptions=s.true):
         if len(upper) == 1 and not lower:
             # Binomial theorem at its convergent endpoint; often obtained by
             # exact cancellation in a Gauss sum. This is not continuation.
-            if _convergent(-upper[0], epsilon, assumptions):
+            if meromorphic or _convergent(-upper[0], epsilon, assumptions):
                 replacements[atom] = s.S.Zero
                 continue
             raise UnsupportedExpressionError("Binomial z=1 convergence is not proven")
@@ -134,10 +181,13 @@ def rewrite_endpoints(expr, epsilon, assumptions=s.true):
                 from .matched_half import half_parameters
 
                 excess = s.expand(sum(lower)-sum(upper))
-                if half_parameters(reduced, epsilon) is not None and _convergent(
-                    excess, epsilon, assumptions
-                ):
-                    replacements[atom] = _raise_unit_excess(upper, lower, excess)
+                parsed = half_parameters(reduced, epsilon)
+                if parsed is not None and (meromorphic or _convergent(excess, epsilon, assumptions)):
+                    lowered = _reduce_unit_rank(upper, lower) if meromorphic else None
+                    replacements[atom] = (
+                        rewrite_endpoints(lowered, epsilon, assumptions, meromorphic=True)
+                        if lowered is not None else _continue_unit(upper, lower, excess, epsilon)
+                    )
                     continue
             raise UnsupportedExpressionError(
                 "Nonterminating z=1 requires supported parameters and proven positive excess"
@@ -147,7 +197,9 @@ def rewrite_endpoints(expr, epsilon, assumptions=s.true):
         for parameter in (a, b, c):
             _affine(parameter, epsilon)
         excess = s.expand(c-a-b)
-        if not _convergent(excess, epsilon, assumptions):
+        if meromorphic and _fixed_nonpositive_integer(excess, epsilon):
+            raise UnsupportedExpressionError("Gauss continuation lies on a fixed excess pole")
+        if not meromorphic and not _convergent(excess, epsilon, assumptions):
             raise UnsupportedExpressionError("Gauss z=1 convergence is not proven on a regulator neighborhood or punctured side")
         replacements[atom] = s.gamma(c)*s.gamma(excess)/(s.gamma(c-a)*s.gamma(c-b))
     return expr.xreplace(replacements)

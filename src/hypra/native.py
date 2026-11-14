@@ -28,8 +28,11 @@ class NativeConfig:
     cache_dir: str | None = None
     timeout_seconds: float | None = None
     argument_domain: str = "real-interval"
+    unit_endpoint: str = "convergent"
 
     def __post_init__(self):
+        if self.unit_endpoint not in ("convergent", "meromorphic"):
+            raise ValueError("unit_endpoint must be convergent or meromorphic")
         if self.argument_domain not in ("real-interval", "principal-disk", "principal-cut-plane"):
             raise ValueError("argument_domain must be real-interval, principal-disk or principal-cut-plane")
         if self.timeout_seconds is not None and (
@@ -113,11 +116,19 @@ def expand_atom(h, eps, order, assumptions=s.true, argument_domain="real-interva
     z = h.argument
     if z == 1:
         from .endpoints import convergent_unit
-        from .unit_limit import unit_coefficient_limit
         from .planning import laurent_coefficient
+        from .unit_limit import unit_coefficient_limit
 
         if not convergent_unit(h, eps):
             raise UnsupportedExpressionError("Unit endpoint requires strictly positive base excess")
+        if order == 0:
+            from .endpoints import rewrite_endpoints
+
+            base = h.subs(eps, 0)
+            if not any(b.is_Integer and b <= 0 for b in base.bq) and any(
+                a.is_Integer and a <= 0 for a in base.ap
+            ):
+                return rewrite_endpoints(base, eps, assumptions)
         regular_z = s.Dummy("unit_argument", positive=True)
         regular_h = s.hyper(h.ap, h.bq, regular_z, evaluate=False)
         regular = expand_atom(regular_h, eps, order, s.And(assumptions, regular_z < 1), "real-interval")
@@ -318,6 +329,7 @@ class NativeBackend:
             "source_fingerprint": self._fingerprint(),
             "canonical_order_max": canonical_order,
             "argument_domain": self.config.argument_domain,
+            "unit_endpoint": self.config.unit_endpoint,
         }
         payload = json.dumps(
             {"request": request, "backend": meta}, sort_keys=True, separators=(",", ":")
