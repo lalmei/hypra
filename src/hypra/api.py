@@ -186,7 +186,8 @@ def expand_epsilon(expr, epsilon, through=3, assumptions=None, *, config=None, b
 
         active = NativeBackend(config)
         expr = rewrite_endpoints(
-            expr, epsilon, assumptions, meromorphic=active.config.unit_endpoint == "meromorphic"
+            expr, epsilon, assumptions, meromorphic=active.config.unit_endpoint == "meromorphic",
+            excess_shift=active.config.unit_excess_shift,
         )
         expression_ast = encode_expr(expr)
     plan = plan_expansion(expr, epsilon, through, assumptions)
@@ -248,6 +249,7 @@ def expand_epsilon(expr, epsilon, through=3, assumptions=None, *, config=None, b
         "injected_backend": injected,
         "branch_convention": "Principal branches",
         "unit_endpoint": active.config.unit_endpoint if backend in (None, "native") else None,
+        "unit_excess_shift": active.config.unit_excess_shift if backend in (None, "native") else None,
         "certificate_scope": "Conditional on backend correctness and the stated input domain",
     }
     return ExpansionResult(polynomial, epsilon, through, provenance)

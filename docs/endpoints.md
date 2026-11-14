@@ -163,5 +163,19 @@ Taylor depth.
 The higher-rank recurrence supports rank up to eight and at most eight
 excess-raising steps along any branch. The shifted series must be
 supported by the native endpoint kernels. A fixed nonpositive integer
-excess in the recurrence requires a separate transverse prescription
-and raises an error. Fixed singular lower parameters remain rejected.
+excess requires an explicit transverse prescription. Fixed singular
+lower parameters remain rejected.
+
+Pass `NativeConfig(unit_endpoint="meromorphic", unit_excess_shift=1)`
+to add the expansion regulator to the first lower parameter. The index
+is one-based and refers to the canonical SymPy order after exact
+upper/lower cancellation. The shift applies to each nonterminating unit
+atom whose reduced excess is a fixed nonpositive integer. It increases
+the excess slope by one. Other parameter slopes persist, so the result
+includes all cross terms along the selected path.
+
+The result is the full Laurent expansion along that path. Select
+`result.coefficient(0)` for the path-dependent finite part.
+For example, shifting the sole lower parameter of
+`hypergeometric([1, 1], [2], 1)` gives `1/epsilon + 1`.
+The result provenance records the index and the rewritten input.

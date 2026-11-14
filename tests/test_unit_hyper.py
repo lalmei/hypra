@@ -112,3 +112,41 @@ def test_excess_recurrence_agrees_with_independent_convergent_series():
     assert all(sum(atom.bq).subs(e, 0) > sum(atom.ap) for atom in rewritten.atoms(s.hyper))
     point = s.Rational(5, 2)
     assert abs((rewritten.subs(e, point)-h.subs(e, point)).evalf(22)) < s.Float("1e-20")
+
+
+def test_fixed_gauss_excess_transverse_laurent_series():
+    config = NativeConfig(unit_endpoint="meromorphic", unit_excess_shift=1)
+    h = hypergeometric([1, 1], [2], 1)
+    result = expand_epsilon(h, e, through=0, config=config)
+    assert result.polynomial == 1/e + 1
+    assert result.provenance["unit_excess_shift"] == 1
+
+
+def test_fixed_negative_half_excess_transverse_rank_three():
+    h = hypergeometric([half, 1, 1], [-half, 2], 1)
+    config = NativeConfig(unit_endpoint="meromorphic", unit_excess_shift=2)
+    result = expand_epsilon(h, e, through=0, config=config)
+    # (1/2)_n/(-1/2)_n = 1-2*n. Its two factorial moments reduce
+    # to (1+e)/e - 2*(1+e)/(e*(e-1)).
+    reference = (1+e)/e - 2*(1+e)/(e*(e-1))
+    assert result.polynomial == s.series(reference, e, 0, 1).removeO()
+
+
+def test_fixed_excess_prescription_bounds_and_validation():
+    h = hypergeometric([1, 1], [2], 1)
+    with pytest.raises(ValueError, match="meromorphic mode"):
+        NativeConfig(unit_excess_shift=1)
+    with pytest.raises(UnsupportedExpressionError, match="reduced lower parameter count"):
+        expand_epsilon(h, e, through=0, config=NativeConfig(
+            unit_endpoint="meromorphic", unit_excess_shift=2
+        ))
+
+
+def test_fixed_negative_half_excess_transverse_rank_four():
+    h = hypergeometric([half, 1, 1, 3], [-half, 2, 2], 1)
+    config = NativeConfig(unit_endpoint="meromorphic", unit_excess_shift=3)
+    result = expand_epsilon(h, e, through=0, config=config)
+    # The unshifted ratios multiply to (1-2*n)*(n+2)/2.
+    # Sum the three factorial moments of the remaining Gauss series.
+    reference = (1+e)/e * (1 - s.Rational(5, 2)/(e-1) - 4/((e-1)*(e-2)))
+    assert result.polynomial == s.series(reference, e, 0, 1).removeO()

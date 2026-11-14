@@ -29,10 +29,17 @@ class NativeConfig:
     timeout_seconds: float | None = None
     argument_domain: str = "real-interval"
     unit_endpoint: str = "convergent"
+    unit_excess_shift: int | None = None
 
     def __post_init__(self):
         if self.unit_endpoint not in ("convergent", "meromorphic"):
             raise ValueError("unit_endpoint must be convergent or meromorphic")
+        if self.unit_excess_shift is not None and (
+            self.unit_endpoint != "meromorphic"
+            or type(self.unit_excess_shift) is not int
+            or self.unit_excess_shift < 1
+        ):
+            raise ValueError("unit_excess_shift requires meromorphic mode and a positive index")
         if self.argument_domain not in ("real-interval", "principal-disk", "principal-cut-plane"):
             raise ValueError("argument_domain must be real-interval, principal-disk or principal-cut-plane")
         if self.timeout_seconds is not None and (
