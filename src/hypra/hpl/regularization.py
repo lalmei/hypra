@@ -9,6 +9,7 @@ from functools import lru_cache
 
 import sympy as s
 
+from .._typing import IntegerWord
 from ..errors import UnsupportedExpressionError
 from .algebra import shuffle_words
 from .alternating import hpl_alternating_at_one
@@ -30,7 +31,7 @@ def _polynomial(word, T):
                     / multiplicity)
 
 
-def hpl_endpoint_polynomial(word, T):
+def hpl_endpoint_polynomial(word: IntegerWord, T: s.Symbol) -> s.Expr:
     """Return the polynomial asymptote in T=-log(1-z), z->1-, for one word.
 
     The omitted remainder tends to zero even after multiplication by a fixed
@@ -38,6 +39,10 @@ def hpl_endpoint_polynomial(word, T):
     words this is a regularization object, NOT their finite endpoint value.
     T must be an ordinary commutative Symbol. The exact coefficients use
     convergent alternating endpoints and no copied special-value tables.
+
+    Args:
+        word: Expanded ternary word of weight at most twelve.
+        T: Commutative symbol representing -log(1-z).
     """
     if type(T) is not s.Symbol or T.is_commutative is not True:
         raise TypeError('T must be an ordinary commutative SymPy Symbol')
@@ -47,18 +52,23 @@ def hpl_endpoint_polynomial(word, T):
     return _polynomial(word, T)
 
 
-def shuffle_regularized_hpl_at_one(word):
+def shuffle_regularized_hpl_at_one(word: IntegerWord) -> s.Expr:
     """Explicit constant term of the real endpoint polynomial; not a limit.
 
     In particular H_1 has regularized constant zero although it diverges.
     Existing convergent endpoint APIs retain their divergence errors. This
     helper is not used implicitly by the hypergeometric expansion engine.
+
+    Args:
+        word: Expanded ternary word of weight at most twelve.
     """
     T = s.Symbol('_regularization_T')
     return hpl_endpoint_polynomial(word, T).subs(T, 0)
 
 
-def hpl_expression_endpoint_polynomial(expression, variable, T):
+def hpl_expression_endpoint_polynomial(
+    expression: s.Expr, variable: s.Symbol, T: s.Symbol,
+) -> s.Expr:
     """Map an exact polynomial in same-argument HPLs to its endpoint polynomial.
 
     ``variable -> 1-`` and ``T=-log(1-variable)``. Coefficients must be
@@ -71,6 +81,11 @@ def hpl_expression_endpoint_polynomial(expression, variable, T):
     even apparently removable ones, and unknown variable-dependent functions
     are outside this deliberately narrow ring. Products/sums are retained
     until polynomial substitution so divergent logarithms can cancel.
+
+    Args:
+        expression: Exact polynomial in same-argument HPLs.
+        variable: HPL argument approaching one from below.
+        T: Distinct commutative symbol representing the endpoint logarithm.
     """
     from ..symbolic import HPL
 

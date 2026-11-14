@@ -5,6 +5,7 @@ from functools import lru_cache
 
 import sympy as s
 
+from .._typing import IntegerWord, Interval
 from ..errors import UnsupportedExpressionError
 from ..symbolic import HPL
 from .regularization import hpl_endpoint_polynomial
@@ -29,13 +30,18 @@ def _mobius_terms(word):
     return tuple((word, coefficient) for word, coefficient in terms.items() if coefficient != 0)
 
 
-def mobius_hpl(word, z, *, domain=None):
+def mobius_hpl(word: IntegerWord, z: s.Symbol, *, domain: Interval | None = None) -> s.Expr:
     """Return H_word((1-z)/(1+z)) in HPLs at z on the real interval 0<z<1.
 
     Every expanded {-1,0,1} word through weight eight is supported.
     Endpoint constants are preserved
     as exact alternating multiple-zeta values when not reduced. The transform
     maps the real interval to itself; no complex continuation is claimed.
+
+    Args:
+        word: Expanded ternary word of weight at most eight.
+        z: SymPy symbol for the interior coordinate.
+        domain: Declare `"0<z<1"` explicitly.
     """
     word = _validate(word, z, domain)
     if len(word) > _MAX_MOBIUS_WEIGHT:

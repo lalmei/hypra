@@ -2,12 +2,13 @@
 
 import sympy as s
 
+from .._typing import IntegerWord
 from ..errors import UnsupportedExpressionError
 from .numeric import _word
 from .regularization import hpl_endpoint_polynomial
 
 
-def hpl_series_at_one(word, t, *, through=3):
+def hpl_series_at_one(word: IntegerWord, t: s.Symbol, *, through: int = 3) -> s.Expr:
     """Expand H_word(1-t) for real t->0+, including t**through.
 
     Uses T=-log(t) with exact polynomial coefficients. The explicit remainder
@@ -15,6 +16,11 @@ def hpl_series_at_one(word, t, *, through=3):
     The input t must be an ordinary commutative Symbol; its positive approach
     is part of this API's domain contract. No complex branch is inferred.
     Weight <=8, through <=24, and a coefficient-operation budget are enforced.
+
+    Args:
+        word: Expanded ternary word of weight at most eight.
+        t: Positive distance from the endpoint.
+        through: Inclusive power of t, from zero to 24.
     """
     if not isinstance(t, s.Symbol) or t.is_commutative is not True:
         raise TypeError('t must be an ordinary commutative SymPy Symbol')

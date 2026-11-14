@@ -20,10 +20,14 @@ plugins:
         python:
           paths: [src]
           options:
-            docstring_style: numpy
+            docstring_style: google
             show_source: false
             show_signature_annotations: true
             separate_signature: true
+            heading_level: 3
+            show_root_heading: true
+            show_root_full_path: false
+            merge_init_into_class: true
   - mkdocs-typer2:
       engine: native
       pretty: true

@@ -5,10 +5,11 @@ from dataclasses import dataclass
 import mpmath as mp
 import sympy as s
 
+from .._typing import Boundary, ExactScalar, IntegerWord, RealRegion
 from ..errors import UnsupportedExpressionError
 from ..symbolic import HPL, MZV, EulerSum
 from .constants import evaluate_euler_sum, evaluate_mzv
-from .numeric import HPLNumericalConvergenceError, _word, evaluate_hpl
+from .numeric import HPLNumericalConvergenceError, MPComplex, MPReal, _word, evaluate_hpl
 from .real_continuation import analytic_continue_hpl
 
 
@@ -20,13 +21,13 @@ class HPLBoundaryNumericResult:
     NOT a bound on the transformed result. Stability excludes no roundoff risk.
     """
 
-    value: object
-    stability_gap: object
-    component_tail_bounds: tuple
+    value: MPComplex
+    stability_gap: MPReal
+    component_tail_bounds: tuple[MPReal, ...]
     dps: int
     working_dps: int
-    region: str
-    boundary: str
+    region: RealRegion
+    boundary: Boundary
     method: str = 'exact-real-boundary-map-to-interior'
     path: str = 'principal boundary limit; no extra winding'
 
@@ -70,7 +71,15 @@ def _evaluate(expression, digits, max_terms):
     return ctx.mpc(str(real.evalf(digits)), str(imag.evalf(digits))), tuple(tails)
 
 
-def evaluate_hpl_boundary(word, argument, *, region, boundary, dps=50, max_terms=100000):
+def evaluate_hpl_boundary(
+    word: IntegerWord,
+    argument: ExactScalar,
+    *,
+    region: RealRegion,
+    boundary: Boundary,
+    dps: int = 50,
+    max_terms: int = 100000,
+) -> HPLBoundaryNumericResult:
     """Evaluate H_word(x +/- i0) by exact maps, never a tiny imaginary offset.
 
     Both region and boundary are mandatory. Regions: '0<x<1', '-1<x<0',
@@ -82,6 +91,17 @@ def evaluate_hpl_boundary(word, argument, *, region, boundary, dps=50, max_terms
     The reported component bounds cover interior series tails individually,
     not propagation/cancellation/roundoff in the final boundary value. Two
     guarded precision calculations must agree; this is not interval proof.
+
+    Args:
+        word: Expanded HPL letters.
+        argument: Exact finite real point in the declared region.
+        region: Open real interval containing the argument.
+        boundary: Side of approach to the real axis.
+        dps: Requested decimal precision, from 2 to 800.
+        max_terms: Maximum terms per interior HPL series.
+
+    Returns:
+        Boundary value with stability and component truncation diagnostics.
     """
     if type(dps) is not int or not 2 <= dps <= 800:
         raise ValueError('dps must be an integer between 2 and 800')

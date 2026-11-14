@@ -5,6 +5,7 @@ from functools import lru_cache
 
 import sympy as s
 
+from .._typing import IntegerWord
 from ..errors import UnsupportedExpressionError
 from ..symbolic import HPL, reduce_known_hpl
 from .algebra import _word, shuffle_words
@@ -31,12 +32,19 @@ def _extract(word, z, leading, trailing):
     return HPL(word, z)
 
 
-def extract_hpl_logs(expression, *, leading_ones=True, trailing_zeros=True):
+def extract_hpl_logs(
+    expression: s.Expr, *, leading_ones: bool = True, trailing_zeros: bool = True,
+) -> s.Expr:
     """Remove leading 1 / trailing 0 letters by exact shuffle identities.
 
     Products of log(z) and -log(1-z) remain explicit; other HPL words retain
     their original arguments. No complex branch or endpoint limit is chosen.
     This is not a minimal-basis reduction or an endpoint evaluator.
+
+    Args:
+        expression: Exact expression containing HPL atoms.
+        leading_ones: Extract factors of H_1.
+        trailing_zeros: Extract factors of H_0.
     """
     if not isinstance(expression, s.Expr):
         raise TypeError("expression must be a SymPy expression")
@@ -51,8 +59,15 @@ def extract_hpl_logs(expression, *, leading_ones=True, trailing_zeros=True):
     return reduce_known_hpl(s.expand(expression.xreplace(replacements)))
 
 
-def lyndon_factors(word):
-    """Chen--Fox--Lyndon factorization, with alphabet order -1 < 0 < 1."""
+def lyndon_factors(word: IntegerWord) -> tuple[tuple[int, ...], ...]:
+    """Chen--Fox--Lyndon factorization, with alphabet order -1 < 0 < 1.
+
+    Args:
+        word: Expanded ternary word.
+
+    Returns:
+        Lyndon words in nonincreasing lexicographic order.
+    """
     word = _word(word)
     factors, i = [], 0
     while i < len(word):
@@ -90,12 +105,15 @@ def _lyndon(word, z):
     return s.expand((product-sum(count*_lyndon(other,z) for other,count in counts.items()))/diagonal)
 
 
-def lyndon_reduce(expression):
+def lyndon_reduce(expression: s.Expr) -> s.Expr:
     """Reduce HPL words to a shuffle-algebra Lyndon basis through weight eight.
 
     This uses exact triangular shuffle factorization, not precomputed tables.
     It is a shuffle basis only, not a claim of algebraic independence after
     argument transformations or evaluation at special points.
+
+    Args:
+        expression: Exact expression containing HPL atoms.
     """
     if not isinstance(expression, s.Expr):
         raise TypeError("expression must be a SymPy expression")

@@ -1,6 +1,7 @@
 """Explicit expression-level dispatch for supported HPL argument maps."""
 import sympy as s
 
+from .._typing import Boundary, Interval
 from ..errors import UnsupportedExpressionError
 from ..symbolic import HPL
 from .inversion import invert_hpl
@@ -9,13 +10,24 @@ from .mobius import mobius_hpl
 from .transforms import negate_hpl, reflect_hpl
 
 
-def transform_hpl_arguments(expression, z, *, domain, boundary=None):
+def transform_hpl_arguments(
+    expression: s.Expr, z: s.Symbol, *, domain: Interval, boundary: Boundary | None = None,
+) -> s.Expr:
     """Rewrite recognized HPL arguments in an expression to the common z.
 
     Requires domain='0<z<1'. Supported arguments: z, -z, 1-z, z²,
     (1-z)/(1+z), z/(z-1), 1/z. Cut-valued arguments require explicit
     boundary='upper' or 'lower'. Constant-argument HPLs remain unchanged.
     Unknown variable-dependent arguments fail rather than pretending to unify.
+
+    Args:
+        expression: Exact expression containing HPL atoms.
+        z: Target argument shared by the transformed HPLs.
+        domain: Declared real interval, `"0<z<1"`.
+        boundary: Side of approach for arguments on a cut.
+
+    Raises:
+        UnsupportedExpressionError: A variable-dependent argument or its branch is unsupported.
     """
     if not isinstance(expression,s.Expr) or not isinstance(z,s.Symbol):
         raise TypeError("Use an exact SymPy expression and symbolic target argument")

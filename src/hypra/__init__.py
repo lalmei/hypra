@@ -4,8 +4,12 @@ Native exact regulator expansions inspired by HypExp; no Mathematica required.
 An experimental external comparison bridge is optional.
 """
 
+from collections.abc import Iterable
+from typing import cast
+
 from sympy import hyper
 
+from ._typing import ExactScalar
 from .api import ExpansionResult, backend_info, expand_epsilon
 from .backend import (
     BackendError,
@@ -56,13 +60,23 @@ from .symbolic import HPL, MZV, EulerSum
 __version__ = "0.1.0a0"
 
 
-def hypergeometric(upper, lower, argument):
+def hypergeometric(
+    upper: Iterable[ExactScalar], lower: Iterable[ExactScalar], argument: ExactScalar,
+) -> hyper:
     """Construct an unevaluated generalized hypergeometric function.
 
-    Parameters and the argument use SymPy's exact symbolic representation.
-    This constructor does not perform an epsilon expansion.
+    Construction preserves matching upper and lower parameters for later
+    validation by `expand_epsilon`.
+
+    Args:
+        upper: Exact numerator parameters in their supplied order.
+        lower: Exact denominator parameters in their supplied order.
+        argument: Exact argument of the function.
+
+    Returns:
+        A SymPy hypergeometric atom with parameter cancellation disabled.
     """
-    return hyper(tuple(upper), tuple(lower), argument, evaluate=False)
+    return cast(hyper, hyper(tuple(upper), tuple(lower), argument, evaluate=False))
 
 
 __all__ = [

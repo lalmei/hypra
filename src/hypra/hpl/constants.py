@@ -12,20 +12,21 @@ from functools import lru_cache
 import mpmath as mp
 import sympy as s
 
+from .._typing import IntegerWord
 from ..errors import UnsupportedExpressionError
 from ..symbolic import HPL, MZV, EulerSum
 from .alternating import hpl_alternating_at_one, reduce_euler_sum
 from .endpoints import reduce_mzv
 from .mobius import _MAX_MOBIUS_WEIGHT, mobius_hpl
-from .numeric import HPLNumericalConvergenceError, _evaluate
+from .numeric import HPLNumericalConvergenceError, MPReal, _evaluate
 
 
 @dataclass(frozen=True)
 class ConstantNumericResult:
     """Approximate real constant; stability_gap is not an interval error bound."""
 
-    value: object
-    stability_gap: object
+    value: MPReal
+    stability_gap: MPReal
     dps: int
     working_dps: int
     method: str = 'real-Mobius-weight-recursion'
@@ -124,16 +125,33 @@ def _run(constant, dps, max_terms):
     return ConstantNumericResult(second, gap, dps, dps + 40)
 
 
-def evaluate_euler_sum(indices, colors, *, dps=50, max_terms=100000):
+def evaluate_euler_sum(
+    indices: IntegerWord, colors: IntegerWord, *, dps: int = 50, max_terms: int = 100000,
+) -> ConstantNumericResult:
     """Numerically evaluate a convergent strict colored sum of weight <=8.
 
     The two-list input uses EulerSum's explicit sigma**n convention. Each
     recursive step must lower weight. HPL tail targets and repeated guarded
     precision checks are not a certified bound on the final constant's error.
+
+    Args:
+        indices: Strict descending sum exponents.
+        colors: One sign per index.
+        dps: Requested decimal precision.
+        max_terms: Maximum terms per interior HPL series.
     """
     return _run(EulerSum(indices, colors), dps, max_terms)
 
 
-def evaluate_mzv(indices, *, dps=50, max_terms=100000):
-    """Numerically evaluate a convergent strict multiple zeta of weight <=8."""
+def evaluate_mzv(
+    indices: IntegerWord, *, dps: int = 50, max_terms: int = 100000,
+) -> ConstantNumericResult:
+    """Numerically evaluate a convergent strict multiple zeta of weight at most eight.
+
+    Args:
+        indices: Positive integer indices with a leading index of at least two.
+            The empty word gives one.
+        dps: Requested decimal precision.
+        max_terms: Maximum terms per interior HPL series.
+    """
     return _run(MZV(indices), dps, max_terms)

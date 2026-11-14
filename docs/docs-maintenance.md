@@ -29,9 +29,10 @@ existing managed local server is already running.
 - **KaTeX:** locally vendored CSS, JavaScript and fonts. `arithmatex` preserves
   LaTeX mathematics for browser rendering. Both inline `\(...\)` and display
   `\[...\]` forms are supported; no remote math-rendering service is used.
-- **mkdocstrings-python:** collects actual Python signatures and docstrings for
-  the [API reference](python-api.md), rather than maintaining a second signature
-  list manually.
+- **mkdocstrings-python:** renders annotated signatures and Google-style
+  docstrings from the source for the [API reference](python-api.md). Use
+  `Args`, `Returns`, `Raises`, and `Attributes` sections where they clarify
+  the public contract. Keep type information in the signature.
 - **mkdocs-typer2:** documents the real `hypra.cli:app` Typer application. The
   CLI was migrated from argparse; there is no fake documentation-only Typer
   wrapper. The native renderer and Typer must be upgraded together and tested:

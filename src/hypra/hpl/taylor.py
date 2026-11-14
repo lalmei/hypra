@@ -1,12 +1,15 @@
 """Exact Taylor coefficients at nonsingular real interior base points."""
 import sympy as s
 
+from .._typing import IntegerWord
 from ..errors import UnsupportedExpressionError
 from ..symbolic import HPL
 from .algebra import _word
 
 
-def hpl_taylor(word, center, variable, *, through=3):
+def hpl_taylor(
+    word: IntegerWord, center: s.Rational, variable: s.Symbol, *, through: int = 3,
+) -> s.Expr:
     """Expand HPL(word, variable) about exact rational 0<center<1.
 
     Coefficients retain exact HPL constants at center. The kernel ODE yields a
@@ -14,6 +17,12 @@ def hpl_taylor(word, center, variable, *, through=3):
     used. The Taylor series converges at least for |variable-center| less than
     min(center,1-center). Includes the coefficient of degree ``through`` plus
     the explicit Order remainder. Weight <=24 and degree <=64 are supported.
+
+    Args:
+        word: Expanded ternary word of weight at most 24.
+        center: Exact rational expansion point in (0, 1).
+        variable: Symbolic argument of the Taylor series.
+        through: Inclusive Taylor degree, from zero to 64.
     """
     word = _word(word)
     if not isinstance(variable, s.Symbol) or variable.is_commutative is not True:

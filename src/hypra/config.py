@@ -10,10 +10,18 @@ from pathlib import Path
 
 @dataclass(frozen=True)
 class BackendConfig:
-    """External backend paths. No Wolfram, HypExp, or HPL code is bundled.
+    """Settings for the external Wolfram comparison backend.
 
     Package paths identify trusted local source files (or package directories).
     These packages execute in the Wolfram kernel: do not configure untrusted files.
+
+    Attributes:
+        executable: Path to the Wolfram executable. Omit for auto-discovery.
+        hypexp_path: Local HypExp package file or directory.
+        hpl_path: Local HPL package file or directory.
+        timeout: Kernel subprocess timeout in seconds.
+        cache_dir: Override the default external cache directory.
+        use_cache: Reuse results from the local disk cache.
     """
 
     executable: str | None = None
@@ -37,6 +45,7 @@ class BackendConfig:
 
     @classmethod
     def from_env(cls) -> BackendConfig:
+        """Load the external backend settings from Hypra environment variables."""
         return cls(
             executable=os.environ.get("HYPRA_WOLFRAM_EXECUTABLE") or None,
             hypexp_path=os.environ.get("HYPRA_HYPEXP_PATH") or None,
@@ -47,6 +56,7 @@ class BackendConfig:
         )
 
     def resolved_executable(self) -> str | None:
+        """Find the configured or auto-discovered Wolfram executable."""
         if self.executable:
             candidate = os.path.expanduser(self.executable)
             found = shutil.which(candidate)
@@ -66,6 +76,7 @@ class BackendConfig:
         return None
 
     def resolved_cache_dir(self) -> Path:
+        """Return the cache location after expanding user paths."""
         if self.cache_dir:
             return Path(self.cache_dir).expanduser()
         return Path(os.environ.get("XDG_CACHE_HOME", str(Path.home() / ".cache"))) / "hypra"

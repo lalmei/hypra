@@ -14,6 +14,7 @@ from functools import lru_cache
 
 import sympy as s
 
+from .._typing import ExactInteger, ExactScalar, IntegerWord
 from ..errors import UnsupportedExpressionError
 from ..symbolic import HPL
 
@@ -27,7 +28,7 @@ def _h(word: tuple[int, ...], z: s.Symbol) -> s.Expr:
     return HPL(s.Tuple(*word), z) if word else s.S.One
 
 
-def _word(word) -> tuple[int, ...]:
+def _word(word: IntegerWord) -> tuple[int, ...]:
     if not isinstance(word, (tuple, list, s.Tuple)):
         raise UnsupportedExpressionError("An HPL word must be a sequence of -1, 0, 1")
     if any(
@@ -59,7 +60,7 @@ def _shuffle(left: tuple[int, ...], right: tuple[int, ...]):
     return tuple(sorted(counts.items()))
 
 
-def shuffle_words(left, right) -> dict[tuple[int, ...], int]:
+def shuffle_words(left: IntegerWord, right: IntegerWord) -> dict[tuple[int, ...], int]:
     """Return the shuffle words with their exact integer multiplicities."""
     return dict(_shuffle(_word(left), _word(right)))
 
@@ -201,12 +202,16 @@ def _linear_terms(expression, z):
     return {word: s.cancel(coefficient) for word, coefficient in result.items() if coefficient != 0}
 
 
-def shuffle_expand(expression, z: s.Symbol) -> s.Expr:
+def shuffle_expand(expression: ExactScalar, z: s.Symbol) -> s.Expr:
     """Linearize HPL products, powers and supported logs/polylogs exactly.
 
     The result is a sum of rational coefficients times single HPLs. Matching
     logarithms use the real principal branch on 0 < z < 1. No argument
     transformations, numeric fitting or branch-changing log identities occur.
+
+    Args:
+        expression: Exact rational-HPL expression in z.
+        z: Common HPL argument and rational-function variable.
     """
     return s.Add(
         *(coefficient * _h(word, z) for word, coefficient in _linear_terms(expression, z).items())
@@ -359,20 +364,24 @@ def _origin_constant(expression, z):
     return s.simplify(origin)
 
 
-def primitive_hpl(expression, z: s.Symbol) -> s.Expr:
+def primitive_hpl(expression: ExactScalar, z: s.Symbol) -> s.Expr:
     """An exact local primitive of rational-HPL products, up to a constant.
 
     Rational poles must be at 0,±1. Unlike integrate_from_zero, this does not
     require a finite origin value and does not assign a divergent endpoint.
     Principal branches on real 0<z<1 are retained; no definite integral or
     contour continuation is inferred from this local antiderivative.
+
+    Args:
+        expression: Exact rational-HPL integrand.
+        z: Integration variable.
     """
     linear = _linear_terms(expression, z)
     primitive = s.Add(*(_primitive(rational, word, z) for word, rational in linear.items()))
     return shuffle_expand(primitive, z)
 
 
-def integrate_from_zero(expression, z: s.Symbol) -> s.Expr:
+def integrate_from_zero(expression: ExactScalar, z: s.Symbol) -> s.Expr:
     """Compute integral_0^z R(t) HPL(word,t) dt, including shuffle products.
 
     Rational coefficients may have poles only at 0, 1, -1; polynomial parts,
@@ -381,13 +390,21 @@ def integrate_from_zero(expression, z: s.Symbol) -> s.Expr:
     branches. Unsupported structure, excessive resources or an unproved finite
     origin limit raises UnsupportedExpressionError; no divergent terms are
     silently regularized. The algorithm recursively lowers HPL word weight.
+
+    Args:
+        expression: Exact rational-HPL integrand.
+        z: Integration variable and upper endpoint.
+
+    Raises:
+        UnsupportedExpressionError: The integrand is unsupported or the finite
+            origin limit could not be established.
     """
     primitive = primitive_hpl(expression, z)
     origin = _origin_constant(primitive, z)
     return primitive - origin
 
 
-def inverse_theta_plus(expression, z: s.Symbol, n: int) -> s.Expr:
+def inverse_theta_plus(expression: ExactScalar, z: s.Symbol, n: ExactInteger) -> s.Expr:
     """Regular inverse of theta+n: z^-n integral_0^z t^(n-1) f(t) dt.
 
     Here theta=z*d/dz and n is a positive integer. The vanishing integration
@@ -400,7 +417,7 @@ def inverse_theta_plus(expression, z: s.Symbol, n: int) -> s.Expr:
     return integrate_from_zero(z ** (n - 1) * _input(expression, z), z) / z**n
 
 
-def hpl_series(expression, z: s.Symbol, order: int) -> s.Expr:
+def hpl_series(expression: ExactScalar, z: s.Symbol, order: ExactInteger) -> s.Expr:
     """Return exact Laurent/log terms of argument degree strictly below order.
 
     This is an independent local expansion at z=0 on the positive real side,
@@ -408,6 +425,11 @@ def hpl_series(expression, z: s.Symbol, order: int) -> s.Expr:
     includes negative rational powers and powers of log(z). The return value
     is a finite truncation, not an equality to the full function and not a
     falsely asserted O(z**order) remainder (which may carry logarithms).
+
+    Args:
+        expression: Exact rational-HPL expression.
+        z: Variable approaching zero from above.
+        order: Exclusive upper power, from one to 32.
     """
     if isinstance(order, bool) or not isinstance(order, (int, s.Integer)) or not 1 <= order <= 32:
         raise UnsupportedExpressionError("hpl_series requires an integer 1 <= order <= 32")

@@ -2,6 +2,7 @@
 
 import sympy as s
 
+from .._typing import Boundary, IntegerWord, RealRegion
 from ..errors import UnsupportedExpressionError
 from ..symbolic import HPL
 from .algebra import _as_hpl
@@ -9,12 +10,23 @@ from .inversion import invert_hpl
 from .transforms import negate_hpl
 
 
-def analytic_continue_hpl(word, x, *, region, boundary):
+def analytic_continue_hpl(
+    word: IntegerWord, x: s.Symbol, *, region: RealRegion, boundary: Boundary,
+) -> s.Expr:
     """Continue H_word(x +/- i0) in a caller-declared open real region.
 
     Regions are '0<x<1', '-1<x<0', 'x>1', 'x<-1'; boundary is mandatory
     'upper' (+i0) or 'lower' (-i0). This is a domain contract, not an inferred
     inequality. No value at x=0,+1,-1 or arbitrary winding is assigned.
+
+    Args:
+        word: Expanded ternary word.
+        x: Real argument variable.
+        region: Declared open interval for x.
+        boundary: Side of approach to the real axis.
+
+    Returns:
+        Exact expression in interior HPLs and constants.
     """
     if not isinstance(x, s.Symbol):
         raise TypeError("Continuation variable must be a SymPy Symbol")
