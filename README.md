@@ -51,7 +51,9 @@ uv run hypra backend-info
 uv run python scripts/validate.py --output-dir reports/local
 ```
 
-Python 3.12+ is required. Only Python dependencies are installed.
+Local development and documentation builds default to Python 3.15. The test
+matrix covers Python 3.12 through 3.15. Set `UV_PYTHON=3.14` when running
+uv commands with Python 3.14. Only Python dependencies are installed.
 
 ```python
 import sympy as s
