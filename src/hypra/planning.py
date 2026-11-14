@@ -106,7 +106,15 @@ def plan_expansion(expr, epsilon, through, assumptions=s.true):
         if node == epsilon:
             return 1
         if isinstance(node, s.Add):
-            return min(visit(a) for a in node.args)
+            # Only products compound the depth needed to absorb poles.
+            before = negative_budget
+            budgets, valuations = [], []
+            for term in node.args:
+                negative_budget = before
+                valuations.append(visit(term))
+                budgets.append(negative_budget)
+            negative_budget = max(budgets)
+            return min(valuations)
         if isinstance(node, s.Mul):
             return sum(visit(a) for a in node.args)
         if isinstance(node, s.Pow):
