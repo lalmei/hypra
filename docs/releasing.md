@@ -10,6 +10,9 @@ before the upload runs.
 for each version. Use it to record the exact tag, validation run, release draft,
 remaining blockers, and links to the published distributions.
 
+After merging the version bump, use [Draft release notes](release-drafter.md)
+to create the GitHub draft and generate its categorized PR list.
+
 ## Configure the Pending Publisher
 
 For a new project, open [PyPI's account publishing settings](https://pypi.org/manage/account/publishing/)

@@ -1,6 +1,33 @@
 # Maintaining draft release notes
 
-Run **Preview draft release notes** manually from GitHub Actions. The default
+## Create or refresh a release draft
+
+Run **Draft release notes** from GitHub Actions after merging the package version
+bump. Enter the previous version tag. The workflow uses the selected `main`
+commit by default. To refresh a draft pinned to an earlier commit, enter that
+commit's full SHA in `target`.
+
+The workflow reads the version from the target commit and lists PRs merged into
+`main` between the previous tag and that commit. Each entry has the original PR
+title, linked number and `@author`. Labels take priority over conventional PR
+title prefixes such as `feat:` or `fix:`. Unclassified entries go under
+Maintenance. Empty categories are omitted.
+
+Write a short feature summary above the generated section. Later runs preserve
+text outside the markers and refresh the PR list and comparison link. The
+workflow saves a GitHub draft. Publication and PyPI approval follow the
+[release process](releasing.md).
+
+To print the notes without saving them, run this locally with GitHub CLI auth:
+
+```sh
+uv run --no-sync python scripts/draft_release.py --repo lalmei/hypra \
+  --previous-tag v0.1.0a0 --target a10e1b02a46b30b09dded44a4cd2adc748d9238b
+```
+
+## Preview the frozen alpha notes
+
+The separate **Preview draft release notes** workflow is for `v0.1.0a0`. The default
 `apply=false` generates a downloadable Markdown proposal with a read-only token.
 Selecting `apply=true` additionally updates **only** the reserved generated-notes
 region in the existing unpublished `v0.1.0a0` draft. There is no push/merge trigger,
@@ -53,10 +80,8 @@ they are never evaluated as shell or JavaScript source.
 
 The package version is `0.1.0a0` and actual tag is `v0.1.0a0`. Release Drafter's
 internal SemVer input is `0.1.0-alpha.0`; explicit `tag` and `name` overrides
-preserve the PEP 440 spelling. No `prerelease-identifier` increment or automatic
-next-version selection is enabled. For a future rolling release, create a
-separately approved untagged next-release draft and update the configuration
-explicitly; never silently retarget this frozen alpha and its built artifacts.
+preserve the PEP 440 spelling. Future versions use **Draft release notes**
+and read the package version from their own target commits.
 
 ## Verification and boundaries
 
