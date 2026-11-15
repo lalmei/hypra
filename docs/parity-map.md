@@ -89,8 +89,8 @@ real-cut additions:
   nor radial continuation provides interval certification of all roundoff.
 - **API behavior:** Hypra deliberately avoids HPL 2's global automatic-rewrite
   switches and default cut-side choices. Explicit Python operations are not
-  Mathematica syntax/API compatibility. No real upstream-kernel comparison
-  suite has been run.
+  Mathematica syntax/API compatibility. The opt-in live suite compares
+  selected HypExp coefficients and HPL values with the upstream packages.
 
 ### Further symbolic coverage
 

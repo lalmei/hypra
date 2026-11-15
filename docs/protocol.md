@@ -18,7 +18,10 @@ and cache status. HPL uses expanded letters {-1,0,1}; unsupported alphabets are
 not silently reinterpreted. LaTeX output is generated from exact SymPy objects.
 
 The optional Wolfram transport uses fresh processes, private JSON files and a
-fixed head-whitelisted bridge, not shell strings or ToExpression. It remains
-unexecuted/unverified and has known compatibility limits with upstream routines
-that discard remainder markers. It is not part of the native implementation's
-validation claim.
+fixed head whitelist. The bridge requests HypExp's inclusive expansion order
+after budgeting all prefactor poles. HypExp can return a normal expression
+without an explicit remainder. In that case the bridge relies on the upstream
+inclusive order contract. If an explicit series remainder is present, the
+bridge verifies its regulator, center and depth before removing it. HPL
+output with `plus` and `minus` letters expands exactly into the ordinary
+alphabet before it crosses the JSON boundary.

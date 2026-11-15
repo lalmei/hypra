@@ -37,24 +37,29 @@ local user controlling the cache. `use_cache=False` recomputes everything.
 
 ## Optional external comparison bridge
 
-The original wrapper direction left an experimental Wolfram adapter in the
-repository, but it is **not a dependency or a validated feature**. No Wolfram
-installation was found, and source inspection showed that common upstream
-HypExp paths remove their `O` marker, which this fail-closed adapter rejects.
-Do not mistake mock protocol tests for actual Wolfram validation.
+The optional Wolfram adapter runs trusted local HypExp and HPL packages
+under a licensed Wolfram kernel. Select `backend="wolfram"` explicitly.
+The live tests exercise selected cases on Wolfram Engine 15.
 
-Only if independently developing that adapter, select `backend="wolfram"`
-explicitly and configure trusted local software:
+- `HYPRA_WOLFRAM_EXECUTABLE` sets the executable path. For Wolfram Engine
+  on macOS, use `/Applications/Wolfram Engine.app/Contents/MacOS/WolframKernel`.
+- `HYPRA_HYPEXP_PATH` and `HYPRA_HPL_PATH` identify trusted local package
+  entry points.
+- `HYPRA_TIMEOUT` sets the process deadline in seconds, default 120.
+- `HYPRA_CACHE_DIR` and `HYPRA_CACHE=0` control the external result cache.
 
-- `HYPRA_WOLFRAM_EXECUTABLE`: executable path, not a shell command.
-- `HYPRA_HYPEXP_PATH`, `HYPRA_HPL_PATH`: trusted local package entry points.
-- `HYPRA_TIMEOUT`: process deadline in seconds, default 120.
-- `HYPRA_CACHE_DIR`, `HYPRA_CACHE=0`: optional external cache controls.
+`uv run hypra backend-info --backend wolfram` checks the configured installation.
+To run the live suite with an activated Wolfram Engine on macOS:
 
-`uv run hypra backend-info --backend wolfram` checks that optional installation.
-`HYPRA_RUN_REAL=1 uv run pytest -m real_backend` requires real execution and
-fails rather than skipping missing setup. This path is for future comparison
-work, not a prerequisite to use the native package.
+```sh
+HYPRA_WOLFRAM_EXECUTABLE='/Applications/Wolfram Engine.app/Contents/MacOS/WolframKernel' \
+HYPRA_RUN_REAL=1 uv run pytest -q -m real_backend
+```
+
+The suite disables caching. If both package paths are unset, it uses the
+extracted archives under `reference/upstream` when available. It creates
+HypExp's initial library index in a temporary archive copy. Missing kernel
+or package setup raises a test error.
 
 ## Native modules and verification
 
