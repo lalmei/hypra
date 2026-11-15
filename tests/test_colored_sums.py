@@ -18,6 +18,8 @@ from hypra.native.colored_sums import (
 )
 from hypra.symbolic import HPL
 
+from .pochhammer import pochhammer_taylor
+
 E, Z = s.symbols("eps z")
 T = s.Symbol("t", positive=True)
 HALF = s.Rational(1, 2)
@@ -162,22 +164,7 @@ def test_matched_half_series_against_direct_pochhammer_coefficients(upper, lower
     assert s.simplify(computed.coeff(T, 0) - 1) == 0
     for n in range(1, nmax + 1):
         assert s.expand(computed.coeff(T, 2 * n - 1)) == 0
-        numerator = s.Poly(s.prod(s.rf(base + slope * E, n) for base, slope in upper), E)
-        denominator = s.Poly(
-            s.factorial(n) * s.prod(s.rf(base + slope * E, n) for base, slope in lower), E
-        )
-        coefficients = []
-        for degree in range(order + 1):
-            coefficients.append(
-                (
-                    numerator.nth(degree)
-                    - sum(
-                        denominator.nth(k) * coefficients[degree - k] for k in range(1, degree + 1)
-                    )
-                )
-                / denominator.nth(0)
-            )
-        expected = sum(value * E**degree for degree, value in enumerate(coefficients))
+        expected = pochhammer_taylor(upper, lower, E, n, order)
         assert s.expand(computed.coeff(T, 2 * n) - expected) == 0
 
 
@@ -218,22 +205,7 @@ def test_internal_colored_formal_slopes_match_pochhammer():
     computed = replace_hpl_by_taylor(computed, 4).subs(Z, T**2)
     computed = s.series(computed, T, 0, 5).removeO().expand()
     for n in (1, 2):
-        numerator = s.Poly(s.prod(s.rf(base + slope * E, n) for base, slope in upper), E)
-        denominator = s.Poly(
-            s.factorial(n) * s.prod(s.rf(base + slope * E, n) for base, slope in lower), E
-        )
-        coefficients = []
-        for degree in range(3):
-            coefficients.append(
-                (
-                    numerator.nth(degree)
-                    - sum(
-                        denominator.nth(k) * coefficients[degree - k] for k in range(1, degree + 1)
-                    )
-                )
-                / denominator.nth(0)
-            )
-        expected = sum(value * E**degree for degree, value in enumerate(coefficients))
+        expected = pochhammer_taylor(upper, lower, E, n, 2)
         assert s.expand(computed.coeff(T, 2 * n) - expected) == 0
 
 
