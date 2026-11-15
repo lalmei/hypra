@@ -1,4 +1,5 @@
 """Select Python-native canonical hypergeometric kernels by parameter pattern."""
+
 from __future__ import annotations
 
 import sympy as s
@@ -13,8 +14,10 @@ def canonical_bases(upper, lower):
     r = sum(base.q == 2 for base, _ in upper)
     q = sum(base.q == 2 for base, _ in lower)
     if r == q:
-        ap = [s.Rational(1, 2) if base.q == 2 else (s.S.Zero if base <= 0 else s.S.One)
-              for base, _ in upper]
+        ap = [
+            s.Rational(1, 2) if base.q == 2 else (s.S.Zero if base <= 0 else s.S.One)
+            for base, _ in upper
+        ]
     else:
         ap = [s.Rational(1, 2) if base.q == 2 else s.S.Zero for base, _ in upper]
     return ap, [s.Rational(1, 2) if base.q == 2 else s.S.One for base, _ in lower]
@@ -33,12 +36,14 @@ def build_canonical(bases, slopes, z, eps, order):
         )
     if len(upper) == 2 and (r, q) == (2, 1):
         from .integer import _truncate
+
         a, b = ua
         c = lb[0]
-        base = canonical_half_series([0, 0], [c-a, c-b], lower, lb, z, eps, order)
-        factor = sum(((c-a-b)*eps*s.log(1-z))**k/s.factorial(k)
-                     for k in range(order+1)) / s.sqrt(1-z)
-        return _truncate(factor*base, eps, order)
+        base = canonical_half_series([0, 0], [c - a, c - b], lower, lb, z, eps, order)
+        factor = sum(
+            ((c - a - b) * eps * s.log(1 - z)) ** k / s.factorial(k) for k in range(order + 1)
+        ) / s.sqrt(1 - z)
+        return _truncate(factor * base, eps, order)
     return canonical_half_series(upper, ua, lower, lb, z, eps, order)
 
 
@@ -46,7 +51,5 @@ def use_contiguous(upper, lower):
     """Select algebraic shifts where integral/tail reduction is expensive."""
     r = sum(base.q == 2 for base, _ in upper)
     q = sum(base.q == 2 for base, _ in lower)
-    supported = r == q or (r, q) in ((0, 1), (1, 0)) or (
-        r == len(upper) and q == len(lower)
-    )
+    supported = r == q or (r, q) in ((0, 1), (1, 0)) or (r == len(upper) and q == len(lower))
     return supported and (r != q or any(base < 0 for base, _ in upper))

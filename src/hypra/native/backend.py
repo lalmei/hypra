@@ -61,7 +61,9 @@ class NativeConfig:
         ):
             raise ValueError("unit_excess_shift requires meromorphic mode and a positive index")
         if self.argument_domain not in ("real-interval", "principal-disk", "principal-cut-plane"):
-            raise ValueError("argument_domain must be real-interval, principal-disk or principal-cut-plane")
+            raise ValueError(
+                "argument_domain must be real-interval, principal-disk or principal-cut-plane"
+            )
         if self.timeout_seconds is not None and (
             isinstance(self.timeout_seconds, bool)
             or not isinstance(self.timeout_seconds, (int, float))
@@ -170,9 +172,7 @@ class NativeBackend:
                 return order + plan_contiguous(*parsed, *canonical_bases(*parsed)).extra_order
             return expansion_depth(h, eps, order)
 
-        canonical_order = max(
-            [order, *(atom_depth(h) for h in expr.atoms(s.hyper))]
-        )
+        canonical_order = max([order, *(atom_depth(h) for h in expr.atoms(s.hyper))])
         if canonical_order > self.config.max_internal_order:
             raise UnsupportedExpressionError(
                 f"Internal order {canonical_order} exceeds configured native limit {self.config.max_internal_order}"
@@ -206,19 +206,22 @@ class NativeBackend:
                     return response
             except (OSError, ValueError, KeyError, TypeError):
                 pass
+
         def checked_atom(h):
             result = expand_atom(h, eps, order, assumptions, self.config.argument_domain)
-            slope_symbols = set().union(*(
-                s.diff(parameter, eps).free_symbols for parameter in (*h.ap, *h.bq)
-            )) if h.ap or h.bq else set()
+            slope_symbols = (
+                set().union(*(s.diff(parameter, eps).free_symbols for parameter in (*h.ap, *h.bq)))
+                if h.ap or h.bq
+                else set()
+            )
             if slope_symbols:
                 # Each nonpositive integer lower base contributes at most one
                 # genuine inverse slope factor. Other parameter denominators
                 # from contiguous operators must cancel exactly.
                 source_poles = s.prod(
-                    s.diff(parameter, eps) for parameter in h.bq
-                    if parameter.subs(eps, 0).is_Integer
-                    and parameter.subs(eps, 0) <= 0
+                    s.diff(parameter, eps)
+                    for parameter in h.bq
+                    if parameter.subs(eps, 0).is_Integer and parameter.subs(eps, 0) <= 0
                 )
                 from .contiguous import _hpl_pieces, _normalize_coefficient
 

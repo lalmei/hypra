@@ -3,9 +3,9 @@
 import pytest
 import sympy as s
 
-from hypra.native.contiguous import expand_contiguous, plan_contiguous
 from hypra.errors import UnsupportedExpressionError
 from hypra.hpl.algebra import hpl_series
+from hypra.native.contiguous import expand_contiguous, plan_contiguous
 from hypra.native.nested_sums import canonical_hyper_series
 from hypra.native.planning import laurent_coefficient
 from hypra.symbolic import reduce_known_hpl

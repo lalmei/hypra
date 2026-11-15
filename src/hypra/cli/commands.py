@@ -90,8 +90,7 @@ class Commands:
                 print(serialized, end="")
             if latex:
                 latex.write_text(
-                    "% Exact Hypra result; see JSON for provenance.\n\\[\n"
-                    f"{result.latex()}\n\\]\n"
+                    f"% Exact Hypra result; see JSON for provenance.\n\\[\n{result.latex()}\n\\]\n"
                 )
         except _ERRORS as exc:
             _error(exc)

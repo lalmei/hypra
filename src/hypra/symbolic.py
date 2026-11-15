@@ -149,9 +149,10 @@ class HPL(Function):
             value = continue_hpl(
                 word, z, domain="principal-cut-plane", path="radial", dps=digits
             ).value
-            return (Float(mp.nstr(value.real, n=digits), precision=prec)
-                    + I*Float(mp.nstr(value.imag, n=digits), precision=prec))
-        if z.is_positive is not True or (1-z).is_positive is not True or digits > 1000:
+            return Float(mp.nstr(value.real, n=digits), precision=prec) + I * Float(
+                mp.nstr(value.imag, n=digits), precision=prec
+            )
+        if z.is_positive is not True or (1 - z).is_positive is not True or digits > 1000:
             return self
         from .hpl.numeric import hpl_evalf
 
@@ -205,12 +206,21 @@ class HPL(Function):
             delta = self.argument - center
             leading = delta.as_leading_term(x, logx=logx, cdir=cdir)
             coefficient, power = leading.as_coeff_exponent(x)
-            if coefficient.has(x) or coefficient.is_nonzero is not True or not power.is_Rational or power <= 0:
-                raise UnsupportedExpressionError("Could not establish an interior Taylor argument germ")
+            if (
+                coefficient.has(x)
+                or coefficient.is_nonzero is not True
+                or not power.is_Rational
+                or power <= 0
+            ):
+                raise UnsupportedExpressionError(
+                    "Could not establish an interior Taylor argument germ"
+                )
             degree = int(ceiling(max(n, 0) / power)) + 1
             local = Dummy("hpl_taylor")
             polynomial = hpl_taylor(self.word, center, local, through=degree).removeO()
-            return polynomial.subs(local, self.argument)._eval_nseries(x, n, logx, cdir=cdir) + Order(x**n, x)
+            return polynomial.subs(local, self.argument)._eval_nseries(
+                x, n, logx, cdir=cdir
+            ) + Order(x**n, x)
         if self.word[-1] == 0:
             raise UnsupportedExpressionError(
                 "Mixed trailing-zero HPL words have logarithmic germs; use "
@@ -352,13 +362,18 @@ class EulerSum(Function):
             colors: One sign (-1 or 1) per index.
             **options: Keyword options forwarded to SymPy's function constructor.
         """
-        if not isinstance(indices, (tuple, list, Tuple)) or not isinstance(colors, (tuple, list, Tuple)):
+        if not isinstance(indices, (tuple, list, Tuple)) or not isinstance(
+            colors, (tuple, list, Tuple)
+        ):
             raise TypeError("EulerSum indices and colors must be exact tuples/lists")
         if len(indices) != len(colors):
             raise ValueError("EulerSum requires one color per index")
         if any(isinstance(n, bool) or not isinstance(n, (int, Integer)) or n <= 0 for n in indices):
             raise ValueError("EulerSum indices must be positive exact integers")
-        if any(isinstance(c, bool) or not isinstance(c, (int, Integer)) or c not in (-1, 1) for c in colors):
+        if any(
+            isinstance(c, bool) or not isinstance(c, (int, Integer)) or c not in (-1, 1)
+            for c in colors
+        ):
             raise ValueError("EulerSum colors must be exact -1 or 1")
         if indices and indices[0] == 1 and colors[0] == 1:
             raise ValueError("Divergent EulerSum; no regularized value is assigned")
@@ -394,7 +409,9 @@ class EulerSum(Function):
     def _latex(self, printer):
         indices = ",".join(printer._print(n) for n in self.indices)
         colors = ",".join(printer._print(c) for c in self.colors)
-        return rf"\operatorname{{ES}}\!\left[\begin{{matrix}}{indices}\\{colors}\end{{matrix}}\right]"
+        return (
+            rf"\operatorname{{ES}}\!\left[\begin{{matrix}}{indices}\\{colors}\end{{matrix}}\right]"
+        )
 
 
 def reduce_known_hpl(expression: ExactScalar) -> Expr:

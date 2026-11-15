@@ -3,6 +3,7 @@
 Rewriting precedes Laurent planning because Gamma quotients and excess
 recurrences can introduce regulator poles.
 """
+
 from __future__ import annotations
 
 from functools import cache
@@ -22,8 +23,10 @@ def _fixed_nonpositive_integer(value, epsilon):
 def _affine(value, epsilon):
     base = value.subs(epsilon, 0)
     slope = s.diff(value, epsilon)
-    if slope.has(epsilon) or s.expand(value-base-slope*epsilon) != 0:
-        raise UnsupportedExpressionError("Gauss endpoint support requires affine regulator parameters")
+    if slope.has(epsilon) or s.expand(value - base - slope * epsilon) != 0:
+        raise UnsupportedExpressionError(
+            "Gauss endpoint support requires affine regulator parameters"
+        )
     if base.has(s.oo, -s.oo, s.zoo, s.nan) or slope.has(s.oo, -s.oo, s.zoo, s.nan):
         raise UnsupportedExpressionError("Endpoint parameters must be finite")
     return base, slope
@@ -51,7 +54,7 @@ def convergent_unit(hyper, epsilon):
     from .matched_half import half_parameters
 
     parsed = half_parameters(hyper, epsilon)
-    if parsed is None or len(hyper.ap) != len(hyper.bq)+1:
+    if parsed is None or len(hyper.ap) != len(hyper.bq) + 1:
         return False
     upper, lower = parsed
     if any(base.is_Integer and base <= 0 and slope == 0 for base, slope in lower):
@@ -62,19 +65,19 @@ def convergent_unit(hyper, epsilon):
 def _raise_unit_excess(upper, lower, excess):
     """Sum the telescoping coefficient difference on the convergent side."""
     n = s.Dummy("index")
-    denominator = s.prod(n+b for b in lower)
-    remainder = s.Poly(s.expand(s.prod(n+a for a in upper) + (excess-n)*denominator), n)
+    denominator = s.prod(n + b for b in lower)
+    remainder = s.Poly(s.expand(s.prod(n + a for a in upper) + (excess - n) * denominator), n)
     # The two leading degrees cancel. Express the remainder in falling
     # factorials so each term can be summed by reindexing a shifted pFq.
     terms = []
-    for j in range(len(lower)-1, -1, -1):
+    for j in range(len(lower) - 1, -1, -1):
         coefficient = remainder.nth(j)
         if coefficient == 0:
             continue
-        remainder -= s.Poly(coefficient*s.ff(n, j), n)
-        scale = s.prod(s.rf(a, j) for a in upper)/s.prod(s.rf(b, j+1) for b in lower)
-        shifted = s.hyper([a+j for a in upper], [b+j+1 for b in lower], 1, evaluate=False)
-        terms.append((coefficient*scale, shifted))
+        remainder -= s.Poly(coefficient * s.ff(n, j), n)
+        scale = s.prod(s.rf(a, j) for a in upper) / s.prod(s.rf(b, j + 1) for b in lower)
+        shifted = s.hyper([a + j for a in upper], [b + j + 1 for b in lower], 1, evaluate=False)
+        terms.append((coefficient * scale, shifted))
     return terms
 
 
@@ -82,21 +85,25 @@ def _reduce_unit_rank(upper, lower):
     """Remove an upper/lower pair whose ratio is polynomial in the index."""
     for a in upper:
         for b in lower:
-            shift = a-b
+            shift = a - b
             if not shift.is_Integer or not 1 <= shift <= 8:
                 continue
             ap, bq = list(upper), list(lower)
             ap.remove(a)
             bq.remove(b)
             # Expand (b+n)_shift in the falling factorials of n.
-            return s.Add(*(
-                s.binomial(shift, j) * s.rf(b+j, shift-j)
-                * s.prod(s.rf(value, j) for value in ap)
-                / (s.rf(b, shift) * s.prod(s.rf(value, j) for value in bq))
-                * s.hyper([value+j for value in ap], [value+j for value in bq],
-                          1, evaluate=False)
-                for j in range(int(shift)+1)
-            ))
+            return s.Add(
+                *(
+                    s.binomial(shift, j)
+                    * s.rf(b + j, shift - j)
+                    * s.prod(s.rf(value, j) for value in ap)
+                    / (s.rf(b, shift) * s.prod(s.rf(value, j) for value in bq))
+                    * s.hyper(
+                        [value + j for value in ap], [value + j for value in bq], 1, evaluate=False
+                    )
+                    for j in range(int(shift) + 1)
+                )
+            )
     return None
 
 
@@ -111,17 +118,17 @@ def _continue_unit(upper, lower, excess, epsilon):
 
     @cache
     def raise_until_convergent(atom):
-        delta = s.expand(sum(atom.bq)-sum(atom.ap))
+        delta = s.expand(sum(atom.bq) - sum(atom.ap))
         if cast(s.Expr, delta.subs(epsilon, 0)) > 0:
             return {atom: s.S.One}
         result = {}
         for weight, shifted in _raise_unit_excess(atom.ap, atom.bq, delta):
             for leaf, coefficient in raise_until_convergent(shifted).items():
-                result[leaf] = result.get(leaf, s.S.Zero) + weight*coefficient
-        return {leaf: s.cancel(coefficient/delta) for leaf, coefficient in result.items()}
+                result[leaf] = result.get(leaf, s.S.Zero) + weight * coefficient
+        return {leaf: s.cancel(coefficient / delta) for leaf, coefficient in result.items()}
 
     atom = s.hyper(upper, lower, 1, evaluate=False)
-    return s.Add(*(weight*leaf for leaf, weight in raise_until_convergent(atom).items()))
+    return s.Add(*(weight * leaf for leaf, weight in raise_until_convergent(atom).items()))
 
 
 def rewrite_endpoints(
@@ -158,7 +165,9 @@ def rewrite_endpoints(
         # Check before simplification or z=0 shortcuts: cancellation at a fixed
         # singular parameter selects a limiting convention we do not assume.
         if any(_fixed_nonpositive_integer(b, epsilon) for b in lower):
-            raise UnsupportedExpressionError("Fixed nonpositive lower parameter has an ambiguous singular definition")
+            raise UnsupportedExpressionError(
+                "Fixed nonpositive lower parameter has an ambiguous singular definition"
+            )
         for b in tuple(lower):
             if b in upper:
                 upper.remove(b)
@@ -170,19 +179,28 @@ def rewrite_endpoints(
                 replacements[atom] = reduced
             continue
         if atom.has(s.Float, s.oo, -s.oo, s.zoo, s.nan):
-            raise UnsupportedExpressionError("Endpoint and terminating inputs must be exact and finite")
+            raise UnsupportedExpressionError(
+                "Endpoint and terminating inputs must be exact and finite"
+            )
         if terminating:
             if any(not isinstance(u, s.Integer) for u in terminating):
                 raise UnsupportedExpressionError("Termination degree must be an explicit integer")
             degree = min(-int(u) for u in cast(list[s.Integer], terminating))
             if degree > 4096:
-                raise UnsupportedExpressionError("Terminating sum exceeds the supported 4096-degree budget")
-            replacements[atom] = s.Add(*(argument**n * s.prod(s.rf(a, n) for a in upper) /
-                                         (s.factorial(n)*s.prod(s.rf(b, n) for b in lower))
-                                         for n in range(degree+1)))
+                raise UnsupportedExpressionError(
+                    "Terminating sum exceeds the supported 4096-degree budget"
+                )
+            replacements[atom] = s.Add(
+                *(
+                    argument**n
+                    * s.prod(s.rf(a, n) for a in upper)
+                    / (s.factorial(n) * s.prod(s.rf(b, n) for b in lower))
+                    for n in range(degree + 1)
+                )
+            )
             continue
-        if excess_shift is not None and len(upper) == len(lower)+1 and lower:
-            excess = s.expand(sum(lower)-sum(upper))
+        if excess_shift is not None and len(upper) == len(lower) + 1 and lower:
+            excess = s.expand(sum(lower) - sum(upper))
             if _fixed_nonpositive_integer(excess, epsilon):
                 if excess_shift > len(lower):
                     raise UnsupportedExpressionError(
@@ -190,7 +208,7 @@ def rewrite_endpoints(
                     )
                 # Move transversely before any rank reduction or excess
                 # raising. Lower parameters follow SymPy's canonical order.
-                lower[excess_shift-1] += epsilon
+                lower[excess_shift - 1] += epsilon
                 shifted = s.hyper(upper, lower, 1, evaluate=False)
                 replacements[atom] = rewrite_endpoints(
                     shifted, epsilon, assumptions, meromorphic=True
@@ -207,16 +225,19 @@ def rewrite_endpoints(
             if convergent_unit(reduced, epsilon):
                 replacements[atom] = reduced
                 continue
-            if len(upper) == len(lower)+1:
+            if len(upper) == len(lower) + 1:
                 from .matched_half import half_parameters
 
-                excess = s.expand(sum(lower)-sum(upper))
+                excess = s.expand(sum(lower) - sum(upper))
                 parsed = half_parameters(reduced, epsilon)
-                if parsed is not None and (meromorphic or _convergent(excess, epsilon, assumptions)):
+                if parsed is not None and (
+                    meromorphic or _convergent(excess, epsilon, assumptions)
+                ):
                     lowered = _reduce_unit_rank(upper, lower) if meromorphic else None
                     replacements[atom] = (
                         rewrite_endpoints(lowered, epsilon, assumptions, meromorphic=True)
-                        if lowered is not None else _continue_unit(upper, lower, excess, epsilon)
+                        if lowered is not None
+                        else _continue_unit(upper, lower, excess, epsilon)
                     )
                     continue
             raise UnsupportedExpressionError(
@@ -226,10 +247,12 @@ def rewrite_endpoints(
         c = lower[0]
         for parameter in (a, b, c):
             _affine(parameter, epsilon)
-        excess = s.expand(c-a-b)
+        excess = s.expand(c - a - b)
         if meromorphic and _fixed_nonpositive_integer(excess, epsilon):
             raise UnsupportedExpressionError("Gauss continuation lies on a fixed excess pole")
         if not meromorphic and not _convergent(excess, epsilon, assumptions):
-            raise UnsupportedExpressionError("Gauss z=1 convergence is not proven on a regulator neighborhood or punctured side")
-        replacements[atom] = s.gamma(c)*s.gamma(excess)/(s.gamma(c-a)*s.gamma(c-b))
+            raise UnsupportedExpressionError(
+                "Gauss z=1 convergence is not proven on a regulator neighborhood or punctured side"
+            )
+        replacements[atom] = s.gamma(c) * s.gamma(excess) / (s.gamma(c - a) * s.gamma(c - b))
     return cast(s.Expr, expr.xreplace(replacements))

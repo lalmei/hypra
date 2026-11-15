@@ -61,7 +61,9 @@ __version__ = "0.1.0a0"
 
 
 def hypergeometric(
-    upper: Iterable[ExactScalar], lower: Iterable[ExactScalar], argument: ExactScalar,
+    upper: Iterable[ExactScalar],
+    lower: Iterable[ExactScalar],
+    argument: ExactScalar,
 ) -> hyper:
     """Construct an unevaluated generalized hypergeometric function.
 

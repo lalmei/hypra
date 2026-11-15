@@ -3,6 +3,7 @@
 This is not termwise endpoint evaluation: rational/logarithmic singularities
 are retained until all coefficients at the reflected origin have combined.
 """
+
 import sympy as s
 
 from ..errors import UnsupportedExpressionError
@@ -28,17 +29,17 @@ def hpl_limit_at_one(expression: s.Expr, z: s.Symbol) -> s.Expr:
         UnsupportedExpressionError: The limit is outside the supported scope or
             finiteness could not be established.
     """
-    if not isinstance(expression,s.Expr) or not isinstance(z,s.Symbol):
-        raise TypeError('Expected a SymPy expression and symbolic argument')
-    if expression.has(s.Float,s.nan,s.zoo,s.oo,-s.oo):
-        raise UnsupportedExpressionError('Endpoint expression must be exact and finite')
-    transformed=_as_hpl(expression,z)
+    if not isinstance(expression, s.Expr) or not isinstance(z, s.Symbol):
+        raise TypeError("Expected a SymPy expression and symbolic argument")
+    if expression.has(s.Float, s.nan, s.zoo, s.oo, -s.oo):
+        raise UnsupportedExpressionError("Endpoint expression must be exact and finite")
+    transformed = _as_hpl(expression, z)
     if any(-1 in h.word for h in transformed.atoms(HPL)):
         return _ternary_limit(transformed, z)
-    t=s.Dummy('endpoint_distance',positive=True)
-    replacements={h:reflect_hpl(h.word,t,domain='0<z<1') for h in transformed.atoms(HPL)}
-    reflected=transformed.xreplace(replacements).subs(z,1-t)
-    return _origin_constant(reflected,t)
+    t = s.Dummy("endpoint_distance", positive=True)
+    replacements = {h: reflect_hpl(h.word, t, domain="0<z<1") for h in transformed.atoms(HPL)}
+    reflected = transformed.xreplace(replacements).subs(z, 1 - t)
+    return _origin_constant(reflected, t)
 
 
 def _ternary_limit(expression, z):
@@ -46,45 +47,51 @@ def _ternary_limit(expression, z):
     from .series_one import hpl_series_at_one
 
     if _expansion_size(expression) > 4096:
-        raise UnsupportedExpressionError('Endpoint expression exceeds the expansion budget')
+        raise UnsupportedExpressionError("Endpoint expression exceeds the expansion budget")
     atoms = sorted(expression.atoms(HPL), key=s.default_sort_key)
-    generators = [s.Dummy('endpoint_hpl') for _ in atoms]
+    generators = [s.Dummy("endpoint_hpl") for _ in atoms]
     replaced = expression.xreplace(dict(zip(atoms, generators, strict=True)))
     try:
         polynomial = s.Poly(replaced, *generators)
     except s.PolynomialError as exc:
-        raise UnsupportedExpressionError('Ternary endpoint limit requires polynomial HPL dependence') from exc
-    t, T = s.Dummy('endpoint_distance', positive=True), s.Dummy('endpoint_log')
+        raise UnsupportedExpressionError(
+            "Ternary endpoint limit requires polynomial HPL dependence"
+        ) from exc
+    t, T = s.Dummy("endpoint_distance", positive=True), s.Dummy("endpoint_log")
     terms, pole = [], 0
     for powers, coefficient in polynomial.terms():
-        if sum(p*len(h.word) for p,h in zip(powers,atoms,strict=True)) > 12:
-            raise UnsupportedExpressionError('Endpoint expression exceeds total HPL weight twelve')
+        if sum(p * len(h.word) for p, h in zip(powers, atoms, strict=True)) > 12:
+            raise UnsupportedExpressionError("Endpoint expression exceeds total HPL weight twelve")
         if coefficient.free_symbols - {z} or not coefficient.is_rational_function(z):
-            raise UnsupportedExpressionError('Ternary endpoint coefficients must be numeric rational functions of z')
-        coefficient = s.cancel(coefficient.subs(z, 1-t))
+            raise UnsupportedExpressionError(
+                "Ternary endpoint coefficients must be numeric rational functions of z"
+            )
+        coefficient = s.cancel(coefficient.subs(z, 1 - t))
         numerator, denominator = coefficient.as_numer_denom()
         try:
-            num, den = s.Poly(numerator,t), s.Poly(denominator,t)
+            num, den = s.Poly(numerator, t), s.Poly(denominator, t)
         except s.PolynomialError as exc:
-            raise UnsupportedExpressionError('Unresolved rational endpoint coefficient') from exc
+            raise UnsupportedExpressionError("Unresolved rational endpoint coefficient") from exc
         if num.is_zero:
             continue
         nmin, dmin = min(m[0] for m in num.monoms()), min(m[0] for m in den.monoms())
         if den.nth(dmin).is_zero is not False:
-            raise UnsupportedExpressionError('Could not prove the endpoint denominator nonzero')
-        pole = max(pole, dmin-nmin)
+            raise UnsupportedExpressionError("Could not prove the endpoint denominator nonzero")
+        pole = max(pole, dmin - nmin)
         terms.append((powers, coefficient))
     if pole > 16:
-        raise UnsupportedExpressionError('Endpoint rational pole order exceeds sixteen')
-    expansions = [hpl_series_at_one(h.word,t,through=pole).removeO().subs(s.log(t),-T)
-                  for h in atoms]
+        raise UnsupportedExpressionError("Endpoint rational pole order exceeds sixteen")
+    expansions = [
+        hpl_series_at_one(h.word, t, through=pole).removeO().subs(s.log(t), -T) for h in atoms
+    ]
     result = s.S.Zero
     for powers, coefficient in terms:
-        result += s.series(coefficient,t,0,1).removeO()*s.prod(
-            value**power for value,power in zip(expansions,powers,strict=True))
+        result += s.series(coefficient, t, 0, 1).removeO() * s.prod(
+            value**power for value, power in zip(expansions, powers, strict=True)
+        )
     _expansion_size(result)
     # Multiply by a sufficient t power to inspect an ordinary polynomial.
-    combined = s.Poly(s.expand(result*t**pole), t, T)
+    combined = s.Poly(s.expand(result * t**pole), t, T)
     constant = s.S.Zero
     for (degree, logarithms), coefficient in combined.terms():
         if degree > pole:
@@ -92,7 +99,7 @@ def _ternary_limit(expression, z):
         coefficient = s.simplify(coefficient)
         if degree < pole or logarithms:
             if coefficient != 0:
-                raise UnsupportedExpressionError('Endpoint diverges or cancellation is not proved')
+                raise UnsupportedExpressionError("Endpoint diverges or cancellation is not proved")
         else:
             constant += coefficient
     return s.simplify(constant)

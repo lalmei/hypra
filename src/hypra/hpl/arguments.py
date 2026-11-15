@@ -1,4 +1,5 @@
 """Explicit expression-level dispatch for supported HPL argument maps."""
+
 from typing import cast
 
 import sympy as s
@@ -13,7 +14,11 @@ from .transforms import negate_hpl, reflect_hpl
 
 
 def transform_hpl_arguments(
-    expression: s.Expr, z: s.Symbol, *, domain: Interval, boundary: Boundary | None = None,
+    expression: s.Expr,
+    z: s.Symbol,
+    *,
+    domain: Interval,
+    boundary: Boundary | None = None,
 ) -> s.Expr:
     """Rewrite recognized HPL arguments in an expression to the common z.
 
@@ -31,34 +36,44 @@ def transform_hpl_arguments(
     Raises:
         UnsupportedExpressionError: A variable-dependent argument or its branch is unsupported.
     """
-    if not isinstance(expression,s.Expr) or not isinstance(z,s.Symbol):
+    if not isinstance(expression, s.Expr) or not isinstance(z, s.Symbol):
         raise TypeError("Use an exact SymPy expression and symbolic target argument")
-    if domain!='0<z<1':
+    if domain != "0<z<1":
         raise UnsupportedExpressionError("Explicit domain='0<z<1' is required")
-    if boundary not in (None,'upper','lower'):
+    if boundary not in (None, "upper", "lower"):
         raise ValueError("boundary must be upper, lower, or omitted")
-    if expression.has(s.Float,s.nan,s.zoo,s.oo,-s.oo):
+    if expression.has(s.Float, s.nan, s.zoo, s.oo, -s.oo):
         raise UnsupportedExpressionError("Argument transformation requires exact finite input")
-    changes={}
+    changes = {}
     for atom in expression.atoms(HPL):
-        arg=atom.argument
-        if arg==z or not arg.has(z):
+        arg = atom.argument
+        if arg == z or not arg.has(z):
             continue
-        candidates=[(-z,'negate'),(1-z,'reflect'),(z**2,'square'),
-                    ((1-z)/(1+z),'mobius'),(z/(z-1),'fractional'),(1/z,'inverse')]
-        selected=next((name for target,name in candidates if s.cancel(arg-target)==0),None)
+        candidates = [
+            (-z, "negate"),
+            (1 - z, "reflect"),
+            (z**2, "square"),
+            ((1 - z) / (1 + z), "mobius"),
+            (z / (z - 1), "fractional"),
+            (1 / z, "inverse"),
+        ]
+        selected = next((name for target, name in candidates if s.cancel(arg - target) == 0), None)
         if selected is None:
             raise UnsupportedExpressionError(f"Unsupported HPL argument {arg}")
-        if selected in ('negate', 'fractional', 'inverse'):
+        if selected in ("negate", "fractional", "inverse"):
             if boundary is None:
-                raise UnsupportedExpressionError("Cut-valued arguments require an explicit boundary")
-            if selected == 'negate':
+                raise UnsupportedExpressionError(
+                    "Cut-valued arguments require an explicit boundary"
+                )
+            if selected == "negate":
                 value = negate_hpl(atom.word, z, domain=domain)
-                changes[atom] = value if boundary == 'upper' else value.xreplace({s.I: -s.I})
+                changes[atom] = value if boundary == "upper" else value.xreplace({s.I: -s.I})
             else:
-                transform = fractional_hpl if selected == 'fractional' else invert_hpl
+                transform = fractional_hpl if selected == "fractional" else invert_hpl
                 changes[atom] = transform(atom.word, z, boundary=boundary, domain=domain)
         else:
-            function={'reflect':reflect_hpl,'square':square_hpl,'mobius':mobius_hpl}[selected]
-            changes[atom]=function(atom.word,z,domain=domain)
+            function = {"reflect": reflect_hpl, "square": square_hpl, "mobius": mobius_hpl}[
+                selected
+            ]
+            changes[atom] = function(atom.word, z, domain=domain)
     return cast(s.Expr, expression.xreplace(changes))

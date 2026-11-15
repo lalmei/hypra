@@ -28,25 +28,33 @@ class HPLBoundaryNumericResult:
     working_dps: int
     region: RealRegion
     boundary: Boundary
-    method: str = 'exact-real-boundary-map-to-interior'
-    path: str = 'principal boundary limit; no extra winding'
+    method: str = "exact-real-boundary-map-to-interior"
+    path: str = "principal boundary limit; no extra winding"
 
 
 def _point(argument, region):
     if type(argument) is int:
         argument = s.Integer(argument)
-    if (not isinstance(argument, s.Expr) or argument.free_symbols
-            or argument.has(s.Float) or argument.is_real is not True
-            or argument.is_finite is not True):
-        raise UnsupportedExpressionError('Boundary argument must be an exact finite real SymPy number')
+    if (
+        not isinstance(argument, s.Expr)
+        or argument.free_symbols
+        or argument.has(s.Float)
+        or argument.is_real is not True
+        or argument.is_finite is not True
+    ):
+        raise UnsupportedExpressionError(
+            "Boundary argument must be an exact finite real SymPy number"
+        )
     conditions = {
-        '0<x<1': (argument.is_positive, (1-argument).is_positive),
-        '-1<x<0': ((-argument).is_positive, (argument+1).is_positive),
-        'x>1': ((argument-1).is_positive,),
-        'x<-1': ((-argument-1).is_positive,),
+        "0<x<1": (argument.is_positive, (1 - argument).is_positive),
+        "-1<x<0": ((-argument).is_positive, (argument + 1).is_positive),
+        "x>1": ((argument - 1).is_positive,),
+        "x<-1": ((-argument - 1).is_positive,),
     }
     if region not in conditions or any(test is not True for test in conditions[region]):
-        raise UnsupportedExpressionError('Exact argument does not satisfy the declared open real region')
+        raise UnsupportedExpressionError(
+            "Exact argument does not satisfy the declared open real region"
+        )
     return argument
 
 
@@ -59,14 +67,22 @@ def _evaluate(expression, digits, max_terms):
         replacements[atom] = s.Float(ctx.nstr(result.value, n=digits), digits)
         tails.append(result.tail_bound)
     for atom in expression.atoms(EulerSum, MZV):
-        result = (evaluate_euler_sum(atom.indices, atom.colors, dps=digits, max_terms=max_terms)
-                  if isinstance(atom, EulerSum) else
-                  evaluate_mzv(atom.indices, dps=digits, max_terms=max_terms))
+        result = (
+            evaluate_euler_sum(atom.indices, atom.colors, dps=digits, max_terms=max_terms)
+            if isinstance(atom, EulerSum)
+            else evaluate_mzv(atom.indices, dps=digits, max_terms=max_terms)
+        )
         replacements[atom] = s.Float(ctx.nstr(result.value, n=digits), digits)
     result = expression.xreplace(replacements).evalf(digits)
-    if (result.has(HPL, EulerSum, MZV) or result.free_symbols
-            or result.is_number is not True or result.is_finite is not True):
-        raise UnsupportedExpressionError('Boundary transformation left an unevaluated numerical expression')
+    if (
+        result.has(HPL, EulerSum, MZV)
+        or result.free_symbols
+        or result.is_number is not True
+        or result.is_finite is not True
+    ):
+        raise UnsupportedExpressionError(
+            "Boundary transformation left an unevaluated numerical expression"
+        )
     real, imag = result.as_real_imag()
     return ctx.mpc(str(real.evalf(digits)), str(imag.evalf(digits))), tuple(tails)
 
@@ -104,18 +120,20 @@ def evaluate_hpl_boundary(
         Boundary value with stability and component truncation diagnostics.
     """
     if type(dps) is not int or not 2 <= dps <= 800:
-        raise ValueError('dps must be an integer between 2 and 800')
+        raise ValueError("dps must be an integer between 2 and 800")
     if type(max_terms) is not int or not 1 <= max_terms <= 1000000:
-        raise ValueError('max_terms must be an integer between 1 and 1000000')
+        raise ValueError("max_terms must be an integer between 1 and 1000000")
     argument = _point(argument, region)
     word = _word(word)
-    x = s.Symbol('boundary_argument', real=True)
+    x = s.Symbol("boundary_argument", real=True)
     expression = analytic_continue_hpl(word, x, region=region, boundary=boundary).subs(x, argument)
-    first, _ = _evaluate(expression, dps+20, max_terms)
-    second, tails = _evaluate(expression, dps+40, max_terms)
+    first, _ = _evaluate(expression, dps + 20, max_terms)
+    second, tails = _evaluate(expression, dps + 40, max_terms)
     ctx = mp.mp.clone()
-    ctx.dps = dps+40
-    gap = abs(ctx.convert(first)-ctx.convert(second))
-    if gap > ctx.power(10, -dps-4)*abs(second):
-        raise HPLNumericalConvergenceError('Boundary value unstable under increased working precision')
-    return HPLBoundaryNumericResult(second, gap, tails, dps, dps+40, region, boundary)
+    ctx.dps = dps + 40
+    gap = abs(ctx.convert(first) - ctx.convert(second))
+    if gap > ctx.power(10, -dps - 4) * abs(second):
+        raise HPLNumericalConvergenceError(
+            "Boundary value unstable under increased working precision"
+        )
+    return HPLBoundaryNumericResult(second, gap, tails, dps, dps + 40, region, boundary)

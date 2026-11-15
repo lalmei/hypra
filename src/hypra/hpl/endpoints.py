@@ -76,8 +76,11 @@ def _height_one(first, depth):
     contains both x and y, so only min(first-1, depth) powers can contribute.
     """
     nx, ny = first - 1, depth
-    logarithm = {(i, j): -s.binomial(i + j, i) * s.zeta(i + j) / (i + j)
-                 for i in range(1, nx + 1) for j in range(1, ny + 1)}
+    logarithm = {
+        (i, j): -s.binomial(i + j, i) * s.zeta(i + j) / (i + j)
+        for i in range(1, nx + 1)
+        for j in range(1, ny + 1)
+    }
     power = {(0, 0): s.S.One}
     coefficient = s.S.Zero
     for k in range(1, min(nx, ny) + 1):

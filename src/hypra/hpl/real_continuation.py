@@ -13,7 +13,11 @@ from .transforms import negate_hpl
 
 
 def analytic_continue_hpl(
-    word: IntegerWord, x: s.Symbol, *, region: RealRegion, boundary: Boundary,
+    word: IntegerWord,
+    x: s.Symbol,
+    *,
+    region: RealRegion,
+    boundary: Boundary,
 ) -> s.Expr:
     """Continue H_word(x +/- i0) in a caller-declared open real region.
 

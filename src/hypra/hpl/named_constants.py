@@ -18,12 +18,12 @@ def _weak_sum(word: tuple[int, ...]) -> s.Expr:
             for prefix in partitions
             for block in (
                 (*prefix, (power, color)),
-                (*prefix[:-1], (prefix[-1][0]+power, prefix[-1][1]*color)),
+                (*prefix[:-1], (prefix[-1][0] + power, prefix[-1][1] * color)),
             )
         ]
-    return reduce_euler_sum(s.Add(*(
-        EulerSum(*zip(*partition, strict=True)) for partition in partitions
-    )))
+    return reduce_euler_sum(
+        s.Add(*(EulerSum(*zip(*partition, strict=True)) for partition in partitions))
+    )
 
 
 HPLs6: s.Expr = _weak_sum((-5, -1))

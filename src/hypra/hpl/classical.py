@@ -89,7 +89,10 @@ def classical_hpl(expression: s.Expr, z: s.Symbol, *, domain: Interval) -> s.Exp
             binary = tuple(-letter for letter in word)
             extracted = _extract(binary, z, True, True)
             relabeled = extracted.xreplace(
-                {h: HPL(tuple(-letter for letter in as_integer_tuple(h.word)), z) for h in extracted.atoms(HPL)}
+                {
+                    h: HPL(tuple(-letter for letter in as_integer_tuple(h.word)), z)
+                    for h in extracted.atoms(HPL)
+                }
             )
             changes[atom] = reduce_known_hpl(cast(s.Expr, relabeled)).xreplace(
                 {HPL((0, -1, -1), z): negative_011}
@@ -100,7 +103,9 @@ def classical_hpl(expression: s.Expr, z: s.Symbol, *, domain: Interval) -> s.Exp
             extracted = _extract(binary, z, True, True)
             relabeled = extracted.xreplace(
                 {
-                    h: HPL(tuple(-1 if letter == 0 else 1 for letter in as_integer_tuple(h.word)), z)
+                    h: HPL(
+                        tuple(-1 if letter == 0 else 1 for letter in as_integer_tuple(h.word)), z
+                    )
                     for h in extracted.atoms(HPL)
                 }
             )

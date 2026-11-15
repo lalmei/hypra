@@ -21,11 +21,7 @@ def half_parameters(h, eps):
             except s.PolynomialError:
                 return None
             base, slope = p.nth(0), p.nth(1)
-            if (
-                p.degree() > 1
-                or not base.is_Rational
-                or base.q not in (1, 2)
-            ):
+            if p.degree() > 1 or not base.is_Rational or base.q not in (1, 2):
                 return None
             try:
                 slope = _slope(slope, eps)

@@ -29,8 +29,8 @@ class ConstantNumericResult:
     stability_gap: MPReal
     dps: int
     working_dps: int
-    method: str = 'real-Mobius-weight-recursion'
-    convention: str = 'strict outer-index cutoff; no regularization'
+    method: str = "real-Mobius-weight-recursion"
+    convention: str = "strict outer-index cutoff; no regularization"
 
 
 def _word(indices, colors):
@@ -45,12 +45,11 @@ def _word(indices, colors):
 
 @lru_cache(maxsize=256)
 def _remainder(word):
-    z = s.Symbol('constant_z', positive=True)
-    remainder = s.expand(mobius_hpl(word, z, domain='0<z<1')
-                         - hpl_alternating_at_one(word))
+    z = s.Symbol("constant_z", positive=True)
+    remainder = s.expand(mobius_hpl(word, z, domain="0<z<1") - hpl_alternating_at_one(word))
     for atom in remainder.atoms(EulerSum, MZV):
         if sum(atom.indices) >= len(word):
-            raise UnsupportedExpressionError('Endpoint recursion did not strictly lower weight')
+            raise UnsupportedExpressionError("Endpoint recursion did not strictly lower weight")
     return remainder.subs(z, s.Rational(1, 2))
 
 
@@ -58,7 +57,7 @@ def _remainder(word):
 def _hpl_value(word, argument, digits, max_terms):
     # The endpoint evaluator already repeats the entire calculation at
     # higher precision. Reuse each guarded interior series across sums.
-    value, _, _, _ = _evaluate(word, argument, digits+10, digits+8, max_terms, "real")
+    value, _, _, _ = _evaluate(word, argument, digits + 10, digits + 8, max_terms, "real")
     return s.Float(mp.nstr(value, n=digits), digits)
 
 
@@ -76,7 +75,9 @@ def _calculate(constant, digits, max_terms):
             return s.S.One
         weight = sum(atom.indices)
         if weight > _MAX_MOBIUS_WEIGHT:
-            raise UnsupportedExpressionError(f'Numerical endpoint constants support weight at most {_MAX_MOBIUS_WEIGHT}')
+            raise UnsupportedExpressionError(
+                f"Numerical endpoint constants support weight at most {_MAX_MOBIUS_WEIGHT}"
+            )
         if isinstance(atom, MZV):
             reduced = reduce_mzv(atom)
             if reduced == atom:
@@ -92,15 +93,19 @@ def _calculate(constant, digits, max_terms):
         expression = _remainder(word)
         constants = expression.atoms(EulerSum, MZV)
         if any(sum(child.indices) >= weight for child in constants):
-            raise UnsupportedExpressionError('Endpoint recursion did not strictly lower weight')
+            raise UnsupportedExpressionError("Endpoint recursion did not strictly lower weight")
         expression = expression.xreplace({child: evaluate(child) for child in constants})
-        expression = expression.xreplace({
-            h: _hpl_value(tuple(h.word), h.argument, digits, max_terms)
-            for h in expression.atoms(HPL)
-        })
+        expression = expression.xreplace(
+            {
+                h: _hpl_value(tuple(h.word), h.argument, digits, max_terms)
+                for h in expression.atoms(HPL)
+            }
+        )
         residual = expression.evalf(digits)
         if residual.free_symbols or residual.is_real is not True or residual.is_finite is not True:
-            raise UnsupportedExpressionError('Endpoint recursion left an unevaluated numeric expression')
+            raise UnsupportedExpressionError(
+                "Endpoint recursion left an unevaluated numeric expression"
+            )
         value = _hpl_value(word, s.Rational(1, 3), digits, max_terms)
         return as_float(factor * (ctx.mpf(str(value)) - ctx.mpf(str(residual))))
 
@@ -110,23 +115,29 @@ def _calculate(constant, digits, max_terms):
 
 def _run(constant, dps, max_terms):
     if type(dps) is not int or not 2 <= dps <= 900:
-        raise ValueError('dps must be an integer between 2 and 900')
+        raise ValueError("dps must be an integer between 2 and 900")
     if type(max_terms) is not int or not 1 <= max_terms <= 1000000:
-        raise ValueError('max_terms must be an integer between 1 and 1000000')
+        raise ValueError("max_terms must be an integer between 1 and 1000000")
     if constant != 1 and sum(constant.indices) > _MAX_MOBIUS_WEIGHT:
-        raise UnsupportedExpressionError(f'Numerical endpoint constants support weight at most {_MAX_MOBIUS_WEIGHT}')
+        raise UnsupportedExpressionError(
+            f"Numerical endpoint constants support weight at most {_MAX_MOBIUS_WEIGHT}"
+        )
     first = _calculate(constant, dps + 20, max_terms)
     second = _calculate(constant, dps + 40, max_terms)
     ctx = mp.mp.clone()
     ctx.dps = dps + 40
     gap = abs(ctx.convert(first) - ctx.convert(second))
     if gap > ctx.power(10, -dps - 4) * abs(second):
-        raise HPLNumericalConvergenceError('Endpoint constant unstable at increased precision')
+        raise HPLNumericalConvergenceError("Endpoint constant unstable at increased precision")
     return ConstantNumericResult(second, gap, dps, dps + 40)
 
 
 def evaluate_euler_sum(
-    indices: IntegerWord, colors: IntegerWord, *, dps: int = 50, max_terms: int = 100000,
+    indices: IntegerWord,
+    colors: IntegerWord,
+    *,
+    dps: int = 50,
+    max_terms: int = 100000,
 ) -> ConstantNumericResult:
     """Numerically evaluate a convergent strict colored sum of weight <=8.
 
@@ -144,7 +155,10 @@ def evaluate_euler_sum(
 
 
 def evaluate_mzv(
-    indices: IntegerWord, *, dps: int = 50, max_terms: int = 100000,
+    indices: IntegerWord,
+    *,
+    dps: int = 50,
+    max_terms: int = 100000,
 ) -> ConstantNumericResult:
     """Numerically evaluate a convergent strict multiple zeta of weight at most eight.
 

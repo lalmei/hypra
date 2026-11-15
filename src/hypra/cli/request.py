@@ -21,7 +21,10 @@ class ExpansionRequest:
     def read(cls, path: Path) -> Self:
         payload = strict_json_loads(path.read_text())
         if not isinstance(payload, dict) or set(payload) - {
-            "expression", "epsilon", "through", "assumptions",
+            "expression",
+            "epsilon",
+            "through",
+            "assumptions",
         }:
             raise ValueError("Request must contain only expression, epsilon, through, assumptions")
         return cls(

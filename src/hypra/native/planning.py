@@ -89,7 +89,10 @@ def _exact_rational_valuation(expr, epsilon, assumptions):
 
 
 def plan_expansion(
-    expr: s.Expr, epsilon: s.Symbol, through: int, assumptions: Boolean = s.true,
+    expr: s.Expr,
+    epsilon: s.Symbol,
+    through: int,
+    assumptions: Boolean = s.true,
 ) -> ExpansionPlan:
     """Bound every omitted hypergeometric term after multiplying all prefactors.
 
@@ -105,7 +108,8 @@ def plan_expansion(
     # recursion legitimately treats as constants but must not define at poles.
     if any(
         not b.has(epsilon) and b.is_integer is True and b.is_nonpositive is True
-        for atom in expr.atoms(s.hyper) for b in atom.bq
+        for atom in expr.atoms(s.hyper)
+        for b in atom.bq
     ):
         raise UnsupportedExpressionError("Fixed singular lower hypergeometric parameter")
 
@@ -202,7 +206,9 @@ def plan_expansion(
             pairs = [_affine_rational(a, epsilon) for a in (*node.ap, *node.bq)]
             slope_symbols = set().union(*(slope.free_symbols for _, slope in pairs))
             if slope_symbols & node.argument.free_symbols:
-                raise UnsupportedExpressionError("Symbolic slopes must be independent of the argument")
+                raise UnsupportedExpressionError(
+                    "Symbolic slopes must be independent of the argument"
+                )
             poles = 0
             for b in node.bq:
                 c, slope = _affine_rational(b, epsilon)
@@ -212,7 +218,9 @@ def plan_expansion(
                             "Fixed singular lower hypergeometric parameter"
                         )
                     if _ask(s.Q.nonzero(slope), _facts(assumptions)) is not True:
-                        raise UnsupportedExpressionError("Moving lower pole slope must be provably nonzero")
+                        raise UnsupportedExpressionError(
+                            "Moving lower pole slope must be provably nonzero"
+                        )
                     poles += 1
             negative_budget += poles
             return -poles

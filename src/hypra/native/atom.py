@@ -82,23 +82,33 @@ def expand_atom(h, eps, order, assumptions: Boolean = s.true, argument_domain="r
                 return rewrite_endpoints(base, eps, assumptions)
         regular_z = s.Dummy("unit_argument", positive=True)
         regular_h = s.hyper(h.ap, h.bq, regular_z, evaluate=False)
-        regular = expand_atom(regular_h, eps, order, s.And(assumptions, regular_z < 1), "real-interval")
+        regular = expand_atom(
+            regular_h, eps, order, s.And(assumptions, regular_z < 1), "real-interval"
+        )
         poles = plan_expansion(h, eps, order, assumptions).pole_bound
-        return s.Add(*(eps**k * unit_coefficient_limit(laurent_coefficient(regular, eps, k), regular_z)
-                       for k in range(-poles, order+1)))
+        return s.Add(
+            *(
+                eps**k * unit_coefficient_limit(laurent_coefficient(regular, eps, k), regular_z)
+                for k in range(-poles, order + 1)
+            )
+        )
     if argument_domain == "principal-disk":
         # This increment admits exact numerical complex points only. Symbolic
         # disk constraints require a separate assumption proof, not a guess.
-        if z.free_symbols or not _positive(1-s.Abs(z), s.true) or not (
-            z.is_real is False or _positive(z, s.true)
+        if (
+            z.free_symbols
+            or not _positive(1 - s.Abs(z), s.true)
+            or not (z.is_real is False or _positive(z, s.true))
         ):
             raise UnsupportedExpressionError(
                 "Principal-disk expansion requires an exact numeric argument with "
                 "0 < |z| < 1 off the negative real axis"
             )
     elif argument_domain == "principal-cut-plane":
-        if z.free_symbols or z.is_finite is not True or not (
-            z.is_real is False or _inside_interval(z, s.true)
+        if (
+            z.free_symbols
+            or z.is_finite is not True
+            or not (z.is_real is False or _inside_interval(z, s.true))
         ):
             raise UnsupportedExpressionError(
                 "Principal-cut-plane expansion requires an exact finite numeric "
@@ -156,14 +166,17 @@ def expand_atom(h, eps, order, assumptions: Boolean = s.true, argument_domain="r
         if parsed is not None:
             ap, bq = parsed
             result = canonical_half_series(
-                [a for a, _ in ap], [a for _, a in ap],
-                [b for b, _ in bq], [b for _, b in bq], z, eps, order,
+                [a for a, _ in ap],
+                [a for _, a in ap],
+                [b for b, _ in bq],
+                [b for _, b in bq],
+                z,
+                eps,
+                order,
             )
             if result is not None:
                 return result
-        raise UnsupportedExpressionError(
-            "Unsupported noninteger parameter pattern or shifts"
-        )
+        raise UnsupportedExpressionError("Unsupported noninteger parameter pattern or shifts")
     upper, lower = tuple(h.ap), h.bq[0]
     if s.S.One in upper:
         other = upper[1] if upper[0] == 1 else upper[0]
