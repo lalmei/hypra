@@ -4,6 +4,8 @@ Opt in with HYPRA_RUN_REAL=1 after configuring external dependencies.
 """
 
 import os
+import shutil
+from pathlib import Path
 
 import pytest
 import sympy as s
@@ -16,11 +18,26 @@ DOMAIN = s.And(W > 0, W < 1)
 
 
 @pytest.fixture(scope="module", autouse=True)
-def require_real_backend():
+def require_real_backend(tmp_path_factory):
     if os.environ.get("HYPRA_RUN_REAL") != "1":
         pytest.skip("Real backend is opt-in: HYPRA_RUN_REAL=1")
-    info = backend_info(backend="wolfram")
-    assert info["available"], info["error"]
+    with pytest.MonkeyPatch.context() as env:
+        env.setenv("HYPRA_CACHE", "0")
+        if not (os.environ.get("HYPRA_HYPEXP_PATH") or os.environ.get("HYPRA_HPL_PATH")):
+            upstream = Path(__file__).resolve().parents[3] / "reference" / "upstream"
+            hpl = upstream / "HPL-2.0" / "HPL.m"
+            hypexp = upstream / "HypExp-2.0"
+            if hpl.is_file() and (hypexp / "HypExp.m").is_file():
+                workspace = tmp_path_factory.mktemp("upstream-hypexp") / "HypExp-2.0"
+                shutil.copytree(hypexp, workspace)
+                known = workspace / ("known.m" if os.name == "nt" else ".known.m")
+                if not known.exists():
+                    known.write_text("{KnownToOrder1}\n", encoding="utf-8")
+                env.setenv("HYPRA_HPL_PATH", str(hpl))
+                env.setenv("HYPRA_HYPEXP_PATH", str(workspace / "HypExp.m"))
+        info = backend_info(backend="wolfram")
+        assert info["available"], info["error"]
+        yield
 
 
 def elementary_hpl(expr):
@@ -67,3 +84,31 @@ def test_half_integer_family_at_exact_argument():
     result = expand_epsilon(f, E, through=0, backend="wolfram")
     # 2F1(1,1/2;3/2;1/4)=2 atanh(1/2)=log(3).
     assert s.simplify(elementary_hpl(result.coefficient(0)) - s.log(3)) == 0
+
+
+def test_half_integer_plus_letter_coefficient():
+    half = s.S.Half
+    f = s.hyper([1, half + E], [1 + half + E], W)
+    upstream = expand_epsilon(f, E, through=1, assumptions=DOMAIN, backend="wolfram")
+    native = expand_epsilon(f, E, through=1, assumptions=DOMAIN)
+    from hypra.symbolic import reduce_known_hpl
+
+    actual = reduce_known_hpl(upstream.coefficient(1))
+    expected = native.coefficient(1)
+    for point in (s.Rational(1, 4), s.Rational(4, 9)):
+        difference = (actual - expected).subs(W, point)
+        assert abs(difference.evalf(40)) < s.Float("1e-35")
+
+
+def test_half_integer_unit_endpoint():
+    f = s.hyper([s.S.Half, 1, 1 + E], [s.Rational(3, 2), 2], 1)
+    upstream = expand_epsilon(f, E, through=1, backend="wolfram")
+    native = expand_epsilon(f, E, through=1)
+    assert s.simplify(upstream.polynomial - native.polynomial) == 0
+
+
+def test_hpl_weight_four_at_i():
+    expression = HPL((0, 1, 0, -1), s.I)
+    upstream = expand_epsilon(expression, E, through=0, backend="wolfram")
+    assert not upstream.polynomial.has(HPL)
+    assert abs(upstream.polynomial.evalf(36) - expression.evalf(36)) < s.Float("1e-30")
