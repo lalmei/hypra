@@ -1,8 +1,8 @@
 # Preparing a tokenless PyPI release
 
-The release workflow validates distributions first and keeps production uploads
-behind a separate manual action and protected environment review. Creating the
-workflow or a Pending Publisher does not upload a package.
+Publishing a GitHub release starts validation and requests approval to upload
+the distributions to PyPI. A reviewer must approve the `pypi` environment
+before the upload runs.
 
 ## Track a release
 
@@ -40,10 +40,9 @@ paste account credentials into source, workflow inputs, issues or logs.
 
 Create an environment named `pypi` in `lalmei/hypra` with at least one required
 reviewer. The workflow checks this protection before scheduling the publishing
-job, so it cannot silently create an unprotected environment. Environment
-approval is a separate step from manually requesting publication. If the sole
-maintainer also dispatches the run, do not enable a prevention-of-self-review
-rule unless another reviewer will approve deployments.
+job. If the sole maintainer publishes the GitHub release or dispatches the run,
+do not enable a prevention-of-self-review rule unless another reviewer can
+approve deployments.
 
 The environment's existence and required reviewers must be verified before a
 release; creating the workflow alone does not configure repository settings.
@@ -51,7 +50,8 @@ release; creating the workflow alone does not configure repository settings.
 ## What runs automatically
 
 `.github/workflows/release.yml` pins third-party Actions to full commit hashes.
-A version-tag push or a manual run with `publish=false` only:
+Version-tag pushes, published GitHub releases and manual runs all validate the
+distributions:
 
 1. Checks that a tag, when selected, exactly equals `v` plus `project.version`.
 2. Installs locked Python dependencies and runs tests excluding the explicitly
@@ -59,8 +59,16 @@ A version-tag push or a manual run with `publish=false` only:
 3. Builds the wheel and source distribution with `uv build`.
 4. Runs `twine check --strict` and uploads distributions as a review artifact.
 
-Production upload requires a separate manual dispatch with `publish=true`,
-selecting a version tag, passing validation and approving the `pypi` environment.
+Publishing a stable release or prerelease on GitHub starts the PyPI publication
+path. Tag pushes and manual runs with `publish=false` stop after validation.
+To request publication manually, dispatch the workflow on the version tag with
+`publish=true`. Both publication paths require successful validation and `pypi`
+environment approval.
+
+GitHub runs the workflow from the release tag. The frozen `v0.1.0a0` tag has the
+earlier workflow, so use manual dispatch with `publish=true` for that version.
+For subsequent releases, tag a commit that includes the updated workflow.
+
 Only the publishing job gets `id-token: write`. The official PyPI publish action
 exchanges GitHub's short-lived OIDC identity for a project-scoped credential and
 creates distribution attestations. There is no stored password/token path.
@@ -76,9 +84,9 @@ capability map states the remaining upstream-parity gaps; choose prerelease
 metadata honestly rather than implying full compatibility.
 
 Choose the version in `pyproject.toml`, update the lock if metadata changes,
-and run tests and local metadata validation. The current prerelease would use
-tag `v0.1.0a0`; this page does not create it. After an authorized tag push,
-inspect its validation artifact before requesting a manual production upload.
+and run tests and local metadata validation. After pushing the version tag,
+inspect its validation artifact before publishing the GitHub release or
+requesting a manual production upload.
 A successful build is not evidence of publication: verify the resulting PyPI
 project/version and downloadable artifacts afterward. PyPI versions cannot be
 overwritten, so choose the release number deliberately.
