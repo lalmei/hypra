@@ -138,13 +138,17 @@ def rewrite_endpoints(
     *,
     meromorphic: bool = False,
     excess_shift: int | None = None,
+    shift_singular_lowers: bool = False,
 ) -> s.Expr:
     """Rewrite terminating sums and unit endpoints before Laurent planning.
 
     Other nonterminating arguments are unchanged. With meromorphic=True,
-    continue supported unit endpoints in the parameters. A fixed nonpositive lower parameter is rejected before
-    termination, since its definition can depend on a limiting convention.
+    continue supported unit endpoints in the parameters. The explicit
+    lower-pole prescription shifts fixed singular lowers before cancellation
+    or termination.
     """
+    if type(shift_singular_lowers) is not bool or (shift_singular_lowers and not meromorphic):
+        raise ValueError("shift_singular_lowers requires a Boolean and meromorphic mode")
     if excess_shift is not None and (
         not meromorphic or type(excess_shift) is not int or excess_shift < 1
     ):
@@ -162,12 +166,13 @@ def rewrite_endpoints(
         upper = list(cast(tuple[s.Expr, ...], tuple(atom.ap)))
         lower = list(cast(tuple[s.Expr, ...], tuple(atom.bq)))
         argument = cast(s.Expr, atom.argument)
-        # Check before simplification or z=0 shortcuts: cancellation at a fixed
-        # singular parameter selects a limiting convention we do not assume.
-        if any(_fixed_nonpositive_integer(b, epsilon) for b in lower):
-            raise UnsupportedExpressionError(
-                "Fixed nonpositive lower parameter has an ambiguous singular definition"
-            )
+        singular = [_fixed_nonpositive_integer(b, epsilon) for b in lower]
+        if any(singular):
+            if argument != 1 or not shift_singular_lowers:
+                raise UnsupportedExpressionError(
+                    "Fixed nonpositive lower parameter has an ambiguous singular definition"
+                )
+            lower = [b + epsilon if fixed else b for b, fixed in zip(lower, singular, strict=True)]
         for b in tuple(lower):
             if b in upper:
                 upper.remove(b)
