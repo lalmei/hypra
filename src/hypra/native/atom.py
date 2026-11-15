@@ -1,6 +1,7 @@
 """Dispatch a single hypergeometric atom to an exact native kernel."""
 
 import sympy as s
+from sympy.logic.boolalg import Boolean
 
 from ..errors import UnsupportedExpressionError
 from ..symbolic import HPL, reduce_known_hpl
@@ -14,7 +15,7 @@ def _inside_interval(z, assumptions):
 def _linear(expr, eps, base):
     """Return rational slope if expr=base+slope*eps, else None."""
     slope = s.expand(expr).coeff(eps)
-    if slope.is_Rational and s.expand(expr - base - slope * eps) == 0:
+    if slope is not None and slope.is_Rational and s.expand(expr - base - slope * eps) == 0:
         return slope
     return None
 
@@ -59,7 +60,7 @@ def _half_even(a, z, eps, order):
     )
 
 
-def expand_atom(h, eps, order, assumptions=s.true, argument_domain="real-interval"):
+def expand_atom(h, eps, order, assumptions: Boolean = s.true, argument_domain="real-interval"):
     """Exact coefficient recursion in the explicit real domain 0<z<1."""
     if h.argument == 0:
         return s.S.One

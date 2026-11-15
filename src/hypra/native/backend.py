@@ -15,6 +15,7 @@ from pathlib import Path
 from typing import Any, Literal
 
 import sympy as s
+from sympy.logic.boolalg import Boolean
 
 from .._json import strict_json_loads
 from ..errors import IncompleteExpansionError, UnsupportedExpressionError
@@ -150,6 +151,10 @@ class NativeBackend:
     def _expand(self, request: dict[str, Any]) -> dict[str, Any]:
         expr, eps = decode_expr(request["expression"]), decode_expr(request["epsilon"])
         assumptions = decode_expr(request["assumptions"])
+        if not isinstance(expr, s.Expr) or not isinstance(eps, s.Symbol):
+            raise TypeError("Expected a SymPy expression and regulator Symbol")
+        if not isinstance(assumptions, Boolean):
+            raise TypeError("Assumptions must be a SymPy Boolean")
         plan = plan_expansion(expr, eps, request["through"], assumptions)
         order = request["internal_order"]
         if type(order) is not int or order < plan.internal_order:

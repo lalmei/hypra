@@ -33,7 +33,7 @@ def half_parameters(h, eps):
                 return None
             row.append((base, slope))
         rows.append(row)
-    return tuple(rows)
+    return rows[0], rows[1]
 
 
 def expand_matched_half(h, eps, order):

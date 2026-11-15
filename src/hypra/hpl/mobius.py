@@ -23,7 +23,7 @@ def _mobius_terms(word):
     # T(M(z)) = -log(z) - log(2) + O(z). At the transformed origin
     # each nonempty HPL has zero constant term in its power/log expansion.
     constant = hpl_endpoint_polynomial(word, _ENDPOINT_LOG).subs(_ENDPOINT_LOG, -s.log(2))
-    terms = defaultdict(lambda: s.S.Zero, {(): constant})
+    terms: defaultdict[tuple[int, ...], s.Expr] = defaultdict(lambda: s.S.Zero, {(): constant})
     for tail, coefficient in _mobius_terms(word[1:]):
         for letter, sign in _PULLBACK[word[0]]:
             terms[(letter, *tail)] += sign*coefficient

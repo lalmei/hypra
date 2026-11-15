@@ -69,7 +69,7 @@ def canonical_half_series(upper_base, upper_slopes, lower_base, lower_slopes,
             return s.S.Zero
         coefficients = s.Poly(poly, x)
         powers = [value]
-        for _ in range(coefficients.degree()):
+        for _ in range(int(coefficients.degree())):
             powers.append(theta(powers[-1]))
         return s.expand(sum(c*powers[int(m[0])] for m,c in coefficients.terms()))
 
@@ -87,10 +87,10 @@ def canonical_half_series(upper_base, upper_slopes, lower_base, lower_slopes,
             result = integrate_from_zero(s.expand(result/theta_factor), t)
         return s.expand(result)
 
-    coefficients = [s.S.One]
+    coefficients: list[s.Expr] = [s.S.One]
     for n in range(1, order+1):
         forcing = -sum(apply(operator.nth(k), coefficients[n-k])
-                       for k in range(1, min(n, operator.degree())+1))
+                       for k in range(1, min(n, int(operator.degree()))+1))
         coefficients.append(invert(forcing))
     return sum(value.subs(t, argument)*epsilon**n for n,value in enumerate(coefficients))
 
@@ -116,15 +116,15 @@ def _all_half_series(alpha, beta, z, epsilon, order):
             return s.S.Zero
         polynomial = s.Poly(poly, x)
         powers = [value]
-        for _ in range(polynomial.degree()):
+        for _ in range(int(polynomial.degree())):
             last = powers[-1]
             powers.append(s.expand(t*(1-t**2)*s.diff(last,t)/2-t**2*last/2))
         return s.expand(sum(c*powers[int(m[0])] for m,c in polynomial.terms()))
 
-    coefficients = [s.S.One]
+    coefficients: list[s.Expr] = [s.S.One]
     for n in range(1, order+1):
         forcing = -sum(apply(operator.nth(k), coefficients[n-k])
-                       for k in range(1,min(n,operator.degree())+1))
+                       for k in range(1,min(n,int(operator.degree()))+1))
         for _ in range(len(beta)):
             forcing = t/(1-t**2)*integrate_from_zero(s.expand(2*forcing/t**2),t)
         coefficients.append(integrate_from_zero(s.expand(2*forcing/t),t))

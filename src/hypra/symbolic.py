@@ -20,6 +20,7 @@ from sympy import (
     Function,
     Integer,
     Order,
+    Rational,
     Tuple,
     ceiling,
     factorial,
@@ -45,7 +46,7 @@ class HPL(Function):
     def __new__(cls, word: IntegerWord, argument: ExactScalar, **options: object) -> Self:
         """Construct the exact SymPy function.
 
-    Args:
+        Args:
             word: Expanded exact letters from {-1, 0, 1}, in integration order.
             argument: SymPy argument of the harmonic polylogarithm.
             **options: Keyword options forwarded to SymPy's function constructor.
@@ -63,8 +64,9 @@ class HPL(Function):
             raise ValueError("HPL requires exact expanded letters -1, 0, or 1")
         return cast(Self, super().__new__(cls, Tuple(*word), argument, **options))
 
+    # SymPy supplies a fixed set of positional arguments based on nargs.
     @classmethod
-    def eval(cls, word, argument):
+    def eval(cls, word, argument):  # pyright: ignore[reportIncompatibleMethodOverride]
         if not isinstance(word, Tuple):
             raise TypeError("HPL word must be a tuple of letters -1, 0, or 1")
         if any(not isinstance(letter, Integer) or letter not in (-1, 0, 1) for letter in word):
@@ -74,7 +76,7 @@ class HPL(Function):
     def from_compressed(cls, word: IntegerWord, argument: ExactScalar) -> Self:
         """Expand signed integer indices without changing their order.
 
-        Args:
+            Args:
             word: Signed compressed indices. A standalone zero is one zero letter.
             argument: SymPy argument of the harmonic polylogarithm.
 
@@ -120,15 +122,15 @@ class HPL(Function):
         if not self.word:
             return Integer(0)
         z = self.argument
-        letter = self.word[0]
+        letter = cast(Integer, self.word[0])
         kernel = {Integer(0): 1 / z, Integer(1): 1 / (1 - z), Integer(-1): 1 / (1 + z)}[letter]
         tail = HPL(self.word[1:], z) if len(self.word) > 1 else Integer(1)
         return kernel * tail
 
-    def _eval_derivative(self, symbol):
+    def _eval_derivative(self, s):
         # Function's generic implementation tries to differentiate Tuple(word),
         # but the letters are discrete constants. Only the argument varies.
-        return self.fdiff(2) * self.argument.diff(symbol)
+        return self.fdiff(2) * self.argument.diff(s)
 
     def _eval_evalf(self, prec):
         """Evaluate interior real and off-cut complex principal values."""
@@ -140,7 +142,7 @@ class HPL(Function):
         if z.is_number is not True or z.is_finite is not True or len(self.word) > 24:
             return self
         digits = max(2, prec_to_dps(prec) + 8)
-        word = tuple(self.word)
+        word = self.word
         if z.is_real is False and digits <= 500:
             from .hpl.radial_continuation import continue_hpl
 
@@ -197,7 +199,7 @@ class HPL(Function):
             exact = log(self.argument) ** len(self.word) / factorial(len(self.word))
             return exact._eval_nseries(x, n, logx, cdir=cdir)
         center = self.argument.subs(x, 0)
-        if center.is_Rational and 0 < center < 1:
+        if isinstance(center, Rational) and 0 < center < 1:
             from .hpl.taylor import hpl_taylor
 
             delta = self.argument - center
@@ -223,7 +225,8 @@ class HPL(Function):
         composed = germ.subs(local_variable, self.argument)
         return composed._eval_nseries(x, n, logx, cdir=cdir) + Order(x**n, x)
 
-    def _eval_as_leading_term(self, x, logx=None, cdir=0):
+    # SymPy infers Self from its default hook, but accepts any leading expression.
+    def _eval_as_leading_term(self, x, logx=None, cdir=0):  # pyright: ignore[reportIncompatibleMethodOverride]
         from .errors import UnsupportedExpressionError
         from .hpl.algebra import hpl_series
 
@@ -280,7 +283,7 @@ class MZV(Function):
     def __new__(cls, indices: IntegerWord, **options: object) -> Expr:
         """Construct the exact SymPy function.
 
-    Args:
+        Args:
             indices: Positive summation exponents with first index at least two.
             **options: Keyword options forwarded to SymPy's function constructor.
         """
@@ -295,8 +298,9 @@ class MZV(Function):
             raise ValueError("A convergent MZV requires first index >= 2")
         return cast(Expr, super().__new__(cls, Tuple(*indices), **options))
 
+    # SymPy supplies a fixed set of positional arguments based on nargs.
     @classmethod
-    def eval(cls, indices):
+    def eval(cls, indices):  # pyright: ignore[reportIncompatibleMethodOverride]
         if not isinstance(indices, Tuple):
             raise TypeError("MZV indices must be a tuple of positive integers")
         if not indices:
@@ -316,7 +320,7 @@ class MZV(Function):
 
         return _constant_evalf(self, prec, evaluate_mzv, (self.indices,))
 
-    def _eval_derivative(self, symbol):
+    def _eval_derivative(self, s):
         return Integer(0)
 
     def _eval_is_real(self):
@@ -343,7 +347,7 @@ class EulerSum(Function):
     def __new__(cls, indices: IntegerWord, colors: IntegerWord, **options: object) -> Expr:
         """Construct the exact SymPy function.
 
-    Args:
+        Args:
             indices: Positive summation exponents.
             colors: One sign (-1 or 1) per index.
             **options: Keyword options forwarded to SymPy's function constructor.
@@ -360,8 +364,9 @@ class EulerSum(Function):
             raise ValueError("Divergent EulerSum; no regularized value is assigned")
         return cast(Expr, super().__new__(cls, Tuple(*indices), Tuple(*colors), **options))
 
+    # SymPy supplies a fixed set of positional arguments based on nargs.
     @classmethod
-    def eval(cls, indices, colors):
+    def eval(cls, indices, colors):  # pyright: ignore[reportIncompatibleMethodOverride]
         if not indices:
             return Integer(1)
 
@@ -380,7 +385,7 @@ class EulerSum(Function):
 
         return _constant_evalf(self, prec, evaluate_euler_sum, (self.indices, self.colors))
 
-    def _eval_derivative(self, symbol):
+    def _eval_derivative(self, s):
         return Integer(0)
 
     def _eval_is_real(self):
@@ -426,4 +431,4 @@ def reduce_known_hpl(expression: ExactScalar) -> Expr:
             return word[-1] * polylog(weight, word[-1] * z)
         return atom
 
-    return expression.replace(lambda node: isinstance(node, HPL), reduce_one)
+    return cast(Expr, expression.replace(lambda node: isinstance(node, HPL), reduce_one))

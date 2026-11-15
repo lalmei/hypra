@@ -21,7 +21,7 @@ import sympy as s
 from mpmath.ctx_mp_python import _mpc as MPComplex
 from mpmath.ctx_mp_python import _mpf as MPReal
 
-from .._typing import IntegerWord
+from .._typing import IntegerWord, as_integer_tuple
 from ..errors import UnsupportedExpressionError
 
 # mpmath creates new mpf and mpc subclasses for each cloned context.
@@ -75,7 +75,7 @@ def _word(value: IntegerWord) -> tuple[int, ...]:
         raise UnsupportedExpressionError("Numerical HPL words require exact -1, 0, 1 letters")
     if len(value) > _MAX_WEIGHT:
         raise UnsupportedExpressionError(f"Numerical HPL weight exceeds {_MAX_WEIGHT}")
-    return tuple(int(letter) for letter in value)
+    return as_integer_tuple(value)
 
 
 def _argument(value, ctx, domain):

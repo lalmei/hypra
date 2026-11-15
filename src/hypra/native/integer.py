@@ -6,6 +6,8 @@ HypExp source. Canonical nested sums are expanded into HPLs before shifts.
 
 from __future__ import annotations
 
+from typing import cast
+
 import sympy as s
 
 from ..errors import UnsupportedExpressionError
@@ -83,7 +85,7 @@ def expand_integer_hyper(h, eps, order):
             ap.remove(b)
             bq.remove(b)
     if len(ap) != len(h.ap):
-        h = s.hyper(ap, bq, h.argument, evaluate=False)
+        h = cast(s.hyper, s.hyper(ap, bq, h.argument, evaluate=False))
     parsed = integer_parameters(h, eps)
     if parsed is None:
         return None
@@ -98,26 +100,29 @@ def expand_integer_hyper(h, eps, order):
         # integrals. Shift all bases positive, allowing the canonical engine.
         from .planning import _exact_rational_valuation
 
+        upper_parameters = cast(tuple[s.Expr, ...], tuple(h.ap))
+        lower_parameters = cast(tuple[s.Expr, ...], tuple(h.bq))
+        argument = cast(s.Expr, h.argument)
         shift = 1 - min(base for base, _ in upper + lower)
         prefix = s.S.Zero
         coefficient = s.S.One
         for n in range(shift):
             if n:
-                coefficient *= s.prod(a + n - 1 for a in h.ap)
-                coefficient /= n * s.prod(b + n - 1 for b in h.bq)
-            prefix += coefficient * h.argument**n
-        coefficient *= s.prod(a + shift - 1 for a in h.ap)
-        coefficient /= shift * s.prod(b + shift - 1 for b in h.bq)
+                coefficient *= s.prod(a + n - 1 for a in upper_parameters)
+                coefficient /= n * s.prod(b + n - 1 for b in lower_parameters)
+            prefix += coefficient * argument**n
+        coefficient *= s.prod(a + shift - 1 for a in upper_parameters)
+        coefficient /= shift * s.prod(b + shift - 1 for b in lower_parameters)
         valuation = _exact_rational_valuation(coefficient, eps, s.true)
         shifted = s.hyper(
-            [1, *(a + shift for a in h.ap)],
-            [shift + 1, *(b + shift for b in h.bq)],
-            h.argument,
+            [1, *(a + shift for a in upper_parameters)],
+            [shift + 1, *(b + shift for b in lower_parameters)],
+            argument,
             evaluate=False,
         )
         tail = expand_integer_hyper(shifted, eps, order + max(0, -valuation))
         return _truncate(
-            prefix + coefficient * h.argument**shift * tail,
+            prefix + coefficient * argument**shift * tail,
             eps,
             order,
             sum(1 for base, _ in lower if base <= 0),

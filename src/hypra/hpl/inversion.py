@@ -1,5 +1,7 @@
 """Explicit upper/lower inversion boundary values from real HPL transforms."""
 
+from typing import cast
+
 import sympy as s
 
 from .._typing import Boundary, IntegerWord, Interval
@@ -53,4 +55,4 @@ def invert_hpl(
     lower = _map_hpl(expression, z, lambda w: mobius_hpl(w, z, domain=domain))
     # Every HPL(z), Euler sum, MZV and elementary real constant in this
     # representation is real on the declared interval. Only explicit I changes.
-    return lower if boundary == "lower" else lower.xreplace({s.I: -s.I})
+    return cast(s.Expr, lower if boundary == "lower" else lower.xreplace({s.I: -s.I}))

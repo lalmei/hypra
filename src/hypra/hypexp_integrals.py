@@ -10,11 +10,11 @@ from .hpl.algebra import _linear_terms, integrate_from_zero, shuffle_expand
 from .hpl.regularization import hpl_endpoint_polynomial
 
 
-def _integers(*values: ExactInteger) -> tuple[ExactInteger, ...]:
+def _integers(*values: ExactInteger) -> tuple[int, ...]:
     if any(isinstance(value, bool) or not isinstance(value, (int, s.Integer))
            for value in values):
         raise TypeError("Moment powers must be explicit integers")
-    return values
+    return tuple(map(int, values))
 
 
 def beta_log_moment(n: ExactInteger, m: ExactInteger, p: ExactInteger) -> s.Expr:

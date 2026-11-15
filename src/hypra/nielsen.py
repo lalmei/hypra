@@ -30,7 +30,7 @@ class NielsenPolylog(s.Function):
     ) -> Self:
         """Construct the exact SymPy function.
 
-    Args:
+        Args:
             n: Positive count of zero letters.
             p: Positive count of one letters.
             argument: SymPy argument of the generalized polylogarithm.
@@ -68,11 +68,11 @@ class NielsenPolylog(s.Function):
         if argindex != 3:
             raise ArgumentIndexError(self, argindex)
         if self.n > 1:
-            return NielsenPolylog(self.n-1, self.p, self.argument)/self.argument
+            return NielsenPolylog(int(self.n) - 1, self.p, self.argument)/self.argument
         return (-s.log(1-self.argument))**self.p/(s.factorial(self.p)*self.argument)
 
-    def _eval_derivative(self, symbol):
-        return self.fdiff(3)*s.diff(self.argument, symbol)
+    def _eval_derivative(self, s):
+        return self.fdiff(3) * self.argument.diff(s)
 
     def _eval_rewrite_as_HPL(self, n, p, argument, **hints):
         return self.as_hpl()
@@ -102,7 +102,7 @@ def nielsen_to_hpl(expression: ExactScalar) -> s.Expr:
         expression: Exact symbolic expression containing Nielsen atoms.
     """
     expression = _expression(expression)
-    return expression.xreplace({atom: atom.as_hpl() for atom in expression.atoms(NielsenPolylog)})
+    return cast(s.Expr, expression.xreplace({atom: atom.as_hpl() for atom in expression.atoms(NielsenPolylog)}))
 
 
 def hpl_to_nielsen(expression: ExactScalar) -> s.Expr:
@@ -121,7 +121,7 @@ def hpl_to_nielsen(expression: ExactScalar) -> s.Expr:
         p = len(word)-n
         if n and p and all(letter == 1 for letter in word[n:]):
             replacements[atom] = NielsenPolylog(n, p, atom.argument)
-    return expression.xreplace(replacements)
+    return cast(s.Expr, expression.xreplace(replacements))
 
 
 def reduce_nielsen(expression: ExactScalar) -> s.Expr:
@@ -131,5 +131,5 @@ def reduce_nielsen(expression: ExactScalar) -> s.Expr:
         expression: Exact symbolic expression containing Nielsen atoms.
     """
     expression = _expression(expression)
-    return expression.xreplace({atom: s.polylog(atom.n+1, atom.argument)
-                               for atom in expression.atoms(NielsenPolylog) if atom.p == 1})
+    return cast(s.Expr, expression.xreplace({atom: s.polylog(atom.n+1, atom.argument)
+                               for atom in expression.atoms(NielsenPolylog) if atom.p == 1}))

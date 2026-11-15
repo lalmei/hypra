@@ -4,7 +4,7 @@ from typing import Literal
 
 import sympy as s
 
-from .._typing import IntegerWord
+from .._typing import IntegerWord, as_integer_tuple
 from ..errors import UnsupportedExpressionError
 from ..symbolic import HPL
 from .algebra import _word
@@ -27,10 +27,11 @@ def expand_indices(indices: IntegerWord) -> tuple[int, ...]:
         isinstance(n,bool) or not isinstance(n,(int,s.Integer)) for n in indices
     ):
         raise TypeError("Compressed indices must be exact integers")
-    if sum(max(1,abs(int(n))) for n in indices)>24:
+    indices = as_integer_tuple(indices)
+    if sum(max(1,abs(n)) for n in indices)>24:
         raise UnsupportedExpressionError("Index conversion weight exceeds24")
     return tuple(letter for n in indices
-                 for letter in ((0,) if n==0 else (0,)*(abs(int(n))-1)+(int(s.sign(n)),)))
+                 for letter in ((0,) if n==0 else (0,)*(abs(n)-1)+(int(s.sign(n)),)))
 
 
 def compress_indices(word: IntegerWord) -> tuple[int, ...]:

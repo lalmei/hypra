@@ -112,7 +112,7 @@ def _continue_unit(upper, lower, excess, epsilon):
     @cache
     def raise_until_convergent(atom):
         delta = s.expand(sum(atom.bq)-sum(atom.ap))
-        if delta.subs(epsilon, 0) > 0:
+        if cast(s.Expr, delta.subs(epsilon, 0)) > 0:
             return {atom: s.S.One}
         result = {}
         for weight, shifted in _raise_unit_excess(atom.ap, atom.bq, delta):
@@ -152,7 +152,9 @@ def rewrite_endpoints(
         raise UnsupportedExpressionError("Contradictory endpoint assumptions")
     replacements = {}
     for atom in expr.atoms(s.hyper):
-        upper, lower, argument = list(atom.ap), list(atom.bq), atom.argument
+        upper = list(cast(tuple[s.Expr, ...], tuple(atom.ap)))
+        lower = list(cast(tuple[s.Expr, ...], tuple(atom.bq)))
+        argument = cast(s.Expr, atom.argument)
         # Check before simplification or z=0 shortcuts: cancellation at a fixed
         # singular parameter selects a limiting convention we do not assume.
         if any(_fixed_nonpositive_integer(b, epsilon) for b in lower):
@@ -172,7 +174,7 @@ def rewrite_endpoints(
         if terminating:
             if any(not isinstance(u, s.Integer) for u in terminating):
                 raise UnsupportedExpressionError("Termination degree must be an explicit integer")
-            degree = min(-int(u) for u in terminating)
+            degree = min(-int(u) for u in cast(list[s.Integer], terminating))
             if degree > 4096:
                 raise UnsupportedExpressionError("Terminating sum exceeds the supported 4096-degree budget")
             replacements[atom] = s.Add(*(argument**n * s.prod(s.rf(a, n) for a in upper) /

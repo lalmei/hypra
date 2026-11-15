@@ -1,8 +1,10 @@
 """Proved low-weight conversion to logarithms and classical polylogarithms."""
 
+from typing import cast
+
 import sympy as s
 
-from .._typing import Interval
+from .._typing import Interval, as_integer_tuple
 from ..errors import UnsupportedExpressionError
 from ..symbolic import HPL, reduce_known_hpl
 from .reduction import _extract, extract_hpl_logs, lyndon_reduce
@@ -76,7 +78,7 @@ def classical_hpl(expression: s.Expr, z: s.Symbol, *, domain: Interval) -> s.Exp
             if atom.argument.has(z):
                 raise UnsupportedExpressionError("First transform HPLs to the common argument")
             continue
-        word = tuple(atom.word)
+        word = as_integer_tuple(atom.word)
         if len(word) == 3 and all(letter in (0, 1) for letter in word):
             extracted = extract_hpl_logs(atom)
             changes[atom] = extracted.xreplace({HPL((0, 1, 1), z): binary_011})
@@ -87,9 +89,9 @@ def classical_hpl(expression: s.Expr, z: s.Symbol, *, domain: Interval) -> s.Exp
             binary = tuple(-letter for letter in word)
             extracted = _extract(binary, z, True, True)
             relabeled = extracted.xreplace(
-                {h: HPL(tuple(-letter for letter in h.word), z) for h in extracted.atoms(HPL)}
+                {h: HPL(tuple(-letter for letter in as_integer_tuple(h.word)), z) for h in extracted.atoms(HPL)}
             )
-            changes[atom] = reduce_known_hpl(relabeled).xreplace(
+            changes[atom] = reduce_known_hpl(cast(s.Expr, relabeled)).xreplace(
                 {HPL((0, -1, -1), z): negative_011}
             )
         elif len(word) == 3 and all(letter in (-1, 1) for letter in word):
@@ -98,7 +100,7 @@ def classical_hpl(expression: s.Expr, z: s.Symbol, *, domain: Interval) -> s.Exp
             extracted = _extract(binary, z, True, True)
             relabeled = extracted.xreplace(
                 {
-                    h: HPL(tuple(-1 if letter == 0 else 1 for letter in h.word), z)
+                    h: HPL(tuple(-1 if letter == 0 else 1 for letter in as_integer_tuple(h.word)), z)
                     for h in extracted.atoms(HPL)
                 }
             )
@@ -106,7 +108,7 @@ def classical_hpl(expression: s.Expr, z: s.Symbol, *, domain: Interval) -> s.Exp
             replacements.update(
                 {HPL((-1, -1, 1), z): minus_minus_plus, HPL((-1, 1, 1), z): minus_plus_plus}
             )
-            changes[atom] = reduce_known_hpl(relabeled.xreplace(replacements))
+            changes[atom] = reduce_known_hpl(cast(s.Expr, relabeled.xreplace(replacements)))
         elif len(word) == 3:
             # A square-log identity proves A=H(-1,0,1). Pulling A back by
             # M(z)=(1-z)/(1+z) and reducing its shuffle words solves for the
@@ -138,7 +140,7 @@ def classical_hpl(expression: s.Expr, z: s.Symbol, *, domain: Interval) -> s.Exp
             )
             # Remaining words use at most two letters, so recursion decreases
             # the number of genuinely ternary primitive atoms to zero.
-            changes[atom] = classical_hpl(reduced, z, domain=domain)
+            changes[atom] = classical_hpl(cast(s.Expr, reduced), z, domain=domain)
         elif word in formulas:
-            changes[atom] = formulas[word]
-    return result.xreplace(changes)
+            changes[atom] = formulas[cast(tuple[int, int], word)]
+    return cast(s.Expr, result.xreplace(changes))

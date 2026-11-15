@@ -14,7 +14,7 @@ from functools import lru_cache
 
 import sympy as s
 
-from .._typing import ExactInteger, ExactScalar, IntegerWord
+from .._typing import ExactInteger, ExactScalar, IntegerWord, as_integer_tuple
 from ..errors import UnsupportedExpressionError
 from ..symbolic import HPL
 
@@ -24,7 +24,7 @@ _MAX_POLE = 32
 _LOG = s.Dummy("log_z", real=True)
 
 
-def _h(word: tuple[int, ...], z: s.Symbol) -> s.Expr:
+def _h(word: tuple[int, ...], z: s.Expr) -> s.Expr:
     return HPL(s.Tuple(*word), z) if word else s.S.One
 
 
@@ -36,7 +36,7 @@ def _word(word: IntegerWord) -> tuple[int, ...]:
         for x in word
     ):
         raise UnsupportedExpressionError("An HPL word must contain exact letters -1, 0, 1")
-    result = tuple(map(int, word))
+    result = as_integer_tuple(word)
     if len(result) > _MAX_WEIGHT:
         raise UnsupportedExpressionError(f"HPL integration supports weight at most {_MAX_WEIGHT}")
     return result
@@ -162,7 +162,7 @@ def _linear_terms(expression, z):
     expression = s.expand(expression, log=False, power_base=False, power_exp=False)
     if len(s.Add.make_args(expression)) > _MAX_TERMS:
         raise UnsupportedExpressionError("HPL expression exceeds the supported term budget")
-    result = defaultdict(lambda: s.S.Zero)
+    result: defaultdict[tuple[int, ...], s.Expr] = defaultdict(lambda: s.S.Zero)
     for term in s.Add.make_args(expression):
         coefficient = s.S.One
         words = {(): s.S.One}
@@ -177,7 +177,7 @@ def _linear_terms(expression, z):
                 if len(word) * exponent > _MAX_WEIGHT:
                     raise UnsupportedExpressionError("HPL product exceeds supported total weight")
                 for _ in range(int(exponent)):
-                    next_words = defaultdict(lambda: s.S.Zero)
+                    next_words: defaultdict[tuple[int, ...], s.Expr] = defaultdict(lambda: s.S.Zero)
                     for existing, multiplier in words.items():
                         for combined, count in _shuffle(existing, word):
                             next_words[combined] += multiplier * count
@@ -225,7 +225,7 @@ def _pole_multiplicities(denominator, z):
         factor = s.Poly(z - pole, z, domain="EX")
         count = 0
         while poly.degree() > 0:
-            quotient, remainder = s.div(poly, factor)
+            quotient, remainder = poly.div(factor)
             if not remainder.is_zero:
                 break
             poly = quotient
@@ -248,7 +248,7 @@ def _split_rational(rational, z):
         return s.S.Zero, ()
     numerator, denominator = s.fraction(rational)
     multiplicities = _pole_multiplicities(denominator, z)
-    polynomial, _ = s.div(s.Poly(numerator, z, domain="EX"), s.Poly(denominator, z, domain="EX"))
+    polynomial, _ = s.Poly(numerator, z, domain="EX").div(s.Poly(denominator, z, domain="EX"))
     primitive = s.Add(
         *(
             coefficient * z ** (power[0] + 1) / (power[0] + 1)
@@ -317,7 +317,7 @@ def _local_hpl(word, through):
     if through <= 0:
         return ()
     head, tail = word[0], word[1:]
-    result = defaultdict(lambda: s.S.Zero)
+    result: defaultdict[int, s.Expr] = defaultdict(lambda: s.S.Zero)
     for power, polynomial in _local_hpl(tail, through if head == 0 else through - 1):
         if head == 0:
             if power <= 0:

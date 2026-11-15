@@ -3,12 +3,7 @@
 from collections.abc import Sequence
 
 import typer
-
-try:
-    # Recent Typer releases vendor Click; older supported releases use Click.
-    from typer._click.exceptions import Abort, ClickException
-except ImportError:
-    from click import Abort, ClickException
+from click import Abort, ClickException
 
 from ..api import backend_info, expand_epsilon
 from .commands import Commands
