@@ -4,6 +4,12 @@ The release workflow validates distributions first and keeps production uploads
 behind a separate manual action and protected environment review. Creating the
 workflow or a Pending Publisher does not upload a package.
 
+## Track a release
+
+[Open a release tracker](https://github.com/lalmei/hypra/issues/new?template=release-tracker.md)
+for each version. Use it to record the exact tag, validation run, release draft,
+remaining blockers, and links to the published distributions.
+
 ## Configure the Pending Publisher
 
 For a new project, open [PyPI's account publishing settings](https://pypi.org/manage/account/publishing/)
