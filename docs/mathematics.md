@@ -319,7 +319,7 @@ establish a valuation or cancel a parameter are part of the mathematical input.
 uv run python scripts/validate_integral.py
 uv run python scripts/validate_integral.py --latex
 uv run python scripts/validate_integral.py --numeric
-uv run pytest tests/test_mathematics.py
+uv run pytest tests/integration/test_mathematics.py
 ```
 
 The optional numerical check evaluates the original integral using contiguous

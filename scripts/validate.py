@@ -90,7 +90,13 @@ def main():
 
             env = dict(os.environ, HYPRA_RUN_REAL="1")
             run = subprocess.run(
-                [sys.executable, "-m", "pytest", "-q", "tests/test_real_backend.py"],
+                [
+                    sys.executable,
+                    "-m",
+                    "pytest",
+                    "-q",
+                    "tests/integration/wolfram/test_real_backend.py",
+                ],
                 cwd=Path(__file__).resolve().parents[1],
                 env=env,
                 check=False,

@@ -64,11 +64,24 @@ endpoint rewriting. They are Python modules in the same package. Their exact
 contracts and remaining gaps are listed in [scope](scope.md); roadmap items
 are not silently treated as supported requests.
 
-For focused offline mathematical regressions:
+Unit tests live in `tests/unit/`, grouped by package for HPL, native, and
+symbolic code. Integration tests live in `tests/integration/` and exercise the
+CLI, public expansions, validation examples, and the optional Wolfram bridge.
+Run a group directly with pytest.
 
 ```sh
-uv run pytest tests/test_integer_shift_math.py tests/test_half_system.py \
-  tests/test_endpoints.py tests/test_hpl_algebra.py tests/test_nested_sums.py -q
+uv run pytest -q tests/unit
+uv run pytest -q tests/unit/hpl
+uv run pytest -q tests/integration -m 'not real_backend'
+```
+
+For focused offline mathematical regressions, run the following tests.
+
+```sh
+uv run pytest -q \
+  tests/unit/native/test_integer_shift_math.py tests/unit/native/test_half_system.py \
+  tests/unit/native/test_endpoints.py tests/unit/hpl/test_hpl_algebra.py \
+  tests/unit/native/test_nested_sums.py
 ```
 
 The broader test suite should still be run before accepting a change: kernel

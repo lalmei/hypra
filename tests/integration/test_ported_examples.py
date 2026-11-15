@@ -9,7 +9,7 @@ import sympy as s
 
 from hypra import NativeConfig, expand_epsilon
 
-_PATH = Path(__file__).parents[1] / "examples" / "ported_examples.py"
+_PATH = Path(__file__).resolve().parents[2] / "examples" / "ported_examples.py"
 _SPEC = importlib.util.spec_from_file_location("ported_examples", _PATH)
 examples = importlib.util.module_from_spec(_SPEC)
 sys.modules[_SPEC.name] = examples

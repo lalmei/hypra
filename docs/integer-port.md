@@ -153,7 +153,7 @@ stage's truncation.
 
 ## Verification scope
 
-`tests/test_integer_shift_math.py` checks coefficient identities, finite-prefix
+`tests/unit/native/test_integer_shift_math.py` checks coefficient identities, finite-prefix
 reconstruction, positive-lower integral coefficients, and the missing-order
 counterexample with exact SymPy arithmetic. These tests establish the algebra
 for representative generic parameters. They do not certify a completed general
