@@ -250,6 +250,7 @@ def expand_epsilon(
             assumptions,
             meromorphic=native.config.unit_endpoint == "meromorphic",
             excess_shift=native.config.unit_excess_shift,
+            shift_singular_lowers=native.config.unit_shift_singular_lowers,
         )
         expression_ast = encode_expr(expr)
     plan = plan_expansion(expr, epsilon, through, assumptions)
@@ -319,6 +320,9 @@ def expand_epsilon(
         "branch_convention": "Principal branches",
         "unit_endpoint": native.config.unit_endpoint if native is not None else None,
         "unit_excess_shift": native.config.unit_excess_shift if native is not None else None,
+        "unit_shift_singular_lowers": (
+            native.config.unit_shift_singular_lowers if native is not None else None
+        ),
         "certificate_scope": "Conditional on backend correctness and the stated input domain",
     }
     return ExpansionResult(polynomial, epsilon, through, provenance)

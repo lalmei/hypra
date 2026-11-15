@@ -39,6 +39,8 @@ class NativeConfig:
             meromorphic parameter continuation.
         unit_excess_shift: One-based index of a lower parameter to shift at a
             fixed excess pole in meromorphic mode.
+        unit_shift_singular_lowers: Add epsilon to each fixed nonpositive integer
+            lower parameter at z=1 before cancellation in meromorphic mode.
     """
 
     max_internal_order: int = 12
@@ -50,10 +52,15 @@ class NativeConfig:
     )
     unit_endpoint: Literal["convergent", "meromorphic"] = "convergent"
     unit_excess_shift: int | None = None
+    unit_shift_singular_lowers: bool = False
 
     def __post_init__(self) -> None:
         if self.unit_endpoint not in ("convergent", "meromorphic"):
             raise ValueError("unit_endpoint must be convergent or meromorphic")
+        if type(self.unit_shift_singular_lowers) is not bool or (
+            self.unit_shift_singular_lowers and self.unit_endpoint != "meromorphic"
+        ):
+            raise ValueError("unit_shift_singular_lowers requires a Boolean and meromorphic mode")
         if self.unit_excess_shift is not None and (
             self.unit_endpoint != "meromorphic"
             or type(self.unit_excess_shift) is not int

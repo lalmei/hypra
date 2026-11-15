@@ -153,3 +153,45 @@ def test_fixed_negative_half_excess_transverse_rank_four():
     # Sum the three factorial moments of the remaining Gauss series.
     reference = (1 + e) / e * (1 - s.Rational(5, 2) / (e - 1) - 4 / ((e - 1) * (e - 2)))
     assert result.polynomial == s.series(reference, e, 0, 1).removeO()
+
+
+def test_fixed_lower_and_excess_poles_in_half_integer_rank_four():
+    h = hypergeometric([half, half, 3, half + 2], [0, 2, half + 1], 1)
+    config = NativeConfig(unit_endpoint="meromorphic", unit_shift_singular_lowers=True)
+    result = expand_epsilon(h, e, through=-1, config=config)
+    # The two unshifted Pochhammer ratios give
+    # (1+n/2)(1+2*n/3) = 1+3*n/2+n*(n-1)/3.
+    expected = s.S.Zero
+    for j, multiplier in enumerate((1, s.Rational(3, 2), s.Rational(1, 3))):
+        gauss_moment = s.rf(half, j) ** 2 * s.gamma(e) * s.gamma(e - 1 - j) / s.gamma(e - half) ** 2
+        expected += multiplier * s.series(gauss_moment, e, 0, 0).removeO()
+    assert result.coefficient(-2) == -27 / (128 * s.pi)
+    assert s.simplify(result.polynomial - expected) == 0
+    assert result.provenance["unit_shift_singular_lowers"] is True
+    with pytest.raises(UnsupportedExpressionError, match="Fixed nonpositive lower"):
+        expand_epsilon(h, e, through=-1, config=NativeConfig(unit_endpoint="meromorphic"))
+
+
+def test_fixed_lower_shift_precedes_termination_and_cancellation():
+    h = hypergeometric([-1, 2], [-1], 1)
+    config = NativeConfig(unit_endpoint="meromorphic", unit_shift_singular_lowers=True)
+    assert expand_epsilon(h, e, through=1, config=config).polynomial == 3 + 2 * e
+    with pytest.raises(UnsupportedExpressionError, match="Fixed nonpositive lower"):
+        expand_epsilon(hypergeometric([-1, 2], [-1], half), e, through=1, config=config)
+
+
+def test_fixed_lower_and_excess_prescriptions_compose():
+    h = hypergeometric([half + e, half], [0], 1)
+    with pytest.raises(UnsupportedExpressionError, match="fixed excess pole"):
+        expand_epsilon(
+            h,
+            e,
+            through=-2,
+            config=NativeConfig(unit_endpoint="meromorphic", unit_shift_singular_lowers=True),
+        )
+    config = NativeConfig(
+        unit_endpoint="meromorphic", unit_shift_singular_lowers=True, unit_excess_shift=1
+    )
+    # The resulting Gauss quotient has numerator Gamma(2*e)*Gamma(e-1)
+    # and a denominator tending to Gamma(-1/2)**2 = 4*pi.
+    assert expand_epsilon(h, e, through=-2, config=config).polynomial == -1 / (8 * s.pi * e**2)
