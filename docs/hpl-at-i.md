@@ -2,9 +2,9 @@
 
 `hpl_at_i(word)` returns the continuation from the origin through the upper
 quadrant to `i`, with the logarithmic base case `log(i)=i*pi/2`. It supports
-all nine ternary weight-two words, all weight-one words, repeated single
-letters, and classical words `0^(n-1),±1` through weight 24. Other mixed words
-above weight two are explicitly rejected.
+all ternary words through weight four, plus repeated single letters and
+classical words `0^(n-1),±1` through weight 24. Mixed cubic and quartic
+values can include exact multiple polylogarithm constants.
 
 ## Branch justification
 
@@ -47,3 +47,27 @@ all convergent weight-two cases to 35 digits, using the explicit logarithmic
 base case for `H_00`. Exact principal-log/Catalan identities, higher simple
 words, and unsupported-input rejection are also checked. The numerical
 comparisons supplement the branch and integral derivation.
+
+## Mixed words at weights three and four
+
+Split the straight path at `i/2`. The path composition formula sums over
+all ways of dividing the word between the two segments, with the prefix
+on the later segment. Evaluate that segment in reverse from `i` to
+`i/2` and reverse the prefix, multiplying by `(-1)^prefix_length`.
+See [Duhr, Gangl and Rhodes](https://arxiv.org/abs/1110.0458) for the
+iterated-integral and multiple-polylogarithm conventions.
+
+For a segment with displacement `d`, subtract its start from the kernel
+poles. For the nonzero translated poles `a1,...,ak`, the multiple
+polylogarithm arguments are `d/a1,a1/a2,...,a(k-1)/ak`. Zero poles give
+the usual leading-zero blocks in the weight indices. On the first
+segment, shuffle extraction removes trailing zeros and fixes the
+tangential logarithm as `log(i/2)`. In both segment expansions each
+cumulative product has modulus at most `1/2`. Geometric kernel
+expansion and termwise integration therefore give absolutely convergent
+strict nested sums. The returned constants support `.rewrite(Sum)`
+for their exact defining sums and `.evalf()` for numerical evaluation.
+
+The live Wolfram test compares all 121 words of weights zero through four
+against HPL 2.0 at 35 decimal digits. The exact expressions can use a
+different constant basis from the upstream reductions.
