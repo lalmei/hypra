@@ -1,8 +1,10 @@
-name: Validate and manually publish Python release
+name: Validate and publish Python release
 
 on:
   push:
     tags: ['v*']
+  release:
+    types: [published]
   workflow_dispatch:
     inputs:
       publish:
@@ -15,7 +17,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: pypi-${{ github.ref }}
+  group: pypi-${{ github.ref }}-${{ github.event_name == 'release' || (github.event_name == 'workflow_dispatch' && inputs.publish) }}
   cancel-in-progress: false
 
 jobs:
@@ -52,7 +54,7 @@ jobs:
           retention-days: 14
 
   publication-gate:
-    if: github.event_name == 'workflow_dispatch' && inputs.publish
+    if: github.event_name == 'release' || (github.event_name == 'workflow_dispatch' && inputs.publish)
     needs: validate
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -73,7 +75,6 @@ jobs:
           PY
 
   publish:
-    if: github.event_name == 'workflow_dispatch' && inputs.publish
     needs: [validate, publication-gate]
     runs-on: ubuntu-latest
     timeout-minutes: 10

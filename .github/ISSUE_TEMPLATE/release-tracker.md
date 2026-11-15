@@ -22,9 +22,9 @@ title: "Release tracker for v"
 
 ### Publication
 
-- [ ] Dispatch the release workflow on the version tag with `publish=true`. Record the run link and obtain the `pypi` environment approval.
-- [ ] Verify the version and both distributions on PyPI. Record the PyPI link.
 - [ ] Publish the GitHub release with the intended prerelease status. Record the public release link.
+- [ ] Record the automatic workflow run and obtain `pypi` environment approval. For tags with the earlier workflow, dispatch the run on the version tag with `publish=true`.
+- [ ] Verify the version and both distributions on PyPI. Record the PyPI link.
 
 ### Blockers and evidence
 
