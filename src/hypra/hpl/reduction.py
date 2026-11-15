@@ -1,4 +1,5 @@
 """Exact shuffle extraction of endpoint logarithms, without branch changes."""
+
 from __future__ import annotations
 
 from functools import lru_cache
@@ -16,24 +17,31 @@ def _extract(word, z, leading, trailing):
     if not word:
         return s.S.One
     if len(set(word)) == 1:
-        return HPL((word[0],), z)**len(word)/s.factorial(len(word))
+        return HPL((word[0],), z) ** len(word) / s.factorial(len(word))
     if trailing and word[-1] == 0:
         prefix = word[:-1]
         terms = shuffle_words(prefix, (0,))
         count = terms.pop(word)
-        return (_extract(prefix, z, leading, trailing)*HPL((0,), z)
-                - sum(n*_extract(w, z, leading, trailing) for w,n in terms.items()))/count
+        return (
+            _extract(prefix, z, leading, trailing) * HPL((0,), z)
+            - sum(n * _extract(w, z, leading, trailing) for w, n in terms.items())
+        ) / count
     if leading and word[0] == 1:
         tail = word[1:]
         terms = shuffle_words((1,), tail)
         count = terms.pop(word)
-        return (HPL((1,), z)*_extract(tail, z, leading, trailing)
-                - sum(n*_extract(w, z, leading, trailing) for w,n in terms.items()))/count
+        return (
+            HPL((1,), z) * _extract(tail, z, leading, trailing)
+            - sum(n * _extract(w, z, leading, trailing) for w, n in terms.items())
+        ) / count
     return HPL(word, z)
 
 
 def extract_hpl_logs(
-    expression: s.Expr, *, leading_ones: bool = True, trailing_zeros: bool = True,
+    expression: s.Expr,
+    *,
+    leading_ones: bool = True,
+    trailing_zeros: bool = True,
 ) -> s.Expr:
     """Remove leading 1 / trailing 0 letters by exact shuffle identities.
 
@@ -71,13 +79,13 @@ def lyndon_factors(word: IntegerWord) -> tuple[tuple[int, ...], ...]:
     word = _word(word)
     factors, i = [], 0
     while i < len(word):
-        j, k = i+1, i
+        j, k = i + 1, i
         while j < len(word) and word[k] <= word[j]:
-            k = i if word[k] < word[j] else k+1
+            k = i if word[k] < word[j] else k + 1
             j += 1
-        length = j-k
+        length = j - k
         while i <= k:
-            factors.append(word[i:i+length])
+            factors.append(word[i : i + length])
             i += length
     return tuple(factors)
 
@@ -94,7 +102,7 @@ def _lyndon(word, z):
         merged = {}
         for left, multiplicity in counts.items():
             for right, coefficient in shuffle_words(left, factor).items():
-                merged[right] = merged.get(right, 0) + multiplicity*coefficient
+                merged[right] = merged.get(right, 0) + multiplicity * coefficient
         counts = merged
         if len(counts) > 16384:
             raise UnsupportedExpressionError("Lyndon reduction exceeds the word budget")
@@ -102,7 +110,9 @@ def _lyndon(word, z):
     if any(other >= word for other in counts):
         raise UnsupportedExpressionError("Lyndon shuffle triangularity check failed")
     product = s.prod(HPL(factor, z) for factor in factors)
-    return s.expand((product-sum(count*_lyndon(other,z) for other,count in counts.items()))/diagonal)
+    return s.expand(
+        (product - sum(count * _lyndon(other, z) for other, count in counts.items())) / diagonal
+    )
 
 
 def lyndon_reduce(expression: s.Expr) -> s.Expr:
@@ -123,6 +133,8 @@ def lyndon_reduce(expression: s.Expr) -> s.Expr:
     for atom in expression.atoms(HPL):
         word = _word(atom.word)
         if len(word) > 8:
-            raise UnsupportedExpressionError("Lyndon reduction currently supports weight at most eight")
+            raise UnsupportedExpressionError(
+                "Lyndon reduction currently supports weight at most eight"
+            )
         replacements[atom] = _lyndon(word, atom.argument)
     return s.expand(expression.xreplace(replacements))

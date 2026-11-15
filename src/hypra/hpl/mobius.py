@@ -26,7 +26,7 @@ def _mobius_terms(word):
     terms: defaultdict[tuple[int, ...], s.Expr] = defaultdict(lambda: s.S.Zero, {(): constant})
     for tail, coefficient in _mobius_terms(word[1:]):
         for letter, sign in _PULLBACK[word[0]]:
-            terms[(letter, *tail)] += sign*coefficient
+            terms[(letter, *tail)] += sign * coefficient
     return tuple((word, coefficient) for word, coefficient in terms.items() if coefficient != 0)
 
 
@@ -45,6 +45,12 @@ def mobius_hpl(word: IntegerWord, z: s.Symbol, *, domain: Interval | None = None
     """
     word = _validate(word, z, domain)
     if len(word) > _MAX_MOBIUS_WEIGHT:
-        raise UnsupportedExpressionError(f"Mobius transformation supports weight at most {_MAX_MOBIUS_WEIGHT}")
-    return s.Add(*(coefficient * (HPL(term, z) if term else s.S.One)
-                   for term, coefficient in _mobius_terms(word)))
+        raise UnsupportedExpressionError(
+            f"Mobius transformation supports weight at most {_MAX_MOBIUS_WEIGHT}"
+        )
+    return s.Add(
+        *(
+            coefficient * (HPL(term, z) if term else s.S.One)
+            for term, coefficient in _mobius_terms(word)
+        )
+    )

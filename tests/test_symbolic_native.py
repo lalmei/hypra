@@ -32,9 +32,11 @@ def test_discrete_word_is_not_a_differentiable_argument():
 
 @pytest.mark.parametrize("weight", range(1, 6))
 def test_repeated_letter_reductions(weight):
-    assert reduce_known_hpl(HPL((0,) * weight, Z)) == s.log(Z)**weight / s.factorial(weight)
-    assert reduce_known_hpl(HPL((1,) * weight, Z)) == (-s.log(1-Z))**weight / s.factorial(weight)
-    assert reduce_known_hpl(HPL((-1,) * weight, Z)) == s.log(1+Z)**weight / s.factorial(weight)
+    assert reduce_known_hpl(HPL((0,) * weight, Z)) == s.log(Z) ** weight / s.factorial(weight)
+    assert reduce_known_hpl(HPL((1,) * weight, Z)) == (-s.log(1 - Z)) ** weight / s.factorial(
+        weight
+    )
+    assert reduce_known_hpl(HPL((-1,) * weight, Z)) == s.log(1 + Z) ** weight / s.factorial(weight)
 
 
 @pytest.mark.parametrize("weight", range(2, 6))
@@ -58,7 +60,7 @@ def test_reduction_agrees_with_differential_equation(word):
 def test_reduction_is_explicit_and_preserves_argument():
     atom = HPL((0, 1), 1 - Z)
     assert isinstance(atom, HPL)
-    assert reduce_known_hpl(atom) == s.polylog(2, 1-Z)
+    assert reduce_known_hpl(atom) == s.polylog(2, 1 - Z)
     assert reduce_known_hpl(3) == 3
     with pytest.raises(TypeError):
         reduce_known_hpl("HPL((0,1),z)")

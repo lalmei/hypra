@@ -26,7 +26,11 @@ class NielsenPolylog(s.Function):
     nargs = 3
 
     def __new__(
-        cls, n: ExactInteger, p: ExactInteger, argument: ExactScalar, **options: object,
+        cls,
+        n: ExactInteger,
+        p: ExactInteger,
+        argument: ExactScalar,
+        **options: object,
     ) -> Self:
         """Construct the exact SymPy function.
 
@@ -38,11 +42,12 @@ class NielsenPolylog(s.Function):
         """
         for index in (n, p):
             if isinstance(index, bool) or not isinstance(index, (int, s.Integer)) or index < 1:
-                raise ValueError('Nielsen indices n and p must be exact positive integers')
-        if n+p > 10000:
-            raise ValueError('Nielsen weight exceeds the notation resource limit')
+                raise ValueError("Nielsen indices n and p must be exact positive integers")
+        if n + p > 10000:
+            raise ValueError("Nielsen weight exceeds the notation resource limit")
         return cast(
-            Self, super().__new__(cls, s.Integer(n), s.Integer(p), argument, **options),
+            Self,
+            super().__new__(cls, s.Integer(n), s.Integer(p), argument, **options),
         )
 
     @property
@@ -62,14 +67,14 @@ class NielsenPolylog(s.Function):
 
     def as_hpl(self) -> HPL:
         """Losslessly expand into zeros followed by ones, without reduction."""
-        return HPL((0,)*int(self.n)+(1,)*int(self.p), self.argument)
+        return HPL((0,) * int(self.n) + (1,) * int(self.p), self.argument)
 
     def fdiff(self, argindex: int = 3) -> s.Expr:
         if argindex != 3:
             raise ArgumentIndexError(self, argindex)
         if self.n > 1:
-            return NielsenPolylog(int(self.n) - 1, self.p, self.argument)/self.argument
-        return (-s.log(1-self.argument))**self.p/(s.factorial(self.p)*self.argument)
+            return NielsenPolylog(int(self.n) - 1, self.p, self.argument) / self.argument
+        return (-s.log(1 - self.argument)) ** self.p / (s.factorial(self.p) * self.argument)
 
     def _eval_derivative(self, s):
         return self.fdiff(3) * self.argument.diff(s)
@@ -79,19 +84,21 @@ class NielsenPolylog(s.Function):
 
     def _eval_rewrite_as_polylog(self, n, p, argument, **hints):
         if p == 1:
-            return s.polylog(n+1, argument)
+            return s.polylog(n + 1, argument)
         return self
 
     def _latex(self, printer):
-        return (rf'S_{{{printer._print(self.n)},{printer._print(self.p)}}}'
-                rf'\!\left({printer._print(self.argument)}\right)')
+        return (
+            rf"S_{{{printer._print(self.n)},{printer._print(self.p)}}}"
+            rf"\!\left({printer._print(self.argument)}\right)"
+        )
 
 
 def _expression(expression: ExactScalar) -> s.Expr:
     if type(expression) is int:
         expression = s.Integer(expression)
     if not isinstance(expression, s.Expr):
-        raise TypeError('Provide an exact symbolic expression, not source text')
+        raise TypeError("Provide an exact symbolic expression, not source text")
     return expression
 
 
@@ -102,7 +109,10 @@ def nielsen_to_hpl(expression: ExactScalar) -> s.Expr:
         expression: Exact symbolic expression containing Nielsen atoms.
     """
     expression = _expression(expression)
-    return cast(s.Expr, expression.xreplace({atom: atom.as_hpl() for atom in expression.atoms(NielsenPolylog)}))
+    return cast(
+        s.Expr,
+        expression.xreplace({atom: atom.as_hpl() for atom in expression.atoms(NielsenPolylog)}),
+    )
 
 
 def hpl_to_nielsen(expression: ExactScalar) -> s.Expr:
@@ -118,7 +128,7 @@ def hpl_to_nielsen(expression: ExactScalar) -> s.Expr:
         n = 0
         while n < len(word) and word[n] == 0:
             n += 1
-        p = len(word)-n
+        p = len(word) - n
         if n and p and all(letter == 1 for letter in word[n:]):
             replacements[atom] = NielsenPolylog(n, p, atom.argument)
     return cast(s.Expr, expression.xreplace(replacements))
@@ -131,5 +141,13 @@ def reduce_nielsen(expression: ExactScalar) -> s.Expr:
         expression: Exact symbolic expression containing Nielsen atoms.
     """
     expression = _expression(expression)
-    return cast(s.Expr, expression.xreplace({atom: s.polylog(atom.n+1, atom.argument)
-                               for atom in expression.atoms(NielsenPolylog) if atom.p == 1}))
+    return cast(
+        s.Expr,
+        expression.xreplace(
+            {
+                atom: s.polylog(atom.n + 1, atom.argument)
+                for atom in expression.atoms(NielsenPolylog)
+                if atom.p == 1
+            }
+        ),
+    )

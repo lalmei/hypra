@@ -1,4 +1,5 @@
 """Exact convergent alternating HPL endpoints, without regularization tables."""
+
 from functools import lru_cache
 from typing import cast
 
@@ -18,6 +19,7 @@ def reduce_euler_sum(expression: ExactScalar) -> s.Expr:
     Args:
         expression: Exact symbolic expression containing Euler-sum atoms.
     """
+
     def one(atom):
         indices, colors = tuple(atom.indices), tuple(atom.colors)
         if len(indices) > 1 and len(set(indices)) == len(set(colors)) == 1:
@@ -26,13 +28,19 @@ def reduce_euler_sum(expression: ExactScalar) -> s.Expr:
             # Every power sum converges for our valid inputs, even s=1,c=-1.
             index, color = indices[0], colors[0]
             elementary: list[s.Expr] = [s.S.One]
-            powers = [None] + [one(EulerSum((k * index,), (color ** k,)))
-                               for k in range(1, len(indices) + 1)]
+            powers = [None] + [
+                one(EulerSum((k * index,), (color**k,))) for k in range(1, len(indices) + 1)
+            ]
             for depth in range(1, len(indices) + 1):
-                elementary.append(s.expand(sum(
-                    (-1) ** (k - 1) * elementary[depth - k] * powers[k]
-                    for k in range(1, depth + 1)
-                ) / depth))
+                elementary.append(
+                    s.expand(
+                        sum(
+                            (-1) ** (k - 1) * elementary[depth - k] * powers[k]
+                            for k in range(1, depth + 1)
+                        )
+                        / depth
+                    )
+                )
             return elementary[-1]
         if all(c == 1 for c in colors):
             return reduce_mzv(MZV(indices))
@@ -43,6 +51,7 @@ def reduce_euler_sum(expression: ExactScalar) -> s.Expr:
         if all(n == 1 for n in indices) and colors == (-1,) + (1,) * (len(indices) - 1):
             return (-1) ** len(indices) * s.log(2) ** len(indices) / s.factorial(len(indices))
         return atom
+
     if type(expression) is int:
         expression = s.Integer(expression)
     if not isinstance(expression, s.Basic):
@@ -63,8 +72,9 @@ def _endpoint(word):
     if word[-1] == 0:
         shuffled = shuffle_words(word[:-1], (0,))
         multiplicity = shuffled.pop(word)
-        return s.expand(-sum((count * _endpoint(w) for w, count in shuffled.items()), s.S.Zero)
-                        / multiplicity)
+        return s.expand(
+            -sum((count * _endpoint(w) for w, count in shuffled.items()), s.S.Zero) / multiplicity
+        )
     indices, colors, zeros, previous, factor = [], [], 0, 1, 1
     for letter in word:
         if letter == 0:

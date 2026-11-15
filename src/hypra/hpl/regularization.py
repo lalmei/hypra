@@ -23,12 +23,16 @@ def _polynomial(word, T):
     if word[0] != 1:
         return hpl_alternating_at_one(word)
     if all(letter == 1 for letter in word):
-        return T**len(word) / s.factorial(len(word))
+        return T ** len(word) / s.factorial(len(word))
     terms = shuffle_words((1,), word[1:])
     multiplicity = terms.pop(word)
-    return s.expand((T * _polynomial(word[1:], T)
-                     - sum(count * _polynomial(other, T) for other, count in terms.items()))
-                    / multiplicity)
+    return s.expand(
+        (
+            T * _polynomial(word[1:], T)
+            - sum(count * _polynomial(other, T) for other, count in terms.items())
+        )
+        / multiplicity
+    )
 
 
 def hpl_endpoint_polynomial(word: IntegerWord, T: s.Symbol) -> s.Expr:
@@ -45,10 +49,12 @@ def hpl_endpoint_polynomial(word: IntegerWord, T: s.Symbol) -> s.Expr:
         T: Commutative symbol representing -log(1-z).
     """
     if type(T) is not s.Symbol or T.is_commutative is not True:
-        raise TypeError('T must be an ordinary commutative SymPy Symbol')
+        raise TypeError("T must be an ordinary commutative SymPy Symbol")
     word = _word(word)
     if len(word) > 12:
-        raise UnsupportedExpressionError("Shuffle regularization exceeds the weight-12 resource budget")
+        raise UnsupportedExpressionError(
+            "Shuffle regularization exceeds the weight-12 resource budget"
+        )
     return _polynomial(word, T)
 
 
@@ -62,12 +68,14 @@ def shuffle_regularized_hpl_at_one(word: IntegerWord) -> s.Expr:
     Args:
         word: Expanded ternary word of weight at most twelve.
     """
-    T = s.Symbol('_regularization_T')
+    T = s.Symbol("_regularization_T")
     return hpl_endpoint_polynomial(word, T).subs(T, 0)
 
 
 def hpl_expression_endpoint_polynomial(
-    expression: s.Expr, variable: s.Symbol, T: s.Symbol,
+    expression: s.Expr,
+    variable: s.Symbol,
+    T: s.Symbol,
 ) -> s.Expr:
     """Map an exact polynomial in same-argument HPLs to its endpoint polynomial.
 
@@ -89,28 +97,42 @@ def hpl_expression_endpoint_polynomial(
     """
     from ..symbolic import HPL
 
-    if (type(variable) is not s.Symbol or variable.is_commutative is not True
-            or type(T) is not s.Symbol or T.is_commutative is not True or variable == T):
-        raise TypeError('Use distinct ordinary commutative Symbols for variable and T')
+    if (
+        type(variable) is not s.Symbol
+        or variable.is_commutative is not True
+        or type(T) is not s.Symbol
+        or T.is_commutative is not True
+        or variable == T
+    ):
+        raise TypeError("Use distinct ordinary commutative Symbols for variable and T")
     if not isinstance(expression, s.Expr):
-        raise TypeError('expression must be an exact SymPy Expr, not source text')
+        raise TypeError("expression must be an exact SymPy Expr, not source text")
     if expression.has(T, s.Float, s.nan, s.zoo, s.oo, -s.oo):
-        raise UnsupportedExpressionError('Input must be exact, finite, and independent of T')
+        raise UnsupportedExpressionError("Input must be exact, finite, and independent of T")
     if s.count_ops(expression) > 4096:
-        raise UnsupportedExpressionError('Endpoint expression exceeds the operation budget')
+        raise UnsupportedExpressionError("Endpoint expression exceeds the operation budget")
     atoms = sorted(expression.atoms(HPL), key=s.default_sort_key)
     if any(atom.argument != variable for atom in atoms):
-        raise UnsupportedExpressionError('All HPLs must have exactly the endpoint variable as argument')
+        raise UnsupportedExpressionError(
+            "All HPLs must have exactly the endpoint variable as argument"
+        )
     if any(len(atom.word) > 12 for atom in atoms):
-        raise UnsupportedExpressionError('Endpoint expression exceeds the weight-12 resource budget')
-    generators = [s.Dummy('endpoint_hpl') for _ in atoms]
+        raise UnsupportedExpressionError(
+            "Endpoint expression exceeds the weight-12 resource budget"
+        )
+    generators = [s.Dummy("endpoint_hpl") for _ in atoms]
     replaced = expression.xreplace(dict(zip(atoms, generators, strict=True)))
     if replaced.is_commutative is not True:
-        raise UnsupportedExpressionError('Endpoint polynomial requires commutative scalar coefficients')
+        raise UnsupportedExpressionError(
+            "Endpoint polynomial requires commutative scalar coefficients"
+        )
     if replaced.has(variable):
-        raise UnsupportedExpressionError('Coefficients must be independent of the endpoint variable')
+        raise UnsupportedExpressionError(
+            "Coefficients must be independent of the endpoint variable"
+        )
     if not atoms:
         return expression
+
     # Bound expanded size before Poly expands products; this conservative bound
     # may reject a huge expression whose final terms happen to cancel.
     def term_budget(node):
@@ -129,18 +151,21 @@ def hpl_expression_endpoint_polynomial(
         elif node.is_Pow and node.exp.is_Integer and 0 <= node.exp <= 12:
             count = term_budget(node.base) ** int(node.exp)
         else:
-            raise UnsupportedExpressionError('Input must be polynomial in HPLs, with no inverses')
+            raise UnsupportedExpressionError("Input must be polynomial in HPLs, with no inverses")
         if count > 4096:
-            raise UnsupportedExpressionError('Endpoint expression exceeds the expanded-term budget')
+            raise UnsupportedExpressionError("Endpoint expression exceeds the expanded-term budget")
         return count
+
     term_budget(replaced)
     try:
         polynomial = s.Poly(replaced, *generators)
     except s.PolynomialError as exc:
-        raise UnsupportedExpressionError('Input must be polynomial in HPLs') from exc
+        raise UnsupportedExpressionError("Input must be polynomial in HPLs") from exc
     for monomial, _ in polynomial.terms():
         if sum(degree * len(atom.word) for degree, atom in zip(monomial, atoms, strict=True)) > 12:
-            raise UnsupportedExpressionError('Endpoint expression exceeds total HPL weight twelve')
-    mapping = {generator: hpl_endpoint_polynomial(atom.word, T)
-               for generator, atom in zip(generators, atoms, strict=True)}
+            raise UnsupportedExpressionError("Endpoint expression exceeds total HPL weight twelve")
+    mapping = {
+        generator: hpl_endpoint_polynomial(atom.word, T)
+        for generator, atom in zip(generators, atoms, strict=True)
+    }
     return s.expand(polynomial.as_expr().xreplace(mapping))

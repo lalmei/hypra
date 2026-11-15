@@ -115,7 +115,10 @@ def backend_info(
 
 
 def _checked_polynomial(
-    expr: s.Expr, epsilon: s.Symbol, through: int, lower_bound: int,
+    expr: s.Expr,
+    epsilon: s.Symbol,
+    through: int,
+    lower_bound: int,
 ) -> s.Expr:
     if expr.has(
         s.Float, s.nan, s.zoo, s.oo, -s.oo, s.Derivative, s.Subs, s.Integral, s.Sum, s.hyper
@@ -242,7 +245,10 @@ def expand_epsilon(
 
         native = NativeBackend(cast(NativeConfig | None, config))
         expr = rewrite_endpoints(
-            expr, epsilon, assumptions, meromorphic=native.config.unit_endpoint == "meromorphic",
+            expr,
+            epsilon,
+            assumptions,
+            meromorphic=native.config.unit_endpoint == "meromorphic",
             excess_shift=native.config.unit_excess_shift,
         )
         expression_ast = encode_expr(expr)
@@ -290,7 +296,8 @@ def expand_epsilon(
     if any(symbol.name not in declared for symbol in output_symbols):
         raise IncompleteExpansionError("Backend introduced undeclared symbols")
     polynomial = cast(
-        s.Expr, polynomial.xreplace({symbol: declared[symbol.name] for symbol in output_symbols}),
+        s.Expr,
+        polynomial.xreplace({symbol: declared[symbol.name] for symbol in output_symbols}),
     )
     polynomial = _checked_polynomial(polynomial, epsilon, through, plan.valuation_lower_bound)
     backend_record = response.get("backend", {})

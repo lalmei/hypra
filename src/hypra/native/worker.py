@@ -1,4 +1,5 @@
 """Optional killable native computation process; exact JSON, no source evaluation."""
+
 from __future__ import annotations
 
 import json
@@ -17,8 +18,12 @@ def run_bounded(request, config):
     payload = json.dumps({"request": request, "config": settings})
     try:
         completed = subprocess.run(
-            [sys.executable, "-m", "hypra.native.worker"], input=payload,
-            capture_output=True, text=True, timeout=timeout, check=False,
+            [sys.executable, "-m", "hypra.native.worker"],
+            input=payload,
+            capture_output=True,
+            text=True,
+            timeout=timeout,
+            check=False,
         )
     except subprocess.TimeoutExpired as exc:
         raise BackendTimeoutError(f"Native expansion exceeded {timeout:g} seconds") from exc
@@ -33,8 +38,10 @@ def run_bounded(request, config):
             message = envelope.get("message", "Native worker failed")
             if not isinstance(message, str):
                 raise BackendProtocolError("Invalid native worker error message")
-            classes = {"UnsupportedExpressionError": UnsupportedExpressionError,
-                       "IncompleteExpansionError": IncompleteExpansionError}
+            classes = {
+                "UnsupportedExpressionError": UnsupportedExpressionError,
+                "IncompleteExpansionError": IncompleteExpansionError,
+            }
             raise classes.get(kind, BackendProtocolError)(message)
         response = envelope["response"]
         if not isinstance(response, dict):
@@ -46,6 +53,7 @@ def run_bounded(request, config):
 
 def main():
     from ..native import NativeBackend, NativeConfig
+
     try:
         payload = strict_json_loads(sys.stdin.read())
         settings = payload["config"]

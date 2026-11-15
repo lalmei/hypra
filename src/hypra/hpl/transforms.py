@@ -47,9 +47,12 @@ def negate_hpl(word: IntegerWord, z: s.Symbol, *, domain: Interval | None = None
         return (s.log(z) + s.I * s.pi) ** len(word) / s.factorial(len(word))
     if word[-1] == 0:
         expanded = _extract(word, z, False, True)
-        return cast(s.Expr, expanded.xreplace(
-            {atom: negate_hpl(atom.word, z, domain=domain) for atom in expanded.atoms(HPL)}
-        ))
+        return cast(
+            s.Expr,
+            expanded.xreplace(
+                {atom: negate_hpl(atom.word, z, domain=domain) for atom in expanded.atoms(HPL)}
+            ),
+        )
     return (-1) ** sum(a != 0 for a in word) * _h(tuple(-a for a in word), z)
 
 

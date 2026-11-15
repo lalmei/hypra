@@ -58,7 +58,11 @@ def square_hpl(word: IntegerWord, z: s.Symbol, *, domain: Interval | None = None
 
 
 def fractional_hpl(
-    word: IntegerWord, z: s.Symbol, *, boundary: Boundary, domain: Interval | None = None,
+    word: IntegerWord,
+    z: s.Symbol,
+    *,
+    boundary: Boundary,
+    domain: Interval | None = None,
 ) -> s.Expr:
     """Express H_word(z/(z-1) +/- i0), with explicit upper/lower boundary.
 

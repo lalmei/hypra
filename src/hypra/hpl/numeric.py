@@ -84,16 +84,23 @@ def _argument(value, ctx, domain):
     if isinstance(value, s.Rational):
         result = ctx.mpf(int(value.p)) / int(value.q)
     elif isinstance(value, s.Expr):
-        if (value.free_symbols or value.is_finite is not True
-                or (domain == "real" and value.is_real is not True)):
+        if (
+            value.free_symbols
+            or value.is_finite is not True
+            or (domain == "real" and value.is_real is not True)
+        ):
             raise UnsupportedExpressionError(
                 "Numerical HPL argument must be finite and satisfy the explicit domain"
             )
         real, imag = value.as_real_imag()
-        result = ctx.mpc(
-            ctx.mpf(str(s.N(real, ctx.dps + 10))),
-            ctx.mpf(str(s.N(imag, ctx.dps + 10))),
-        ) if domain == "principal-disk" else ctx.mpf(str(s.N(real, ctx.dps + 10)))
+        result = (
+            ctx.mpc(
+                ctx.mpf(str(s.N(real, ctx.dps + 10))),
+                ctx.mpf(str(s.N(imag, ctx.dps + 10))),
+            )
+            if domain == "principal-disk"
+            else ctx.mpf(str(s.N(real, ctx.dps + 10)))
+        )
     elif isinstance(value, str):
         if len(value) > 4096 or not _DECIMAL.fullmatch(value):
             raise ValueError("Use a decimal string, not executable text, for numerical input")
@@ -104,8 +111,10 @@ def _argument(value, ctx, domain):
         result = ctx.mpf(value)
     else:
         raise TypeError("Use an exact SymPy number, decimal string, integer, float or mpmath real")
-    valid = (0 < result < 1) if domain == "real" else (
-        0 < abs(result) < 1 and not (ctx.im(result) == 0 and ctx.re(result) <= 0)
+    valid = (
+        (0 < result < 1)
+        if domain == "real"
+        else (0 < abs(result) < 1 and not (ctx.im(result) == 0 and ctx.re(result) <= 0))
     )
     if not ctx.isfinite(result) or not valid:
         raise UnsupportedExpressionError(
@@ -267,8 +276,9 @@ def evaluate_hpl(
             "HPL numerical result was not stable under increased working precision"
         )
     domain_description = (
-        "real 0 < z < 1; principal real HPL branch" if domain == "real" else
-        "principal slit disk 0 < |z| < 1, -pi < arg(z) < pi; principal log"
+        "real 0 < z < 1; principal real HPL branch"
+        if domain == "real"
+        else "principal slit disk 0 < |z| < 1, -pi < arg(z) < pi; principal log"
     )
     return HPLNumericResult(second, tail, gap, terms, dps, dps + 40, method, domain_description)
 

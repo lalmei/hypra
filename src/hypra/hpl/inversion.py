@@ -31,7 +31,11 @@ def _map_hpl(expression, z, transform):
 
 
 def invert_hpl(
-    word: IntegerWord, z: s.Symbol, *, boundary: Boundary, domain: Interval | None = None,
+    word: IntegerWord,
+    z: s.Symbol,
+    *,
+    boundary: Boundary,
+    domain: Interval | None = None,
 ) -> s.Expr:
     """Return H_word(1/z +/- i0), for explicitly real 0<z<1.
 

@@ -159,14 +159,20 @@ def test_complex_mixed_integral_and_shuffle():
         expected = mp.quad(lambda t: z * mp.log1p(z * t) / (1 - z * t), [0, 1])
         close_to(hpl_evalf((1, -1), argument, domain="principal-disk", dps=55), expected, 50)
         left, right = (0, -1), (1, 0)
+
         def value(word):
             return hpl_evalf(word, argument, domain="principal-disk", dps=55)
-        close_to(sum(count * value(word) for word, count in shuffle_words(left, right).items()),
-                 value(left) * value(right), 50)
+
+        close_to(
+            sum(count * value(word) for word, count in shuffle_words(left, right).items()),
+            value(left) * value(right),
+            50,
+        )
 
 
-@pytest.mark.parametrize("argument", [0, 1, s.I, -s.Rational(1, 2), -0.5 + 0j,
-                                       1 + 1j, complex(float("nan"), 0)])
+@pytest.mark.parametrize(
+    "argument", [0, 1, s.I, -s.Rational(1, 2), -0.5 + 0j, 1 + 1j, complex(float("nan"), 0)]
+)
 def test_complex_disk_endpoints_boundary_cut_and_nonfinite_rejected(argument):
     with pytest.raises((UnsupportedExpressionError, ValueError)):
         hpl_evalf((0, 1), argument, domain="principal-disk")

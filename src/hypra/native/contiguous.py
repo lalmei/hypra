@@ -117,7 +117,10 @@ def plan_contiguous(
         raise UnsupportedExpressionError(f"Contiguous shift count exceeds {_MAX_SHIFTS}")
     steps = []
     perturbation = False
-    for family, targets, bases in (("upper", upper, current_upper), ("lower", lower, current_lower)):
+    for family, targets, bases in (
+        ("upper", upper, current_upper),
+        ("lower", lower, current_lower),
+    ):
         for index, (target, _) in enumerate(targets):
             while bases[index] != target:
                 direction = 1 if bases[index] < target else -1
@@ -127,7 +130,9 @@ def plan_contiguous(
                 )
                 loss = sum(1 for base, _ in factors if base == 0)
                 perturbation |= any(base == 0 and slope == 0 for base, slope in factors)
-                steps.append(ShiftStep(kind, index, tuple(current_upper), tuple(current_lower), loss))
+                steps.append(
+                    ShiftStep(kind, index, tuple(current_upper), tuple(current_lower), loss)
+                )
                 bases[index] += direction
     extra_order = sum(step.order_loss for step in steps)
     if extra_order > _MAX_DEPTH:
@@ -325,7 +330,9 @@ def expand_contiguous(
             raise UnsupportedExpressionError("Moving lower pole slope must be provably nonzero")
     source_denominator = s.prod(singular_slopes)
     delta_name = "_hypra_slope_delta"
-    while delta_name in {symbol.name for symbol in cast(set[s.Symbol], slope_symbols | {z, epsilon})}:
+    while delta_name in {
+        symbol.name for symbol in cast(set[s.Symbol], slope_symbols | {z, epsilon})
+    }:
         delta_name += "_"
     delta = s.Symbol(delta_name)
     slopes = tuple(slope for _, slope in upper + lower)
