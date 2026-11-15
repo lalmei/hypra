@@ -40,3 +40,24 @@ target-version = "py312"
 
 [tool.uv]
 default-groups = ["dev", "docs"]
+
+[tool.bumpversion]
+parse = '^(?P<major>\d+)\.(?P<minor>\d+)\.(?P<patch>\d+)(?:(?P<stage>a|b|rc)(?P<pre>\d+))?$'
+serialize = ["{major}.{minor}.{patch}{stage}{pre}", "{major}.{minor}.{patch}"]
+commit = false
+tag = false
+
+[tool.bumpversion.parts.stage]
+values = ["a", "b", "rc", "final"]
+first_value = "a"
+optional_value = "final"
+
+[[tool.bumpversion.files]]
+filename = "src/hypra/__init__.py"
+search = '__version__ = "{current_version}"'
+replace = '__version__ = "{new_version}"'
+
+[[tool.bumpversion.files]]
+filename = "src/hypra/api.py"
+search = '"hypra_version": "{current_version}"'
+replace = '"hypra_version": "{new_version}"'
