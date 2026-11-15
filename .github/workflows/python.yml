@@ -24,6 +24,4 @@ jobs:
           python-version: ${{ matrix.python-version }}
           enable-cache: true
       - run: uv sync --locked --no-default-groups --group dev --python "${{ matrix.python-version }}"
-      - if: matrix.python-version == '3.15'
-        run: uv run --no-sync ruff check src
       - run: uv run --no-sync --python "${{ matrix.python-version }}" pytest -q -m 'not real_backend'

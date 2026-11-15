@@ -14,6 +14,15 @@ backend. `backend_info()` reports the native engine and its version; each
 expansion records exact input, assumptions, requested/internal order, source
 fingerprint, SymPy version and cache status.
 
+The Python quality workflow runs alongside the test matrix. Run the same
+checks locally from the repository root.
+
+```sh
+uv run --locked --group quality ruff format --check src tests examples scripts
+uv run --locked --group quality ruff check .
+uv run --locked --group quality pyright --pythonpath .venv/bin/python
+```
+
 ```python
 from hypra import NativeConfig, expand_epsilon
 config = NativeConfig(max_internal_order=12, use_cache=True,
