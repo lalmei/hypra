@@ -17,6 +17,8 @@ from hypra.native.nested_sums import (
 )
 from hypra.symbolic import HPL
 
+from .pochhammer import pochhammer_taylor
+
 E, Z = s.symbols("eps z")
 
 
@@ -129,23 +131,9 @@ def test_canonical_series_against_direct_pochhammer_coefficients(upper, lower):
     computed = computed.xreplace({h: hpl_taylor(h, nmax) for h in computed.atoms(HPL)})
     computed = s.series(computed, Z, 0, nmax + 1).removeO().expand()
     assert s.simplify(computed.coeff(Z, 0) - 1) == 0
+    lower_parameters = [(1, slope) for slope in lower]
     for n in range(1, nmax + 1):
-        numerator = s.Poly(s.prod(s.rf(base + slope * E, n) for base, slope in upper), E)
-        denominator = s.Poly(s.factorial(n) * s.prod(s.rf(1 + slope * E, n) for slope in lower), E)
-        # Direct finite-product rational division, independent of logarithmic
-        # harmonic expansion. Avoid expensive general-purpose series inversion.
-        coefficients = []
-        for degree in range(order + 1):
-            coefficients.append(
-                (
-                    numerator.nth(degree)
-                    - sum(
-                        denominator.nth(k) * coefficients[degree - k] for k in range(1, degree + 1)
-                    )
-                )
-                / denominator.nth(0)
-            )
-        expected = sum(value * E**degree for degree, value in enumerate(coefficients))
+        expected = pochhammer_taylor(upper, lower_parameters, E, n, order)
         assert s.expand(computed.coeff(Z, n) - expected) == 0
 
 
