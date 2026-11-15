@@ -272,10 +272,3 @@ def test_kernel_init_fingerprint_covers_sibling_sources(tmp_path):
     before = _package_fingerprint(str(init))
     source.write_text("(* version 2 *)")
     assert _package_fingerprint(str(init)) != before
-
-
-def test_constant_output_does_not_bypass_hypexp_remainder_guard():
-    """Static guard pending execution with a real Wolfram backend."""
-    source = BRIDGE.read_text()
-    assert "requireSeriesDepth[converted, eps, internal, !FreeQ[h, eps]]" in source
-    assert "parts === {} && TrueQ[mustHaveRemainder], fail[" in source

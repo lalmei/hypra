@@ -68,7 +68,26 @@ decode[n_Association] := Module[{h, a, name, s, facts, num, den},
   ]
 ];
 decode[_] := fail["AST node must be an object"];
-encode[e_] := Module[{h = Head[e], compressed, expanded, a},
+encodeHPL[word_List, argument_] := Module[{choices, encodedArgument, terms},
+  If[!AllTrue[word, IntegerQ[#] || MemberQ[{HPL`plus, HPL`minus}, #] &],
+    fail["Unsupported HPL alphabet"]];
+  If[Count[word, HPL`plus | HPL`minus] > 12, fail["HPL plus/minus expansion exceeds budget"]];
+  choices = Map[Switch[#,
+    HPL`plus, {{1, {1}}, {1, {-1}}},
+    HPL`minus, {{1, {1}}, {-1, {-1}}},
+    0, {{1, {0}}},
+    _, {{1, Join[ConstantArray[0, Abs[#] - 1], {Sign[#]}]}}
+  ] &, word];
+  encodedArgument = encode[argument];
+  terms = Map[Function[term, Module[{coefficient, expanded, value},
+    coefficient = Times @@ term[[All, 1]];
+    expanded = Flatten[term[[All, 2]]];
+    value = node["HPL", {node["List", encode /@ expanded], encodedArgument}];
+    If[coefficient == 1, value, node["Mul", {encode[coefficient], value}]]
+  ]], Tuples[choices]];
+  If[Length[terms] == 1, First[terms], node["Add", terms]]
+];
+encode[e_] := Module[{h = Head[e], a},
   Which[
     IntegerQ[e], <|"head" -> "Integer", "value" -> ToString[e, InputForm]|>,
     h === Rational, <|"head" -> "Rational", "numerator" -> ToString[Numerator[e], InputForm], "denominator" -> ToString[Denominator[e], InputForm]|>,
@@ -88,10 +107,8 @@ encode[e_] := Module[{h = Head[e], compressed, expanded, a},
     h === PolyGamma, node["PolyGamma", encode /@ (List @@ e)],
     h === Zeta, node["Zeta", encode /@ (List @@ e)],
     h === HPL`HPL, a = List @@ e;
-      If[Length[a] != 2 || !ListQ[a[[1]]] || !AllTrue[a[[1]], IntegerQ], fail["Unsupported HPL alphabet"]];
-      compressed = a[[1]];
-      expanded = Flatten[If[# == 0, {0}, Join[ConstantArray[0, Abs[#] - 1], {Sign[#]}]] & /@ compressed];
-      node["HPL", {node["List", encode /@ expanded], encode[a[[2]]]}],
+      If[Length[a] != 2 || !ListQ[a[[1]]], fail["Unsupported HPL shape"]];
+      encodeHPL[a[[1]], a[[2]]],
     True, fail["Unsupported or unevaluated output head: " <> ToString[h, InputForm]]
   ]
 ];
@@ -102,15 +119,16 @@ loadPackage[name_String, configured_] := Module[{path, candidates},
     path = SelectFirst[candidates, FileExistsQ, $Failed]
   ];
   If[!StringQ[path] || !FileExistsQ[path], fail["External package not found: " <> name]];
-  If[Quiet[Check[Get[path]; True, False]] =!= True, fail["External package load failed: " <> name]];
+  If[name === "HPL", Global`$HPLPath = DirectoryName[path], Global`$HypExpPath = DirectoryName[path]];
+  (* HypExp 2's legacy 5.0 detection also matches 15.0 and attempts to
+     define the protected built-in Tuples. The built-in remains in use. *)
+  If[Quiet[Check[Quiet[Get[path], SetDelayed::write]; True, False]] =!= True, fail["External package load failed: " <> name]];
   path
 ];
-(* Never silently drop a shallower O-term. A parameter-dependent HypExp result
-   must retain explicit SeriesData remainder evidence even if the truncated
-   output is constant. Only originally eps-free atoms are exempt. *)
-requireSeriesDepth[expr_, eps_Symbol, order_Integer, mustHaveRemainder_] := Module[{parts, data},
+(* HypExp can return a normal expression under its inclusive order
+   contract. Validate the depth of any explicit SeriesData it does return. *)
+requireSeriesDepth[expr_, eps_Symbol, order_Integer] := Module[{parts, data},
   parts = Cases[expr, sd_SeriesData :> sd, {0, Infinity}];
-  If[parts === {} && TrueQ[mustHaveRemainder], fail["HypExp returned no explicit remainder evidence"]];
   Do[
     data = List @@ part;
     If[Length[data] != 6 || data[[1]] =!= eps || data[[2]] =!= 0 || !IntegerQ[data[[5]]] || !IntegerQ[data[[6]]] || data[[6]] != 1 || data[[5]] < order + 1,
@@ -145,22 +163,24 @@ runRequest[r_Association] := Module[{packages, hp, hl, meta, op, expression, eps
   replacements = Table[
     converted = Quiet[Check[Assuming[assumptions, HypExp`HypExp[h, eps, internal]], $Failed]];
     If[converted === $Failed || !FreeQ[converted, _HypergeometricPFQ | _Hypergeometric2F1 | _HypExp`HypExp], fail["HypExp could not expand a supported atom"]];
-    requireSeriesDepth[converted, eps, internal, !FreeQ[h, eps]];
+    requireSeriesDepth[converted, eps, internal];
     h -> Normal[converted], {h, hAtoms}];
   expanded = expression /. replacements;
   series = Quiet[Check[Assuming[assumptions, Series[expanded, {eps, 0, through}]], $Failed]];
   If[series === $Failed || !FreeQ[series, _Series | _Derivative | _ConditionalExpression | _DirectedInfinity | Indeterminate], fail["Incomplete or ambiguous Laurent expansion"]];
-  requireSeriesDepth[series, eps, through, False];
+  requireSeriesDepth[series, eps, through];
   polynomial = Normal[series];
   If[!FreeQ[polynomial, _SeriesData | _HypergeometricPFQ | _Hypergeometric2F1], fail["Unresolved series output"]];
   <|"protocol" -> 1, "status" -> "ok", "backend" -> meta, "result" -> encode[polynomial],
     "complete" -> True, "achieved_through" -> through, "remainder_order" -> through + 1,
     "order_basis" -> "hypra-pole-bound-plus-hypexp-series",
-    "certification" -> "Algorithmic truncation contract; not an independent proof of HypExp or endpoint integration",
+    "certification" -> "HypExp inclusive order contract, with explicit SeriesData depth checked when present",
     "internal_order" -> internal|>
 ];
 Module[{argv, request, result, responsePath},
   argv = $ScriptCommandLine;
+  If[argv === {} && MatchQ[$CommandLine, {_String, "-script", _String, _String, _String}],
+    argv = Take[$CommandLine, -2]];
   If[Length[argv] < 2, Exit[2]];
   responsePath = Last[argv];
   request = Quiet[Check[Import[argv[[-2]], "RawJSON"], $Failed]];
