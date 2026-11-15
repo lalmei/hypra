@@ -1,5 +1,8 @@
 # Hypra
 
+[![Python tests](https://github.com/lalmei/hypra/actions/workflows/python.yml/badge.svg?branch=main)](https://github.com/lalmei/hypra/actions/workflows/python.yml)
+[![Python quality](https://github.com/lalmei/hypra/actions/workflows/quality.yml/badge.svg?branch=main)](https://github.com/lalmei/hypra/actions/workflows/quality.yml)
+
 **Native Python/SymPy hypergeometric epsilon expansions, inspired by HypExp 2.**
 
 Native HPL functionality is also informed by HPL 2.0.
