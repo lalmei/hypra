@@ -3,24 +3,9 @@ import sympy as s
 
 from hypra import NativeConfig, expand_epsilon
 from hypra.errors import UnsupportedExpressionError
-from hypra.hpl.limits import hpl_limit_at_one
 from hypra.native.endpoints import rewrite_endpoints
-from hypra.symbolic import HPL
 
 e = s.Symbol("epsilon", real=True)
-z = s.Symbol("z", positive=True)
-
-
-def test_combined_rational_log_limit_not_separate_divergences():
-    assert hpl_limit_at_one((s.polylog(2, z) - s.zeta(2)) / (1 - z) - s.log(1 - z), z) == -1
-    assert hpl_limit_at_one(s.log(z) / (1 - z), z) == -1
-    assert hpl_limit_at_one(s.polylog(2, z) / z, z) == s.zeta(2)
-
-
-def test_divergent_and_unsupported_reflection_reject():
-    for expr in (s.log(1 - z), HPL((1, -1), z), HPL((0,) * 8 + (1,), z), s.polylog(2, s.sqrt(z))):
-        with pytest.raises(UnsupportedExpressionError):
-            hpl_limit_at_one(expr, z)
 
 
 def test_general_integer_endpoint_constant_and_regulator_coefficient():
@@ -58,3 +43,11 @@ def test_moving_lower_pole_survives_uniform_endpoint_limit():
         s.hyper([-1 + e, 1, 1], [e, 4], 1), e, through=0, config=NativeConfig(use_cache=False)
     ).polynomial
     assert s.simplify(result - expected) == 0
+
+
+def test_public_endpoint_rewrites_before_pole_planning():
+    eps = s.Symbol("eps", real=True)
+    result = expand_epsilon(s.hyper([1, 1], [2 - eps], 1), eps, through=3, assumptions=eps < 0)
+    assert s.expand(result.polynomial - (1 - 1 / eps)) == 0
+    assert result.provenance["plan"]["pole_bound"] == 1
+    assert result.provenance["input"] != result.provenance["planned_input"]

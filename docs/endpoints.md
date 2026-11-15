@@ -117,7 +117,7 @@ coefficient and passage to that endpoint. Dividing by epsilon^B recovers the
 Laurent expansion. No new endpoint regulator pole arises from this strictly
 positive excess domain; moving lower poles remain accounted for by planning.
 
-Examples checked independently in `tests/test_hpl_limits.py`:
+Examples checked independently in `tests/integration/native/test_hypergeometric_endpoints.py`:
 
 \[
  {}_3F_2(1,1,1+\epsilon;2,2+\epsilon;1)

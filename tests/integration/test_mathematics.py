@@ -5,7 +5,7 @@ from pathlib import Path
 
 import sympy as s
 
-MODULE = Path(__file__).resolve().parents[1] / "scripts" / "validate_integral.py"
+MODULE = Path(__file__).resolve().parents[2] / "scripts" / "validate_integral.py"
 SPEC = importlib.util.spec_from_file_location("validate_integral", MODULE)
 validation = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(validation)

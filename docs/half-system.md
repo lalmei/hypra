@@ -96,7 +96,7 @@ establishes when the Laurent coefficients can be taken to `z=1`.
 
 ## Verification
 
-`tests/test_half_system.py` expands the returned HPL words independently as
+`tests/unit/native/test_half_system.py` expands the returned HPL words independently as
 Taylor series in t using their defining kernels. It compares exact rational
 coefficients through epsilon³ and t⁴ against finite Pochhammer-series
 coefficients under each rational z(t) map, including rank-three A/B cases,
@@ -152,7 +152,7 @@ apparent fourth-root-of-unity letters. The gauge above avoids that issue:
 all actual rational poles are 0 and ±1, so the existing HPL algebra suffices.
 This is an independently derived operator method, not copied upstream tables.
 
-`tests/test_all_half_system.py` checks rank-three and rank-four outputs through
+`tests/unit/native/test_all_half_system.py` checks rank-three and rank-four outputs through
 epsilon² and t⁴ against exact defining Pochhammer coefficients, including
 parameter cancellations. This establishes bounded regression evidence, not a
 claim that arbitrary ranks/orders are computationally cheap.

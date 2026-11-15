@@ -20,6 +20,8 @@ from hypra.backend import (
 )
 from hypra.config import BackendConfig
 
+BRIDGE = Path(__file__).resolve().parents[3] / "src/hypra/wolfram_bridge.wls"
+
 
 @pytest.fixture
 def stub_backend(tmp_path):
@@ -177,8 +179,7 @@ def test_environment_configuration(monkeypatch, tmp_path):
 
 
 def test_bridge_does_not_evaluate_source_strings():
-    bridge = Path(__file__).parents[1] / "src/hypra/wolfram_bridge.wls"
-    source = bridge.read_text()
+    source = BRIDGE.read_text()
     assert "ToExpression[" not in source
     assert 'Unique["HypraInput`v"]' in source
     assert "HypergeometricPFQ" in source
@@ -186,7 +187,7 @@ def test_bridge_does_not_evaluate_source_strings():
 
 def test_bridge_delimiters_balance():
     """A static typo guard, explicitly NOT Wolfram execution/validation."""
-    source = (Path(__file__).parents[1] / "src/hypra/wolfram_bridge.wls").read_text()
+    source = BRIDGE.read_text()
     stack = []
     index, comments = 0, 0
     quoted = False
@@ -275,6 +276,6 @@ def test_kernel_init_fingerprint_covers_sibling_sources(tmp_path):
 
 def test_constant_output_does_not_bypass_hypexp_remainder_guard():
     """Static guard pending execution with a real Wolfram backend."""
-    source = (Path(__file__).parents[1] / "src/hypra/wolfram_bridge.wls").read_text()
+    source = BRIDGE.read_text()
     assert "requireSeriesDepth[converted, eps, internal, !FreeQ[h, eps]]" in source
     assert "parts === {} && TrueQ[mustHaveRemainder], fail[" in source

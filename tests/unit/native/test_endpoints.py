@@ -70,13 +70,3 @@ def test_invalid_and_nonlinear_endpoint():
         rewrite_endpoints(s.hyper([1 + e**2, 1], [3], 1), e)
     with pytest.raises(UnsupportedExpressionError):
         rewrite_endpoints(s.hyper([1, 1], [3], 1), e, s.false)
-
-
-def test_public_endpoint_rewrites_before_pole_planning():
-    from hypra import expand_epsilon
-
-    eps = s.Symbol("eps", real=True)
-    result = expand_epsilon(s.hyper([1, 1], [2 - eps], 1), eps, through=3, assumptions=eps < 0)
-    assert s.expand(result.polynomial - (1 - 1 / eps)) == 0
-    assert result.provenance["plan"]["pole_bound"] == 1
-    assert result.provenance["input"] != result.provenance["planned_input"]
