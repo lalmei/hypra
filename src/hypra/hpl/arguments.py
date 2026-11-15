@@ -1,4 +1,6 @@
 """Explicit expression-level dispatch for supported HPL argument maps."""
+from typing import cast
+
 import sympy as s
 
 from .._typing import Boundary, Interval
@@ -47,16 +49,16 @@ def transform_hpl_arguments(
         selected=next((name for target,name in candidates if s.cancel(arg-target)==0),None)
         if selected is None:
             raise UnsupportedExpressionError(f"Unsupported HPL argument {arg}")
-        if selected in ('negate','fractional','inverse') and boundary is None:
-            raise UnsupportedExpressionError("Cut-valued arguments require an explicit boundary")
-        if selected=='negate':
-            value=negate_hpl(atom.word,z,domain=domain)
-            changes[atom]=value if boundary=='upper' else value.xreplace({s.I:-s.I})
-        elif selected=='fractional':
-            changes[atom]=fractional_hpl(atom.word,z,boundary=boundary,domain=domain)
-        elif selected=='inverse':
-            changes[atom]=invert_hpl(atom.word,z,boundary=boundary,domain=domain)
+        if selected in ('negate', 'fractional', 'inverse'):
+            if boundary is None:
+                raise UnsupportedExpressionError("Cut-valued arguments require an explicit boundary")
+            if selected == 'negate':
+                value = negate_hpl(atom.word, z, domain=domain)
+                changes[atom] = value if boundary == 'upper' else value.xreplace({s.I: -s.I})
+            else:
+                transform = fractional_hpl if selected == 'fractional' else invert_hpl
+                changes[atom] = transform(atom.word, z, boundary=boundary, domain=domain)
         else:
             function={'reflect':reflect_hpl,'square':square_hpl,'mobius':mobius_hpl}[selected]
             changes[atom]=function(atom.word,z,domain=domain)
-    return expression.xreplace(changes)
+    return cast(s.Expr, expression.xreplace(changes))

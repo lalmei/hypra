@@ -17,10 +17,11 @@ with zeta(2)^2 = (5/2) zeta(4). These are identities, not fitted tables.
 from __future__ import annotations
 
 from functools import lru_cache
+from typing import cast
 
 import sympy as s
 
-from .._typing import ExactScalar, IntegerWord
+from .._typing import ExactScalar, IntegerWord, as_integer_tuple
 from ..errors import UnsupportedExpressionError
 from ..symbolic import MZV
 from .algebra import shuffle_words
@@ -38,7 +39,7 @@ def _word(word):
         raise UnsupportedExpressionError("This endpoint evaluator supports only the {0,1} alphabet")
     if len(word) > _MAX_ENDPOINT_WEIGHT:
         raise UnsupportedExpressionError(f"Endpoint weight exceeds {_MAX_ENDPOINT_WEIGHT}")
-    return tuple(int(letter) for letter in word)
+    return as_integer_tuple(word)
 
 
 def _indices_from_word(word):
@@ -57,11 +58,12 @@ def _indices_from_word(word):
 def dual_indices(indices):
     """Convergent MZV duality, derived by reversing and complementing its word."""
     value = MZV(indices)
-    if value == 1:
+    if not isinstance(value, MZV):
         return ()
-    if sum(value.indices) > _MAX_ENDPOINT_WEIGHT:
+    indices = as_integer_tuple(value.indices)
+    if sum(indices) > _MAX_ENDPOINT_WEIGHT:
         raise UnsupportedExpressionError(f"MZV duality weight exceeds {_MAX_ENDPOINT_WEIGHT}")
-    word = tuple(letter for index in value.indices for letter in (*([0] * (int(index) - 1)), 1))
+    word = tuple(letter for index in indices for letter in (*([0] * (index - 1)), 1))
     return _indices_from_word(tuple(1 - letter for letter in reversed(word)))
 
 
@@ -107,7 +109,7 @@ def reduce_mzv(expression: ExactScalar) -> s.Expr:
         raise TypeError("expression must be a SymPy expression")
 
     def reduce_one(atom):
-        indices = tuple(int(index) for index in atom.indices)
+        indices = as_integer_tuple(atom.indices)
         if len(indices) == 1:
             return s.zeta(indices[0])
         if sum(indices) > _MAX_ENDPOINT_WEIGHT:
@@ -116,13 +118,13 @@ def reduce_mzv(expression: ExactScalar) -> s.Expr:
         indices = min((indices, dual), key=lambda word: (len(word), word))
         if len(indices) == 1:
             return s.zeta(indices[0])
-        if sum(indices) <= 12 and all(index == 1 for index in indices[1:]):
+        if indices and sum(indices) <= 12 and all(index == 1 for index in indices[1:]):
             return _height_one(indices[0], len(indices))
         if indices == (2, 2):
             return 3 * s.zeta(4) / 4
         return MZV(indices)
 
-    return expression.replace(lambda node: isinstance(node, MZV), reduce_one)
+    return cast(s.Expr, expression.replace(lambda node: isinstance(node, MZV), reduce_one))
 
 
 @lru_cache(maxsize=2048)

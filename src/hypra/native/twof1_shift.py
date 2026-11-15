@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import cast
+
 import sympy as s
 
 from ..errors import UnsupportedExpressionError
@@ -12,7 +14,7 @@ from .planning import laurent_coefficient
 
 
 def _operations(upper, lower):
-    bases = [s.Rational(1, 2) if base.q == 2 else s.S.Zero for base, _ in upper]
+    bases: list[s.Expr] = [s.Rational(1, 2) if base.q == 2 else s.S.Zero for base, _ in upper]
     c = s.Rational(1, 2) if lower[0][0].q == 2 else s.S.One
     operations = []
     for i, (target, _) in enumerate(upper):
@@ -118,7 +120,7 @@ def expand_shifted_twof1(h, eps, order):
     actual = {alpha: upper[0][1], beta: upper[1][1], gamma: lower[0][1]}
     final = s.S.Zero
     for k in range(-pole_bound, order + 1):
-        coefficient = s.cancel(laurent_coefficient(result, eps, k))
+        coefficient = s.cancel(laurent_coefficient(cast(s.Expr, result), eps, k))
         value = coefficient.subs(actual, simultaneous=True)
         if value.has(s.nan, s.zoo, s.oo, -s.oo):
             raise UnsupportedExpressionError(

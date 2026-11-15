@@ -16,6 +16,7 @@ from functools import lru_cache
 
 import sympy as s
 
+from .._typing import as_integer_tuple
 from ..symbolic import HPL
 
 Word = tuple[int, ...]
@@ -30,7 +31,7 @@ def _word(value) -> Word:
         for index in value
     ):
         raise ValueError("Strict harmonic words require positive integer indices")
-    return tuple(int(index) for index in value)
+    return as_integer_tuple(value)
 
 
 def _coefficient(value) -> s.Expr:
@@ -125,7 +126,7 @@ def harmonic_exp(log_coefficients: Mapping[int, Mapping], order: int) -> list[Ha
         if type(degree) is not int or degree <= 0:
             raise ValueError("Logarithmic degrees must be positive Python integers")
         logarithm[degree] = _clean(poly)
-    coefficients = [{(): s.S.One}]
+    coefficients: list[HarmonicPolynomial] = [{(): s.S.One}]
     for degree in range(1, order + 1):
         total = {}
         for k in range(1, degree + 1):

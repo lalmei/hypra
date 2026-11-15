@@ -3,6 +3,7 @@ from functools import lru_cache
 
 import sympy as s
 
+from .._typing import as_integer_tuple
 from ..errors import UnsupportedExpressionError
 from ..symbolic import MZV, EulerSum
 
@@ -62,10 +63,11 @@ def stuffle_expand_constants(expression: s.Expr) -> s.Expr:
 
     def polynomial(node):
         if isinstance(node, (MZV, EulerSum)):
-            if sum(node.indices) > _MAX_WEIGHT:
+            indices = as_integer_tuple(node.indices)
+            if sum(indices) > _MAX_WEIGHT:
                 raise UnsupportedExpressionError('Constant stuffle exceeds weight twelve')
             colors = (1,)*len(node.indices) if isinstance(node, MZV) else node.colors
-            return {tuple(zip(map(int, node.indices), map(int, colors))): s.S.One}
+            return {tuple(zip(indices, as_integer_tuple(colors), strict=True)): s.S.One}
         if not node.has(MZV, EulerSum):
             return {(): node}
         if node.is_Add:

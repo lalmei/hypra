@@ -15,8 +15,10 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from dataclasses import dataclass
+from typing import cast
 
 import sympy as s
+from sympy.logic.boolalg import Boolean
 
 from ..errors import IncompleteExpansionError, UnsupportedExpressionError
 from ..symbolic import HPL
@@ -101,30 +103,31 @@ def plan_contiguous(
     upper, lower, upper_bases, lower_bases = _parameters(
         upper_pairs, lower_pairs, canonical_upper_bases, canonical_lower_bases
     )
-    upper_bases, lower_bases = list(upper_bases), list(lower_bases)
+    current_upper: list[s.Expr] = list(upper_bases)
+    current_lower: list[s.Expr] = list(lower_bases)
     upper_slopes = tuple(slope for _, slope in upper)
     lower_slopes = tuple(slope for _, slope in lower)
     total_shifts = sum(
         abs(int(target - base))
         for (target, _), base in zip(
-            upper + lower, tuple(upper_bases) + tuple(lower_bases), strict=True
+            upper + lower, tuple(current_upper) + tuple(current_lower), strict=True
         )
     )
     if total_shifts > _MAX_SHIFTS:
         raise UnsupportedExpressionError(f"Contiguous shift count exceeds {_MAX_SHIFTS}")
     steps = []
     perturbation = False
-    for family, targets, bases in (("upper", upper, upper_bases), ("lower", lower, lower_bases)):
+    for family, targets, bases in (("upper", upper, current_upper), ("lower", lower, current_lower)):
         for index, (target, _) in enumerate(targets):
             while bases[index] != target:
                 direction = 1 if bases[index] < target else -1
                 kind = family + ("_up" if direction == 1 else "_down")
                 factors = _divisor_factors(
-                    kind, index, upper_bases, lower_bases, upper_slopes, lower_slopes
+                    kind, index, current_upper, current_lower, upper_slopes, lower_slopes
                 )
                 loss = sum(1 for base, _ in factors if base == 0)
                 perturbation |= any(base == 0 and slope == 0 for base, slope in factors)
-                steps.append(ShiftStep(kind, index, tuple(upper_bases), tuple(lower_bases), loss))
+                steps.append(ShiftStep(kind, index, tuple(current_upper), tuple(current_lower), loss))
                 bases[index] += direction
     extra_order = sum(step.order_loss for step in steps)
     if extra_order > _MAX_DEPTH:
@@ -277,7 +280,7 @@ def expand_contiguous(
     canonical_builder: Callable,
     *,
     max_internal_order: int = _MAX_DEPTH,
-    assumptions=s.true,
+    assumptions: Boolean = s.true,
 ) -> s.Expr:
     """Shift a canonical pF(p-1) expansion to exact rational target parameters.
 
@@ -314,15 +317,15 @@ def expand_contiguous(
     slope_symbols = set().union(*(slope.free_symbols for _, slope in upper + lower))
     if {z, epsilon} & slope_symbols:
         raise UnsupportedExpressionError("Slopes must be independent of argument and regulator")
-    from .planning import _facts
+    from .planning import _ask, _facts
 
     singular_slopes = [slope for base, slope in lower if base.is_Integer and base <= 0]
     for slope in singular_slopes:
-        if s.ask(s.Q.nonzero(slope), _facts(assumptions)) is not True:
+        if _ask(s.Q.nonzero(slope), _facts(assumptions)) is not True:
             raise UnsupportedExpressionError("Moving lower pole slope must be provably nonzero")
     source_denominator = s.prod(singular_slopes)
     delta_name = "_hypra_slope_delta"
-    while delta_name in {symbol.name for symbol in slope_symbols | {z, epsilon}}:
+    while delta_name in {symbol.name for symbol in cast(set[s.Symbol], slope_symbols | {z, epsilon})}:
         delta_name += "_"
     delta = s.Symbol(delta_name)
     slopes = tuple(slope for _, slope in upper + lower)

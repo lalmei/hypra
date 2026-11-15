@@ -1,5 +1,6 @@
 """Exact convergent alternating HPL endpoints, without regularization tables."""
 from functools import lru_cache
+from typing import cast
 
 import sympy as s
 
@@ -24,7 +25,7 @@ def reduce_euler_sum(expression: ExactScalar) -> s.Expr:
             # x_n=c**n/n**s. Newton identities hold before any infinite limit.
             # Every power sum converges for our valid inputs, even s=1,c=-1.
             index, color = indices[0], colors[0]
-            elementary = [s.S.One]
+            elementary: list[s.Expr] = [s.S.One]
             powers = [None] + [one(EulerSum((k * index,), (color ** k,)))
                                for k in range(1, len(indices) + 1)]
             for depth in range(1, len(indices) + 1):
@@ -46,7 +47,7 @@ def reduce_euler_sum(expression: ExactScalar) -> s.Expr:
         expression = s.Integer(expression)
     if not isinstance(expression, s.Basic):
         raise TypeError("expression must be a SymPy expression, not source text")
-    return expression.replace(lambda node: isinstance(node, EulerSum), one)
+    return cast(s.Expr, expression.replace(lambda node: isinstance(node, EulerSum), one))
 
 
 @lru_cache(maxsize=2048)

@@ -113,7 +113,7 @@ def colored_exp(log_coefficients: Mapping[int, Mapping], order: int) -> list[Col
         if type(degree) is not int or degree <= 0:
             raise ValueError("Logarithmic degrees must be positive Python integers")
         logarithm[degree] = _clean(poly)
-    coefficients = [{(): s.S.One}]
+    coefficients: list[ColoredPolynomial] = [{(): s.S.One}]
     for degree in range(1, order + 1):
         total = {}
         for weight in range(1, degree + 1):

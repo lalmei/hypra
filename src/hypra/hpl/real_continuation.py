@@ -1,8 +1,10 @@
 """Explicit real-axis boundary continuation, without arbitrary winding paths."""
 
+from typing import cast
+
 import sympy as s
 
-from .._typing import Boundary, IntegerWord, RealRegion
+from .._typing import Boundary, IntegerWord, RealRegion, as_integer_tuple
 from ..errors import UnsupportedExpressionError
 from ..symbolic import HPL
 from .algebra import _as_hpl
@@ -31,7 +33,7 @@ def analytic_continue_hpl(
     if not isinstance(x, s.Symbol):
         raise TypeError("Continuation variable must be a SymPy Symbol")
     atom = HPL(word, x)
-    word = tuple(map(int, atom.word))
+    word = as_integer_tuple(atom.word)
     if region not in ("0<x<1", "-1<x<0", "x>1", "x<-1"):
         raise UnsupportedExpressionError("Unrecognized open real continuation region")
     if boundary not in ("upper", "lower"):
@@ -49,7 +51,7 @@ def analytic_continue_hpl(
     if boundary == "lower":
         negated = negated.xreplace({s.I: -s.I})
     if region == "-1<x<0":
-        return negated.subs(t, -x)
+        return cast(s.Expr, negated.subs(t, -x))
     # x=-y reverses the boundary: upper x means lower y, and conversely.
     negated = _as_hpl(negated, t)
     for function in negated.atoms(s.Function):

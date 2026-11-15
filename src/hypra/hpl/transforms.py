@@ -1,10 +1,11 @@
 """Branch-explicit, bounded argument transformations of harmonic polylogarithms."""
 
 from functools import lru_cache
+from typing import cast
 
 import sympy as s
 
-from .._typing import IntegerWord, Interval
+from .._typing import IntegerWord, Interval, as_integer_tuple
 from ..errors import UnsupportedExpressionError
 from ..symbolic import HPL
 from .algebra import integrate_from_zero, shuffle_words
@@ -18,7 +19,7 @@ def _validate(word, z, domain):
     if not isinstance(z, s.Symbol):
         raise TypeError("The argument must be a SymPy Symbol")
     checked = HPL(word, z)
-    word = tuple(map(int, checked.word))
+    word = as_integer_tuple(checked.word)
     if len(word) > 24:
         raise UnsupportedExpressionError("Transformation weight exceeds 24")
     return word
@@ -46,9 +47,9 @@ def negate_hpl(word: IntegerWord, z: s.Symbol, *, domain: Interval | None = None
         return (s.log(z) + s.I * s.pi) ** len(word) / s.factorial(len(word))
     if word[-1] == 0:
         expanded = _extract(word, z, False, True)
-        return expanded.xreplace(
+        return cast(s.Expr, expanded.xreplace(
             {atom: negate_hpl(atom.word, z, domain=domain) for atom in expanded.atoms(HPL)}
-        )
+        ))
     return (-1) ** sum(a != 0 for a in word) * _h(tuple(-a for a in word), z)
 
 

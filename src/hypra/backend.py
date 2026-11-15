@@ -295,6 +295,7 @@ class WolframBackend:
         response["cache_hit"] = False
         if self.config.use_cache:
             # Cache write failure does not invalidate an otherwise verified transport result.
+            temporary: Path | None = None
             try:
                 cache_path.parent.mkdir(parents=True, exist_ok=True)
                 with tempfile.NamedTemporaryFile("wb", dir=cache_path.parent, delete=False) as file:
@@ -310,7 +311,7 @@ class WolframBackend:
                     )
                 os.replace(temporary, cache_path)
             except OSError:
-                if "temporary" in locals():
+                if temporary is not None:
                     temporary.unlink(missing_ok=True)
         return response
 

@@ -1,11 +1,16 @@
 """Conservative Laurent-order planning; no numerical inference of pole orders."""
 
+from collections.abc import Callable
 from dataclasses import dataclass
+from typing import cast
 
 import sympy as s
 from sympy.logic.boolalg import Boolean
 
 from ..errors import UnsupportedExpressionError
+
+# SymPy's signature infers bool from the default, but accepts Boolean relations.
+_ask = cast(Callable[[s.Basic, Boolean], bool | None], s.ask)
 
 
 @dataclass(frozen=True)
@@ -23,18 +28,18 @@ def _facts(assumptions):
     facts = []
     for clause in clauses:
         if isinstance(clause, s.StrictGreaterThan):
-            facts.append(s.Q.positive(clause.lhs - clause.rhs))
+            facts.append(s.Q.positive(cast(s.Expr, clause.lhs) - cast(s.Expr, clause.rhs)))
         elif isinstance(clause, s.StrictLessThan):
-            facts.append(s.Q.positive(clause.rhs - clause.lhs))
+            facts.append(s.Q.positive(cast(s.Expr, clause.rhs) - cast(s.Expr, clause.lhs)))
         elif isinstance(clause, s.Unequality):
-            facts.append(s.Q.nonzero(clause.lhs - clause.rhs))
+            facts.append(s.Q.nonzero(cast(s.Expr, clause.lhs) - cast(s.Expr, clause.rhs)))
         else:
             facts.append(clause)
     return s.And(*facts)
 
 
 def _positive(expr, assumptions):
-    return s.ask(s.Q.positive(expr), _facts(assumptions)) is True
+    return _ask(s.Q.positive(expr), _facts(assumptions)) is True
 
 
 def _affine_rational(expr, epsilon):
@@ -75,7 +80,7 @@ def _exact_rational_valuation(expr, epsilon, assumptions):
     for p in (pn, pd):
         k = min(m[0] for m, c in p.terms() if c != 0)
         c = p.nth(k)
-        if c.is_nonzero is not True and s.ask(s.Q.nonzero(c), _facts(assumptions)) is not True:
+        if c.is_nonzero is not True and _ask(s.Q.nonzero(c), _facts(assumptions)) is not True:
             raise UnsupportedExpressionError(
                 f"Nonzero leading coefficient {c} requires an explicit nonzero assumption"
             )
@@ -174,7 +179,7 @@ def plan_expansion(
                     coeff = p.nth(m)
                     if (
                         coeff.is_nonzero is not True
-                        and s.ask(s.Q.nonzero(coeff), _facts(assumptions)) is not True
+                        and _ask(s.Q.nonzero(coeff), _facts(assumptions)) is not True
                     ):
                         raise UnsupportedExpressionError(
                             "Gamma pole slope must be provably nonzero"
@@ -206,7 +211,7 @@ def plan_expansion(
                         raise UnsupportedExpressionError(
                             "Fixed singular lower hypergeometric parameter"
                         )
-                    if s.ask(s.Q.nonzero(slope), _facts(assumptions)) is not True:
+                    if _ask(s.Q.nonzero(slope), _facts(assumptions)) is not True:
                         raise UnsupportedExpressionError("Moving lower pole slope must be provably nonzero")
                     poles += 1
             negative_budget += poles

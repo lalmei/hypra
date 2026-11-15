@@ -59,6 +59,6 @@ def hpl_series_at_one(word: IntegerWord, t: s.Symbol, *, through: int = 3) -> s.
                 raise UnsupportedExpressionError('Near-one coefficient operation budget exceeded')
             coefficients.append(value)
         tail = coefficients
-    expression = sum(coefficient*t**n for n,coefficient in enumerate(tail))
+    expression = s.Add(*(coefficient*t**n for n,coefficient in enumerate(tail)))
     return s.expand(expression.subs(T,-s.log(t))) + s.Order(
         t**(through+1)*s.log(t)**len(word), (t,0))
