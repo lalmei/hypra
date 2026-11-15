@@ -28,6 +28,10 @@ dev = [
     "pytest>=8",
     "ruff>=0.8",
 ]
+quality = [
+    "pyright==1.1.414",
+    "ruff==0.17.5",
+]
 docs = [
     "properdocs==1.6.7",
     "mkdocs-materialx==10.2.2",
@@ -35,6 +39,12 @@ docs = [
     "mkdocs-typer2[mkdocs]==0.4.1",
     "mkdocstrings-python==2.0.11",
 ]
+
+[tool.pyright]
+include = ["src/hypra"]
+pythonVersion = "3.12"
+typeCheckingMode = "standard"
+reportUnnecessaryTypeIgnoreComment = "error"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
