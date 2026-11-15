@@ -100,8 +100,8 @@ See the [HPL 2 capability map](docs/parity-map.md) for remaining gaps.
 ## Validate and produce LaTeX
 
 ```sh
-uv run pytest -q
-uv run ruff check .
+make check
+make test PYTEST_ARGS='-k gamma'
 uv run python scripts/validate.py --numeric --output-dir reports/local
 uv run hypra expand examples/gamma_q_request.json \
   --output result.json --latex result.tex
@@ -188,9 +188,18 @@ These numerical diagnostics do not certify floating-point roundoff.
 ## Browse the documentation locally
 
 ```sh
-uv sync
-uv run properdocs serve --dev-addr 127.0.0.1:8000
+make docs-serve
 ```
 
 Open http://127.0.0.1:8000/ on the same computer. The documentation includes
 locally bundled math rendering and works without external browser resources.
+
+## Build and version
+
+Run `make help` for the available targets and `make build` to produce a wheel
+and source distribution in `dist/`. Use `make bump-preview` to see the available
+version changes. `make bump-pre` advances `0.1.0a0` to `0.1.0a1`, while
+`make bump-patch` starts the next patch series at `0.1.1a0`. Use
+`make bump-release` to promote a prerelease directly to its stable version.
+Bump targets update package metadata, the runtime version, expansion provenance,
+and `uv.lock` for review before committing with GitButler.
