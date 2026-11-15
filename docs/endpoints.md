@@ -169,8 +169,7 @@ The higher-rank recurrence requires rank at most eight and
 `floor(-Delta_0) + 1 <= 8`, where `Delta_0` is the base excess of
 the series entering the recurrence. Rank reduction uses exact positive
 integer upper/lower differences through eight. Shifted series must be
-supported by the native endpoint kernels. Fixed singular lower parameters
-are rejected before endpoint processing.
+supported by the native endpoint kernels.
 
 ### Fixed excess poles
 
@@ -192,3 +191,20 @@ For example, shifting the sole lower parameter of
 [`hypergeometric([1, 1], [2], 1)`](api-examples.md#hypergeometric-unit-endpoints)
 gives `1/epsilon + 1`.
 The result provenance records the index and the rewritten input.
+
+
+### Fixed singular lower parameters
+
+Set `NativeConfig(unit_endpoint="meromorphic", unit_shift_singular_lowers=True)`
+to move each fixed nonpositive integer lower parameter at `z=1` by
+`+epsilon`. The shift applies before cancellation and before checking for a
+terminating numerator. Use `hypra.hypergeometric` to preserve the supplied
+parameters through construction.
+
+These shifts also change the excess. If the excess is still a fixed
+nonpositive integer after the shifts and exact cancellation, the existing
+`unit_excess_shift` option can add a transverse shift. The resulting Laurent
+series includes all poles along the chosen path. Its finite part can depend
+on the path. For example, the half-integer unit series with upper parameters
+`[1/2, 1/2, 3, 5/2]` and lower parameters `[0, 2, 3/2]` has leading term
+`-27/(128*pi*epsilon**2)` under this prescription.
