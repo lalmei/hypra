@@ -1,20 +1,67 @@
 """Exact origin-continuation HPL values at i, without fitted constant tables."""
 
+from functools import lru_cache
+
 import sympy as s
 
 from .._typing import IntegerWord
 from ..errors import UnsupportedExpressionError
 from ..symbolic import HPL, reduce_known_hpl
 from .classical import classical_hpl
+from .multiple_polylog import MultiplePolylog
 from .numeric import _word
+from .reduction import _extract
+
+
+@lru_cache(maxsize=512)
+def _segment(word, start, displacement):
+    """Iterated integral of a word with no singular final letter at start."""
+    indices, arguments = [], []
+    zeros, previous = 0, displacement
+    for letter in word:
+        pole = letter - start
+        if pole == 0:
+            zeros += 1
+        else:
+            indices.append(zeros + 1)
+            arguments.append(s.expand(s.cancel(previous / pole)))
+            zeros, previous = 0, pole
+    sign = (-1) ** (len(indices) - word.count(1))
+    return sign * MultiplePolylog(s.Tuple(*indices), s.Tuple(*arguments))
+
+
+@lru_cache(maxsize=512)
+def _first_half(word):
+    if not word:
+        return s.S.One
+    midpoint = s.I / 2
+    z = s.Symbol("_hpl_midpoint")
+    extracted = _extract(word, z, False, True)
+    return extracted.xreplace(
+        {
+            atom: s.log(midpoint) if atom.word == (0,) else _segment(tuple(atom.word), 0, midpoint)
+            for atom in extracted.atoms(HPL)
+        }
+    )
+
+
+def _at_i_multiple_polylogs(word):
+    # Compose the first half with the reversal of the segment i -> i/2.
+    # Both series have cumulative argument products with modulus <= 1/2.
+    return _first_half(word) + s.Add(
+        *(
+            (-1) ** cut * _segment(word[:cut][::-1], s.I, -s.I / 2) * _first_half(word[cut:])
+            for cut in range(1, len(word) + 1)
+        )
+    )
 
 
 def hpl_at_i(word: IntegerWord) -> s.Expr:
     """Exact H_word(i) on continuation from the origin through the upper quadrant.
 
-    All ternary words of weight <=2, pure repeated letters, and classical
-    words 0**(n-1), +/-1 through weight24 are supported. Unsupported mixed
-    words fail closed. Irreducible dilogarithms are retained exactly.
+    All ternary words through weight four reduce to exact logarithms and
+    classical or multiple polylogarithms. Pure repeated letters and simple
+    classical words are also supported through weight 24.
 
     Args:
         word: Expanded ternary word evaluated at the positive imaginary unit.
@@ -32,8 +79,10 @@ def hpl_at_i(word: IntegerWord) -> s.Expr:
     else:
         formula = reduce_known_hpl(HPL(word, z))
         if formula.has(HPL):
+            if len(word) <= 4:
+                return _at_i_multiple_polylogs(word)
             raise UnsupportedExpressionError(
-                "At i, mixed words above weight two are not implemented"
+                "At i, mixed words above weight four are not implemented"
             )
     value = formula.subs(z, s.I)
     # The even/odd terms of Li2(±i) give -zeta(2)/8 ± i*Catalan.

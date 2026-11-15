@@ -47,6 +47,16 @@ def test_simple_higher_words_and_rejections():
     assert hpl_at_i((0, 0, -1)) == -s.polylog(3, -s.I)
     assert s.simplify(hpl_at_i((1,) * 4) - hpl_at_i((1,)) ** 4 / 24) == 0
     with pytest.raises(UnsupportedExpressionError):
-        hpl_at_i((1, 0, -1))
+        hpl_at_i((1, 0, -1, 0, 1))
     with pytest.raises(UnsupportedExpressionError):
         hpl_at_i((0,) * 25)
+
+
+def test_mixed_quartic_is_an_exact_multiple_polylog_expression():
+    from hypra.hpl.multiple_polylog import MultiplePolylog
+
+    value = hpl_at_i((0, 1, 0, -1))
+    assert value.has(MultiplePolylog)
+    assert not value.has(HPL, s.Float)
+    assert not value.free_symbols
+    assert value.rewrite(s.Sum).has(s.Sum)

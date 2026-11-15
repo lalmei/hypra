@@ -3,14 +3,16 @@
 Opt in with HYPRA_RUN_REAL=1 after configuring external dependencies.
 """
 
+import json
 import os
 import shutil
+import subprocess
 from pathlib import Path
 
 import pytest
 import sympy as s
 
-from hypra import HPL, backend_info, expand_epsilon
+from hypra import HPL, BackendConfig, backend_info, expand_epsilon, hpl_at_i
 
 pytestmark = pytest.mark.real_backend
 E, W = s.symbols("eps w")
@@ -112,3 +114,42 @@ def test_hpl_weight_four_at_i():
     upstream = expand_epsilon(expression, E, through=0, backend="wolfram")
     assert not upstream.polynomial.has(HPL)
     assert abs(upstream.polynomial.evalf(36) - expression.evalf(36)) < s.Float("1e-30")
+
+
+def test_all_hpl_words_through_weight_four_at_i(tmp_path):
+    config = BackendConfig.from_env()
+    info = backend_info(backend="wolfram")
+    executable = config.resolved_executable()
+    assert executable is not None
+    script = tmp_path / "compare_i.wls"
+    output = tmp_path / "values.json"
+    script.write_text(
+        r"""argv = If[$ScriptCommandLine === {}, $CommandLine, $ScriptCommandLine];
+Global`$HPLPath = DirectoryName[argv[[-2]]];
+Get[argv[[-2]]];
+words = Join[{{}}, Flatten[Table[Tuples[{-1, 0, 1}, n], {n, 1, 4}], 1]];
+values = Table[N[If[word === {}, 1, HPL`HPL[word, I]], 55], {word, words}];
+If[!AllTrue[values, NumberQ], Exit[2]];
+rows = MapThread[{#1, ToString[Round[10^42 Re[#2]], InputForm],
+                      ToString[Round[10^42 Im[#2]], InputForm]} &, {words, values}];
+Export[Last[argv], rows, "RawJSON"];
+Exit[0];
+""",
+        encoding="utf-8",
+    )
+    mode = "-file" if "wolframscript" in Path(executable).name.lower() else "-script"
+    run = subprocess.run(
+        [executable, mode, str(script), info["hpl_path"], str(output)],
+        capture_output=True,
+        text=True,
+        timeout=config.timeout,
+        check=False,
+    )
+    assert run.returncode == 0, run.stdout + run.stderr
+    rows = json.loads(output.read_text())
+    assert len({tuple(word) for word, _, _ in rows}) == 121
+    for word, real, imag in rows:
+        upstream = (s.Integer(real) + s.I * s.Integer(imag)) / 10**42
+        actual = hpl_at_i(tuple(word))
+        assert not actual.has(HPL, s.Float), word
+        assert abs(actual.evalf(40) - upstream.evalf(40)) < s.Float("1e-35"), word
