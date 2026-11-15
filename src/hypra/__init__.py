@@ -57,7 +57,7 @@ from .nielsen import NielsenPolylog, hpl_to_nielsen, nielsen_to_hpl, reduce_niel
 from .serialization import SerializationError, decode_expr, encode_expr
 from .symbolic import HPL, MZV, EulerSum
 
-__version__ = "0.1.0a0"
+__version__ = "0.2.0"
 
 
 def hypergeometric(
