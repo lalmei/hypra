@@ -1,0 +1,36 @@
+name: Draft release notes
+
+on:
+  workflow_dispatch:
+    inputs:
+      previous_tag:
+        description: Previous release tag (for example, v0.2.0)
+        required: true
+        type: string
+      target:
+        description: Release commit SHA (defaults to the selected main commit)
+        type: string
+
+permissions:
+  contents: write
+  pull-requests: read
+
+concurrency:
+  group: draft-release-notes
+  cancel-in-progress: false
+
+jobs:
+  draft:
+    if: github.ref_type == 'branch' && github.ref_name == github.event.repository.default_branch
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - name: Draft notes for the package version at the release commit
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PREVIOUS_TAG: ${{ inputs.previous_tag }}
+          TARGET: ${{ inputs.target || github.sha }}
+        run: python3 scripts/draft_release.py --repo "$GITHUB_REPOSITORY" --previous-tag "$PREVIOUS_TAG" --target "$TARGET" --apply
