@@ -74,7 +74,7 @@ exchange proof applies to J4, not arbitrary integrals.
 Uncovered parameter patterns, nonterminating ranks other than `pF(p-1)`,
 complete special-value tables, general contour continuation and full upstream
 HPL simplification are not implemented. The optional Wolfram bridge remains
-unverified comparison infrastructure and is not a native dependency.
+optional comparison infrastructure with live coverage for selected cases.
 
 ## Mathematical sources
 
