@@ -24,6 +24,8 @@ describe any extra requirements on letters, exactness, and argument domains.
 
 ::: hypra.native.NativeConfig
 
+::: hypra.expansion_library.ExpansionLibrary
+
 ::: hypra.native.NativeBackend
 
 ::: hypra.config.BackendConfig
