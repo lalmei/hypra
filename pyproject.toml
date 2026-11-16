@@ -26,6 +26,7 @@ hypra = "hypra.cli:main"
 [dependency-groups]
 dev = [
     "pytest>=8",
+    "pytest-cov>=7.0.0",
     "ruff>=0.8",
 ]
 quality = [
@@ -49,6 +50,18 @@ reportUnnecessaryTypeIgnoreComment = "error"
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 markers = ["real_backend: requires licensed Wolfram plus external HypExp/HPL (opt in)"]
+addopts = "--cov --cov-report=term-missing --cov-report=xml --cov-report=html"
+
+[tool.coverage.run]
+branch = true
+source = ["src/hypra"]
+relative_files = true
+
+[tool.coverage.report]
+precision = 2
+
+[tool.coverage.html]
+title = "Hypra Coverage Report"
 
 [tool.ruff]
 line-length = 100
