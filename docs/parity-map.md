@@ -41,8 +41,26 @@ definite logarithmic integrals, and Mathematica library management.
 | `HypExp`, `MyHypExpansion` | `expand_epsilon` with an exact SymPy `hyper` | See [supported families and domains](scope.md#hypexp-2-class-correspondence) and [unit endpoint coverage](endpoints.md). The class list describes kernel coverage. |
 | `HypExpU` | `beta_log_moment(n, m, p)` | Convergence requires `p + m >= 0`. Log weight through seven and `-32 <= p <= 64`. |
 | `HypExpInt` | `hypergeometric_log_moment(p, n, m, k, q, z)` | Convergent endpoints and exact real mixed-log kernels for `z<1` through upstream log weight five, subject to power and algebra budgets. |
-| `HypExpAddToLib`, `HypExpIsKnownToOrder` | Native request-result cache via `NativeConfig` | The cache stores individual computed requests. An expansion library indexed by parameter bases and known order has no public equivalent. |
+| `HypExpAddToLib`, `HypExpIsKnownToOrder` | `ExpansionLibrary.add_to_lib`, `ExpansionLibrary.is_known_to_order` | Persistent symbolic templates indexed by sorted integer bases. Opt in with `NativeConfig(expansion_library=...)` for real interior expansions. |
 | `$HypExpFailed`, `$HypExpPolyLogRules` | Typed exceptions and explicit HPL reduction | Appendix A.1 rewrite coverage has not been verified. |
+
+### Registering expansions
+
+```python
+from hypra import ExpansionLibrary, NativeConfig
+
+library = ExpansionLibrary("expansions.sqlite")
+library.add_to_lib([0, 1], [1], through=2)
+assert library.is_known_to_order([1, 0], [1], through=1)
+config = NativeConfig(expansion_library=str(library.path))
+```
+
+Pass `config` to `expand_epsilon` to specialize the stored template to the
+request's slopes and argument. The planner can request a higher order to
+account for Laurent poles. If the library lacks that order or the argument
+falls outside the real interior, expansion uses the usual native kernels.
+Registration computes the generic expansion with the native order and
+algebra budgets. A failed registration preserves existing entries.
 
 ## Remaining distinctions
 
