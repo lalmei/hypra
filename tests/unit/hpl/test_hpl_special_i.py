@@ -47,7 +47,7 @@ def test_simple_higher_words_and_rejections():
     assert hpl_at_i((0, 0, -1)) == -s.polylog(3, -s.I)
     assert s.simplify(hpl_at_i((1,) * 4) - hpl_at_i((1,)) ** 4 / 24) == 0
     with pytest.raises(UnsupportedExpressionError):
-        hpl_at_i((1, 0, -1, 0, 1))
+        hpl_at_i((1, 0, -1, 0, 1, 0, 1))
     with pytest.raises(UnsupportedExpressionError):
         hpl_at_i((0,) * 25)
 

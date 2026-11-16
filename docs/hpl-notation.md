@@ -14,3 +14,18 @@ for this multilinear basis change and its inverse. The implementation expands
 kernel tensor products, not copied upstream conversion rules. Weight bounds
 limit the exponential output size; round-trip tests cover all ternary words
 through weight four.
+
+Use `HPLPM(("plus", 0, "minus"), z)` to keep the kernel labels in a
+symbolic expression. Calling `.rewrite(HPL)` converts it to ordinary HPLs.
+
+## HPL 2.0 minimal sets
+
+`reduce_hpl_to_minimal_set(expression)` reduces ordinary `HPL` and
+`HPLPM` atoms in their respective alphabets through weight six. For each
+weight, the reducer forms shuffle equations from all pairs of smaller words.
+It eliminates words with leading one or trailing zero first, followed by
+the remaining words in lexicographic order. In the plus/minus alphabet,
+minus takes the place of −1 and plus takes the place of 1. Solving the
+equations gives the upstream basis choices without loading reduction tables.
+The live comparison checks every polynomial in both bases against HPL 2.0.
+See [Maître, section 6](https://arxiv.org/abs/hep-ph/0507152).

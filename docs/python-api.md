@@ -111,6 +111,10 @@ See the [runnable examples](api-examples.md) for these settings.
 
 ::: hypra.hpl.reduction.lyndon_reduce
 
+::: hypra.hpl.minimal.reduce_hpl_to_minimal_set
+
+::: hypra.hpl.notation.HPLPM
+
 ::: hypra.hpl.taylor.hpl_taylor
 
 ## Endpoints and constants
@@ -140,6 +144,8 @@ See the [runnable examples](api-examples.md) for these settings.
 ::: hypra.hpl.stuffle.stuffle_expand_constants
 
 ::: hypra.hpl.special.hpl_at_i
+
+::: hypra.hpl.special.hpl_pm_at_i
 
 ::: hypra.hpl.series_one.hpl_series_at_one
 

@@ -15,6 +15,7 @@ The reference source is read only; no upstream reduction tables are copied.
 | Endpoint constant products | `stuffle_expand_constants` | Exact strict colored stuffle algebra, total weight ≤12; not divergent regularization |
 | Product expansion | `shuffle_expand`, `shuffle_product` | Same-argument shuffle algebra |
 | Logarithm extraction | `extract_hpl_logs` | Leading 1 and trailing 0; retains branch data |
+| HPL 2.0 minimal sets | `reduce_hpl_to_minimal_set`, `HPLPM` | Exact ordinary and plus/minus bases through weight six, generated from shuffle identities |
 | Shuffle basis reduction | `lyndon_reduce` | Table-free Lyndon basis through weight eight, not upstream's particular chosen basis |
 | Nielsen notation | `NielsenPolylog`, `hpl_to_nielsen`, `nielsen_to_hpl` | Exact 0^n1^p words; no general Nielsen-basis claim |
 | Elementary/classical conversion | `reduce_known_hpl`; `classical_hpl` | Standard all-weight simple words; all weight-two and all 27 ternary weight-three words; other mixed words retained |
@@ -27,7 +28,7 @@ The reference source is read only; no upstream reduction tables are copied.
 | Explicit shuffle regularization | `hpl_endpoint_polynomial`, `hpl_expression_endpoint_polynomial`, `shuffle_regularized_hpl_at_one` | Real endpoint polynomial in T=−log(1−z); not an ordinary finite limit |
 | Named HPL constants | `HPLs6`, `HPLs7a`–`HPLs8d` | Exact weak harmonic sums expressed in the strict Euler-sum convention |
 | Numerical endpoint constants | `evaluate_mzv`, `evaluate_euler_sum`, `.evalf()` | Through weight eight; guarded precision evidence, not interval certification |
-| Values at i | `hpl_at_i`; numerical `continue_hpl` | Exact all ternary words through weight four in classical and multiple polylogarithms; repeated letters and simple classical words through weight 24 |
+| Values at i | `hpl_at_i`, `hpl_pm_at_i`; numerical `continue_hpl` | Exact all ternary words through weight six in classical and multiple polylogarithms; repeated letters and simple classical words through weight 24 |
 | Numerical HPL evaluation | `hpl_evalf`, `evaluate_hpl`, `continue_hpl` | Real interval, explicit slit disk or off-cut principal radial path, also via SymPy `.evalf()` |
 | Numerical real-cut boundary values | `evaluate_hpl_boundary` | Exact real argument plus explicit region and upper/lower side; existing map/weight bounds; no guessed small imaginary offset |
 
@@ -89,13 +90,14 @@ real-cut additions:
   continuation follows one specified path. This is not unrestricted complex
   winding/monodromy or automatic branch simplification.
 - **Values at i:** `HPL(word, I).evalf()` evaluates mixed words numerically
-  by principal radial continuation. `hpl_at_i` reduces all words through weight four to exact classical and multiple
+  by principal radial continuation. `hpl_at_i` reduces all words through weight six to exact classical and multiple
   polylogarithms. Reduction to the upstream constant basis remains open.
 - **Constant reduction:** exact `MZV`/`EulerSum` remainders, shuffle/stuffle
   identities and guarded numerical evaluation are useful native operations,
   but are not a complete reduction to the upstream named constant basis.
-- **Minimal sets and known functions:** the native Lyndon basis is a chosen
-  table-free shuffle basis, not upstream's particular minimal-set tables.
+- **Minimal sets and known functions:** the minimal-set reducer reproduces the
+  shipped ordinary and plus/minus bases through weight six. The separate
+  Lyndon basis remains available through weight eight.
   Classical conversion covers all 27 ternary weight-three words; general
   higher-weight words remain intact. An exact Nielsen-polylogarithm
   notation/conversion layer covers words 0^n 1^p; it does not reduce arbitrary
