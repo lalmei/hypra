@@ -1,6 +1,8 @@
 """Multiple polylogarithm constants defined by absolutely convergent sums."""
 
+from collections.abc import Iterable
 from functools import lru_cache
+from typing import cast
 
 import mpmath as mp
 import sympy as s
@@ -41,7 +43,7 @@ class MultiplePolylog(s.Function):
     nargs = 2
 
     @classmethod
-    def eval(cls, indices, arguments):
+    def eval(cls, indices, arguments):  # pyright: ignore[reportIncompatibleMethodOverride]
         if not isinstance(indices, s.Tuple) or not isinstance(arguments, s.Tuple):
             raise TypeError("Use SymPy tuples for multiple polylogarithm indices and arguments")
         if (
@@ -52,6 +54,8 @@ class MultiplePolylog(s.Function):
             raise ValueError("Use one positive integer index per argument")
         cumulative = s.S.One
         for arg in arguments:
+            if not isinstance(arg, s.Expr):
+                raise TypeError("Multiple polylogarithm arguments must be Gaussian rationals")
             re, im = arg.as_real_imag()
             if not isinstance(re, s.Rational) or not isinstance(im, s.Rational):
                 raise TypeError("Multiple polylogarithm arguments must be Gaussian rationals")
@@ -72,5 +76,7 @@ class MultiplePolylog(s.Function):
 
     def _eval_evalf(self, prec):
         digits = prec_to_dps(prec) + 8
-        real, imag = _evaluate(tuple(map(int, self.args[0])), tuple(self.args[1]), digits)
+        indices = cast(Iterable[s.Integer], self.args[0])
+        arguments = cast(Iterable[s.Expr], self.args[1])
+        real, imag = _evaluate(tuple(map(int, indices)), tuple(arguments), digits)
         return s.Float(real, precision=prec) + s.I * s.Float(imag, precision=prec)
