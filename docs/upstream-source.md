@@ -109,9 +109,9 @@ no table entries were copied and no installer was run.
 | Continuation region and side declarations, lines 61–69 | Real exterior/negative intervals and a controlled approach side; upstream also has a default side | Native symbolic region maps and numerical boundary values require an explicit side; arbitrary winding paths remain unsupported |
 | Integration declaration, lines 73–77 | Rational kernels with poles at 0 and ±1 multiplying HPLs | Native rational-HPL primitives and origin-normalized integration check unsupported poles and divergent lower limits |
 | Argument-transform declaration, lines 79–86 | Negation, reflection, square-root, fractional, Möbius and inversion transformations, with branch-side data | Native maps are separately proved and resource-bounded; no generic complex automatic rewrite is implied |
-| Plus/minus and HPLI declarations, lines 89–101 | Extended kernel notation and values at the imaginary unit | Native multilinear notation conversion; exact at-i low-weight/simple-word reductions, not a full table import |
-| Minimal-set loaders, lines 685–697 | The archive ships ordinary and plus/minus minimal-set rules for weights two through six | Native Lyndon reduction uses an algorithmic basis; upstream basis equivalence is unverified |
-| MZV/at-i table loaders, around 1804 and 1828–1833 | The archive ships `HPLatI1.m` through `HPLatI6.m`, numerical at-i tables for weights four through six, and the `nmzv.m` and `h6table.mat` constant data | Native exact reductions cover all ternary words at i through weight four, in a different basis. The shipped weight-five and weight-six reductions still need coverage |
+| Plus/minus and HPLI declarations, lines 89–101 | Extended kernel notation and values at the imaginary unit | Native multilinear notation conversion; exact at-i reductions through weight six |
+| Minimal-set loaders, lines 685–697 | The archive ships ordinary and plus/minus minimal-set rules for weights two through six | Native shuffle elimination reproduces both shipped bases through weight six |
+| MZV/at-i table loaders, around 1804 and 1828–1833 | The archive ships `HPLatI1.m` through `HPLatI6.m`, numerical at-i tables for weights four through six, and the `nmzv.m` and `h6table.mat` constant data | Native exact reductions cover ordinary and plus/minus words through weight six using classical and multiple polylogarithms |
 
 The continuation interface specifies three real regions and a cut side.
 Arbitrary winding paths fall outside that shipped interface.
