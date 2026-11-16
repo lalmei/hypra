@@ -2,6 +2,7 @@
 
 [![Python tests](https://github.com/lalmei/hypra/actions/workflows/python.yml/badge.svg?branch=main)](https://github.com/lalmei/hypra/actions/workflows/python.yml)
 [![Python quality](https://github.com/lalmei/hypra/actions/workflows/quality.yml/badge.svg?branch=main)](https://github.com/lalmei/hypra/actions/workflows/quality.yml)
+[![Code coverage](https://img.shields.io/endpoint?url=https://lalmei.github.io/hypra/coverage-badge.json)](https://lalmei.github.io/hypra/coverage/)
 
 **Native Python/SymPy hypergeometric epsilon expansions, inspired by HypExp 2.**
 
