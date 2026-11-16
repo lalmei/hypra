@@ -34,6 +34,7 @@ class NativeConfig:
         use_cache: Reuse exact expansions from the local disk cache.
         cache_dir: Override the default native cache directory.
         timeout_seconds: Optional worker-process timeout in seconds.
+        expansion_library: Optional SQLite file of registered symbolic families.
         argument_domain: Domain contract for interior hypergeometric arguments.
         unit_endpoint: Require convergence at z=1 or allow supported
             meromorphic parameter continuation.
@@ -53,8 +54,11 @@ class NativeConfig:
     unit_endpoint: Literal["convergent", "meromorphic"] = "convergent"
     unit_excess_shift: int | None = None
     unit_shift_singular_lowers: bool = False
+    expansion_library: str | None = None
 
     def __post_init__(self) -> None:
+        if self.expansion_library is not None and not isinstance(self.expansion_library, str):
+            raise TypeError("expansion_library must be a path string")
         if self.unit_endpoint not in ("convergent", "meromorphic"):
             raise ValueError("unit_endpoint must be convergent or meromorphic")
         if type(self.unit_shift_singular_lowers) is not bool or (
@@ -117,6 +121,7 @@ class NativeBackend:
         package = Path(__file__).resolve().parents[1]
         for name in (
             "native/backend.py",
+            "expansion_library.py",
             "native/atom.py",
             "native/planning.py",
             "serialization.py",
@@ -214,8 +219,23 @@ class NativeBackend:
             except (OSError, ValueError, KeyError, TypeError):
                 pass
 
+        library = None
+        if (
+            self.config.expansion_library is not None
+            and self.config.argument_domain == "real-interval"
+        ):
+            from ..expansion_library import ExpansionLibrary
+
+            library = ExpansionLibrary(self.config.expansion_library)
+
         def checked_atom(h):
-            result = expand_atom(h, eps, order, assumptions, self.config.argument_domain)
+            from .atom import _inside_interval
+
+            result = None
+            if library is not None and _inside_interval(h.argument, assumptions):
+                result = library._lookup_atom(h, eps, order)
+            if result is None:
+                result = expand_atom(h, eps, order, assumptions, self.config.argument_domain)
             slope_symbols = (
                 set().union(*(s.diff(parameter, eps).free_symbols for parameter in (*h.ap, *h.bq)))
                 if h.ap or h.bq

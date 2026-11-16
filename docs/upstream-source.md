@@ -72,6 +72,28 @@ design provenance, not a current list of unimplemented tasks. The
 5. Treat z=1 limits, endpoint integration, MZV reduction and numerical continuation
    as distinct features requiring their own convergence and branch tests.
 
+## HypExp 2.0 library audit
+
+`HypExp.m` declares the expansion, beta-log integral, mixed-log integral,
+library registration and library query operations. Its library code around
+lines 1811–1876 indexes expansions by separately sorted upper and lower
+bases and the highest known inclusive order. Registration computes a symbolic
+integer-base expansion with independent slopes and saves it in an
+order-specific file. The integer expansion dispatch around lines 1963–2052
+loads and specializes these templates. The half-integer and unit endpoint
+dispatches have their own kernels.
+
+The pinned archive contains the library installer and `PZRule2.m` through
+`PZRule10.m`, which are internal recurrence rules with rank-dependent
+order cutoffs in `PZReplacementRules`. The half-integer dispatcher checks
+the explicit `JrsKnown` family list. For example, the mixed `3F2` family
+with two half-integer upper bases and one half-integer lower base is absent
+from that list. The extracted archive used
+here has no prepopulated family library. Hypra generates its own entries and
+stores them in SQLite. It normalizes base order on both registration and
+lookup. Upstream sorts on lookup but uses the supplied order when saving the
+key and filename.
+
 ## HPL 2.0 functionality audit
 
 This audit uses the **standalone 03-Nov-2011 HPL.m**, the manifest-pinned
@@ -88,8 +110,11 @@ no table entries were copied and no installer was run.
 | Integration declaration, lines 73–77 | Rational kernels with poles at 0 and ±1 multiplying HPLs | Native rational-HPL primitives and origin-normalized integration check unsupported poles and divergent lower limits |
 | Argument-transform declaration, lines 79–86 | Negation, reflection, square-root, fractional, Möbius and inversion transformations, with branch-side data | Native maps are separately proved and resource-bounded; no generic complex automatic rewrite is implied |
 | Plus/minus and HPLI declarations, lines 89–101 | Extended kernel notation and values at the imaginary unit | Native multilinear notation conversion; exact at-i low-weight/simple-word reductions, not a full table import |
-| Optional minimal-set loaders, lines 685–697 | Basis rules depend on available weight-specific files | Native Lyndon reduction uses an algorithmic basis; upstream table-dependent basis equivalence is unverified |
-| Optional MZV/at-i table loaders, around 1804 and 1828–1833 | Higher special-value coverage depends on separately loaded data | Native exact remainder constants and bounded numerics do not reproduce those named tables |
+| Minimal-set loaders, lines 685–697 | The archive ships ordinary and plus/minus minimal-set rules for weights two through six | Native Lyndon reduction uses an algorithmic basis; upstream basis equivalence is unverified |
+| MZV/at-i table loaders, around 1804 and 1828–1833 | The archive ships `HPLatI1.m` through `HPLatI6.m`, numerical at-i tables for weights four through six, and the `nmzv.m` and `h6table.mat` constant data | Native exact reductions cover all ternary words at i through weight four, in a different basis. The shipped weight-five and weight-six reductions still need coverage |
+
+The continuation interface specifies three real regions and a cut side.
+Arbitrary winding paths fall outside that shipped interface.
 
 The at-i work derives all weight-two ternary values from iterated integrals
 and shuffle identities, retaining classical dilogarithms when appropriate.

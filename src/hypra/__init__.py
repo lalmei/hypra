@@ -19,6 +19,7 @@ from .backend import (
 )
 from .config import BackendConfig
 from .errors import HypraError, IncompleteExpansionError, UnsupportedExpressionError
+from .expansion_library import ExpansionLibrary
 from .hpl.algebra import hpl_series, integrate_from_zero, primitive_hpl, shuffle_expand
 from .hpl.alternating import hpl_alternating_at_one, reduce_euler_sum
 from .hpl.arguments import transform_hpl_arguments
@@ -91,6 +92,7 @@ __all__ = [
     "BackendUnavailableError",
     "ConstantNumericResult",
     "EulerSum",
+    "ExpansionLibrary",
     "ExpansionResult",
     "HPLBoundaryNumericResult",
     "HPLContinuationResult",
