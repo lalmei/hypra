@@ -15,8 +15,8 @@ Maintenance. Empty categories are omitted.
 
 Write a short feature summary above the generated section. Later runs preserve
 text outside the markers and refresh the PR list and comparison link. The
-workflow saves a GitHub draft. Publication and PyPI approval follow the
-[release process](releasing.md).
+workflow saves a GitHub draft. Follow the [release process](releasing.md) to
+publish the draft and trigger the PyPI upload.
 
 To print the notes without saving them, run this locally with GitHub CLI auth:
 
@@ -93,6 +93,4 @@ Local checks validate YAML and exercise the actual inline wrapper with mocked Gi
 included/post-tag PRs, unchanged curated notes, changed drafts, published
 releases and malformed entries. They do not claim a successful live GitHub run.
 
-No personal access token is required. This workflow does not interact with
-PyPI or bypass a pending publication approval. Installing or preparing it does
-not itself dispatch it or change the current draft.
+The draft workflow uses GitHub's built-in workflow token.

@@ -1,6 +1,6 @@
 ---
 name: Release tracker
-about: Track release readiness, approval, and publication for one Hypra version.
+about: Track release readiness and publication for one Hypra version.
 title: "Release tracker for v"
 ---
 
@@ -18,14 +18,13 @@ title: "Release tracker for v"
 - [ ] Confirm the project's license and distribution policy for this release. Inspect the wheel and source distribution for restricted HypExp/HPL sources or tables.
 - [ ] Review the release notes, distribution files, and checksums in the GitHub draft.
 - [ ] Verify that the PyPI Trusted Publisher matches this repository, `release.yml`, and the `pypi` environment.
-- [ ] Verify that the GitHub `pypi` environment has a required reviewer.
 
 ### Publication
 
 - [ ] Publish the GitHub release with the intended prerelease status. Record the public release link.
-- [ ] Record the automatic workflow run and obtain `pypi` environment approval. For tags with the earlier workflow, dispatch the run on the version tag with `publish=true`.
+- [ ] Record the automatic PyPI publish run.
 - [ ] Verify the version and both distributions on PyPI. Record the PyPI link.
 
 ### Blockers and evidence
 
-<!-- Link decisions, validation results, and publication approvals here. -->
+<!-- Link decisions, validation results, and publish runs here. -->
