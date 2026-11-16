@@ -12,7 +12,17 @@ from pathlib import Path
 import pytest
 import sympy as s
 
-from hypra import HPL, BackendConfig, backend_info, expand_epsilon, hpl_at_i
+from hypra import (
+    HPL,
+    HPLPM,
+    BackendConfig,
+    backend_info,
+    expand_epsilon,
+    hpl_at_i,
+    hpl_pm_at_i,
+    reduce_hpl_to_minimal_set,
+)
+from hypra.hpl.multiple_polylog import MultiplePolylog
 
 pytestmark = pytest.mark.real_backend
 E, W = s.symbols("eps w")
@@ -116,25 +126,22 @@ def test_hpl_weight_four_at_i():
     assert abs(upstream.polynomial.evalf(36) - expression.evalf(36)) < s.Float("1e-30")
 
 
-def test_all_hpl_words_through_weight_four_at_i(tmp_path):
+def _hpl_reference(tmp_path, source):
     config = BackendConfig.from_env()
     info = backend_info(backend="wolfram")
     executable = config.resolved_executable()
     assert executable is not None
-    script = tmp_path / "compare_i.wls"
+    script = tmp_path / "compare_hpl.wls"
     output = tmp_path / "values.json"
     script.write_text(
         r"""argv = If[$ScriptCommandLine === {}, $CommandLine, $ScriptCommandLine];
 Global`$HPLPath = DirectoryName[argv[[-2]]];
 Get[argv[[-2]]];
-words = Join[{{}}, Flatten[Table[Tuples[{-1, 0, 1}, n], {n, 1, 4}], 1]];
-values = Table[N[If[word === {}, 1, HPL`HPL[word, I]], 55], {word, words}];
-If[!AllTrue[values, NumberQ], Exit[2]];
-rows = MapThread[{#1, ToString[Round[10^42 Re[#2]], InputForm],
-                      ToString[Round[10^42 Im[#2]], InputForm]} &, {words, values}];
-Export[Last[argv], rows, "RawJSON"];
-Exit[0];
-""",
+words = Flatten[Table[Tuples[{-1, 0, 1}, n], {n, 1, 6}], 1];
+toPM[word_] := Replace[word, {-1 -> HPL`minus, 1 -> HPL`plus}, {1}];
+fromPM[word_] := Replace[word, {HPL`minus -> -1, HPL`plus -> 1}, {1}];
+"""
+        + source,
         encoding="utf-8",
     )
     mode = "-file" if "wolframscript" in Path(executable).name.lower() else "-script"
@@ -142,14 +149,97 @@ Exit[0];
         [executable, mode, str(script), info["hpl_path"], str(output)],
         capture_output=True,
         text=True,
-        timeout=config.timeout,
+        timeout=max(config.timeout, 180),
         check=False,
     )
-    assert run.returncode == 0, run.stdout + run.stderr
-    rows = json.loads(output.read_text())
-    assert len({tuple(word) for word, _, _ in rows}) == 121
-    for word, real, imag in rows:
-        upstream = (s.Integer(real) + s.I * s.Integer(imag)) / 10**42
-        actual = hpl_at_i(tuple(word))
-        assert not actual.has(HPL, s.Float), word
-        assert abs(actual.evalf(40) - upstream.evalf(40)) < s.Float("1e-35"), word
+    assert run.returncode == 0 and output.is_file(), run.stdout + run.stderr
+    return json.loads(output.read_text())
+
+
+def test_all_hpl_words_through_weight_six_at_i(tmp_path):
+    rows = _hpl_reference(
+        tmp_path,
+        r"""
+pack[value_] := {ToString[Round[10^42 Re[value]], InputForm],
+                 ToString[Round[10^42 Im[value]], InputForm]};
+pmWords = {{-1}, {1}, {1, 1, 1, 1, 1, 1}, {-1, -1, -1, -1, -1, -1},
+           {0, -1, 1, -1, 0}, {1, 0, -1, 0, 1, -1}};
+words = Prepend[words, {}];
+ordinary = Table[N[If[word === {}, 1, HPL`HPL[word, I]], 55], {word, words}];
+pm = Table[N[HPL`HPL[toPM[word], I], 55], {word, pmWords}];
+If[!AllTrue[Join[ordinary, pm], NumberQ], Exit[2]];
+Export[Last[argv], {MapThread[Prepend[pack[#2], #1] &, {words, ordinary}],
+                   MapThread[Prepend[pack[#2], #1] &, {pmWords, pm}]}, "RawJSON"];
+Exit[0];
+""",
+    )
+    ordinary, pm = rows
+    assert len({tuple(word) for word, _, _ in ordinary}) == 1093
+    assert len(pm) == 6
+    constants = {}
+    for items, evaluate in [
+        (ordinary, lambda word: hpl_at_i(tuple(word))),
+        (pm, lambda word: hpl_pm_at_i(_pm_word(word))),
+    ]:
+        for word, real, imag in items:
+            upstream = (s.Integer(real) + s.I * s.Integer(imag)) / 10**42
+            actual = evaluate(word)
+            assert not actual.has(HPL, HPLPM, s.Float), word
+            for constant in actual.atoms(MultiplePolylog, s.polylog):
+                if constant not in constants:
+                    constants[constant] = constant.evalf(55)
+            numerical = actual.xreplace(constants).evalf(40)
+            assert abs(numerical - upstream.evalf(40)) < s.Rational(1, 10**35), word
+
+
+def _pm_word(indices):
+    letters = {-1: "minus", 0: 0, 1: "plus"}
+    return tuple(letters[index] for index in indices)
+
+
+def test_hpl_minimal_sets_match_live_tables(tmp_path):
+    rows = _hpl_reference(
+        tmp_path,
+        r"""
+HPL`$HPLAutoConvertToKnownFunctions = False;
+HPL`$HPLAutoConvertToSimplerArgument = False;
+HPL`$HPLAutoLogExtract = False;
+HPL`$HPLAutoProductExpand = False;
+HPL`$HPLAutoReduceToMinimalSet = False;
+pack[word_] := Module[{result, vars, coefficients},
+  result = Expand[HPL`HPLReduceToMinimalSet[HPL`HPL[word, x]]];
+  vars = DeleteDuplicates[Cases[result, h_HPL`HPL :> h, {0, Infinity}]];
+  coefficients = CoefficientRules[result, vars];
+  {Map[fromPM[HPL`HPLMtoA[First[#]]] &, vars],
+   Map[{First[#], ToString[Last[#], InputForm]} &, coefficients]}
+];
+Export[Last[argv], {Table[Prepend[pack[word], word], {word, words}],
+                   Table[Prepend[pack[toPM[word]], word], {word, words}]}, "RawJSON"];
+Exit[0];
+""",
+    )
+    z = s.Symbol("z")
+    for items, construct in [
+        (rows[0], lambda word: HPL(tuple(word), z)),
+        (rows[1], lambda word: HPLPM(_pm_word(word), z)),
+    ]:
+        assert len({tuple(word) for word, _, _ in items}) == 1092
+        for word, generators, terms in items:
+            basis = [s.Dummy() for _ in generators]
+            expected = s.Add(
+                *(
+                    s.Rational(coefficient)
+                    * s.prod(atom**power for atom, power in zip(basis, powers, strict=True))
+                    for powers, coefficient in terms
+                )
+            )
+            actual = reduce_hpl_to_minimal_set(construct(word))
+            assert (
+                actual.xreplace(
+                    {
+                        construct(indices): symbol
+                        for indices, symbol in zip(generators, basis, strict=True)
+                    }
+                ).expand()
+                == expected
+            ), word

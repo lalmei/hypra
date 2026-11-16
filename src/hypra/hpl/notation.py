@@ -1,9 +1,11 @@
 """Exact HPL index and plus/minus kernel notation conversions."""
 
 from itertools import product
-from typing import Literal
+from typing import Literal, Self, cast
 
 import sympy as s
+from sympy.core.function import ArgumentIndexError
+from sympy.core.symbol import Str
 
 from .._typing import IntegerWord, as_integer_tuple
 from ..errors import UnsupportedExpressionError
@@ -12,6 +14,69 @@ from .algebra import _word
 
 type PMLetter = Literal[0, "plus", "minus"]
 type PMWord = tuple[PMLetter, ...] | list[PMLetter] | s.Tuple
+_PM_LETTERS: dict[int, PMLetter] = {-1: "minus", 0: 0, 1: "plus"}
+
+
+def _pm_indices(word: PMWord) -> tuple[int, ...]:
+    if not isinstance(word, (tuple, list, s.Tuple)):
+        raise TypeError("Plus/minus word must be a sequence")
+    indices = []
+    for letter in word:
+        if isinstance(letter, Str):
+            letter = str(letter)
+        if (type(letter) is int or isinstance(letter, s.Integer)) and letter == 0:
+            indices.append(0)
+        elif letter == "plus":
+            indices.append(1)
+        elif letter == "minus":
+            indices.append(-1)
+        else:
+            raise ValueError("Use zero, 'plus', or 'minus' as kernel letters")
+    return tuple(indices)
+
+
+class HPLPM(s.Function):
+    """An HPL whose word retains the plus/minus kernel notation."""
+
+    nargs = 2
+
+    def __new__(cls, word: PMWord, argument: s.Expr, **options: object) -> Self:
+        letters = _pm_indices(word)
+        encoded = s.Tuple(*(Str(str(_PM_LETTERS[i])) if i else s.S.Zero for i in letters))
+        return cast(Self, super().__new__(cls, encoded, argument, **options))
+
+    @classmethod
+    def from_indices(cls, indices: tuple[int, ...], argument: s.Expr) -> Self:
+        """Construct from indices -1, 0, 1 representing minus, zero, plus."""
+        return cls(tuple(_PM_LETTERS[index] for index in indices), argument)
+
+    @property
+    def word(self) -> s.Tuple:
+        return cast(s.Tuple, self.args[0])
+
+    @property
+    def argument(self) -> s.Expr:
+        return cast(s.Expr, self.args[1])
+
+    def _eval_rewrite_as_HPL(self, word, argument, **hints):
+        return hpl_pm(word, argument)
+
+    def _eval_evalf(self, prec):
+        return self.rewrite(HPL)._eval_evalf(prec)
+
+    def _eval_derivative(self, s):
+        return self.fdiff() * self.argument.diff(s)
+
+    def fdiff(self, argindex=2):
+        if argindex != 2:
+            raise ArgumentIndexError(self, argindex)
+        indices = _pm_indices(self.word)
+        if not indices:
+            return s.S.Zero
+        z = self.argument
+        first, *rest = indices
+        kernel = {-1: 2 * z / (1 - z**2), 0: 1 / z, 1: 2 / (1 - z**2)}[first]
+        return kernel * (self.from_indices(tuple(rest), z) if rest else s.S.One)
 
 
 def expand_indices(indices: IntegerWord) -> tuple[int, ...]:
@@ -59,6 +124,7 @@ def compress_indices(word: IntegerWord) -> tuple[int, ...]:
 
 
 def _linear_choices(choices):
+    choices = tuple(choices)
     if len(choices) > 12:
         raise UnsupportedExpressionError("Plus/minus conversion weight exceeds12")
     result = {}
@@ -77,19 +143,10 @@ def pm_to_letters(word: PMWord) -> dict[tuple[int, ...], s.Expr]:
     Returns:
         Coefficients indexed by expanded HPL words.
     """
-    if not isinstance(word, (tuple, list, s.Tuple)):
-        raise TypeError("Plus/minus word must be a sequence")
-    choices = []
-    for letter in word:
-        if type(letter) is int and letter == 0 or isinstance(letter, s.Integer) and letter == 0:
-            choices.append(((0, s.S.One),))
-        elif letter == "plus":
-            choices.append(((1, s.S.One), (-1, s.S.One)))
-        elif letter == "minus":
-            choices.append(((1, s.S.One), (-1, -s.S.One)))
-        else:
-            raise ValueError("Use zero, 'plus', or 'minus' as kernel letters")
-    return _linear_choices(choices)
+    return _linear_choices(
+        ((0, s.S.One),) if not letter else ((1, s.S.One), (-1, s.Integer(letter)))
+        for letter in _pm_indices(word)
+    )
 
 
 def letters_to_pm(word: IntegerWord) -> dict[tuple[PMLetter, ...], s.Expr]:

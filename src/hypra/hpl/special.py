@@ -9,6 +9,7 @@ from ..errors import UnsupportedExpressionError
 from ..symbolic import HPL, reduce_known_hpl
 from .classical import classical_hpl
 from .multiple_polylog import MultiplePolylog
+from .notation import PMWord, pm_to_letters
 from .numeric import _word
 from .reduction import _extract
 
@@ -56,17 +57,17 @@ def _at_i_multiple_polylogs(word):
     )
 
 
-def hpl_at_i(word: IntegerWord) -> s.Expr:
+@lru_cache(maxsize=1093)
+def _ordinary_at_i(word: tuple[int, ...]) -> s.Expr:
     """Exact H_word(i) on continuation from the origin through the upper quadrant.
 
-    All ternary words through weight four reduce to exact logarithms and
+    All ternary words through weight six reduce to exact logarithms and
     classical or multiple polylogarithms. Pure repeated letters and simple
     classical words are also supported through weight 24.
 
     Args:
         word: Expanded ternary word evaluated at the positive imaginary unit.
     """
-    word = _word(word)
     if not word:
         return s.S.One
     z = s.Dummy("real_formula_argument", positive=True)
@@ -79,10 +80,10 @@ def hpl_at_i(word: IntegerWord) -> s.Expr:
     else:
         formula = reduce_known_hpl(HPL(word, z))
         if formula.has(HPL):
-            if len(word) <= 4:
+            if len(word) <= 6:
                 return _at_i_multiple_polylogs(word)
             raise UnsupportedExpressionError(
-                "At i, mixed words above weight four are not implemented"
+                "At i, mixed words above weight six are not implemented"
             )
     value = formula.subs(z, s.I)
     # The even/odd terms of Li2(±i) give -zeta(2)/8 ± i*Catalan.
@@ -96,3 +97,19 @@ def hpl_at_i(word: IntegerWord) -> s.Expr:
             }
         )
     )
+
+
+def hpl_at_i(word: IntegerWord) -> s.Expr:
+    """Return the exact ordinary HPL at i through weight six.
+
+    Repeated single letters and simple classical words extend to weight 24.
+    """
+    return _ordinary_at_i(_word(word))
+
+
+def hpl_pm_at_i(word: PMWord) -> s.Expr:
+    """Return the exact plus/minus HPL at i through weight six."""
+    terms = pm_to_letters(word)
+    if len(word) > 6:
+        raise UnsupportedExpressionError("At i, plus/minus words support weight at most six")
+    return s.Add(*(coefficient * _ordinary_at_i(letters) for letters, coefficient in terms.items()))

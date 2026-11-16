@@ -30,9 +30,17 @@ from .hpl.endpoints import hpl_at_one, reduce_mzv
 from .hpl.inversion import invert_hpl
 from .hpl.limits import hpl_limit_at_one
 from .hpl.maps import fractional_hpl, square_hpl
+from .hpl.minimal import reduce_hpl_to_minimal_set
 from .hpl.mobius import mobius_hpl
 from .hpl.named_constants import HPLs6, HPLs7a, HPLs7b, HPLs8a, HPLs8b, HPLs8c, HPLs8d
-from .hpl.notation import compress_indices, expand_indices, hpl_pm, letters_to_pm, pm_to_letters
+from .hpl.notation import (
+    HPLPM,
+    compress_indices,
+    expand_indices,
+    hpl_pm,
+    letters_to_pm,
+    pm_to_letters,
+)
 from .hpl.numeric import (
     HPLNumericalConvergenceError,
     HPLNumericResult,
@@ -48,7 +56,7 @@ from .hpl.regularization import (
     shuffle_regularized_hpl_at_one,
 )
 from .hpl.series_one import hpl_series_at_one
-from .hpl.special import hpl_at_i
+from .hpl.special import hpl_at_i, hpl_pm_at_i
 from .hpl.stuffle import stuffle_expand_constants
 from .hpl.taylor import hpl_taylor
 from .hpl.transforms import negate_hpl, reflect_hpl
@@ -84,6 +92,7 @@ def hypergeometric(
 
 __all__ = [
     "HPL",
+    "HPLPM",
     "MZV",
     "BackendConfig",
     "BackendError",
@@ -137,6 +146,7 @@ __all__ = [
     "hpl_expression_endpoint_polynomial",
     "hpl_limit_at_one",
     "hpl_pm",
+    "hpl_pm_at_i",
     "hpl_series",
     "hpl_series_at_one",
     "hpl_taylor",
@@ -154,6 +164,7 @@ __all__ = [
     "pm_to_letters",
     "primitive_hpl",
     "reduce_euler_sum",
+    "reduce_hpl_to_minimal_set",
     "reduce_mzv",
     "reduce_nielsen",
     "reflect_hpl",
