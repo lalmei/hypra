@@ -8,16 +8,22 @@
 - Four canonical half-integer rationalized ODE patterns, plus specialized
   elementary/polylogarithmic identities.
 - Rational-HPL integration, definite origin constants, shuffle log extraction,
-  binary endpoints/MZVs, branch-explicit negation/reflection, table-free Lyndon
-  shuffle-basis reduction and exact local series.
-- Arbitrary-word numerical HPL evaluation on the real interval and explicit
-  principal slit disk; off-cut radial Taylor continuation with propagated
-  truncation estimates and separate high-precision stability checks.
+  ordinary MZVs through weight eight and colored sums through weight six,
+  branch-explicit argument maps, table-free Lyndon reduction and exact local
+  series at real or explicitly selected complex centers.
+- Classical and Nielsen argument transformations at all six cross ratios,
+  named-function reductions through weight five, and the shipped HPL
+  known-function families, including signed Nielsen and quartic patterns.
+- Arbitrary-word numerical HPL evaluation through weight 24 on the real
+  interval, explicit principal slit disk and both sides of the real cuts;
+  off-cut Taylor continuation with propagated truncation estimates and
+  separate high-precision stability checks.
 - Principal off-cut complex and interior real SymPy `HPL.evalf()`.
 - Optional hard native-backend deadline and exceptional-parameter validation.
 - Exact terminating sums, convergent Gauss and supported higher-rank unit
   endpoints, and opt-in meromorphic continuation in the parameters at `z=1`.
-- Exact beta-log and real mixed-log definite integrals within explicit budgets.
+- Exact beta-log moments through log weight 32 and polynomial degree 4096;
+  mixed-log definite integrals with real or explicit principal nonreal arguments.
 - Whole-expression Laurent prefactors, exact serialization, LaTeX, provenance,
   cache and native API/CLI.
 
@@ -26,26 +32,23 @@ These are native Python mathematical implementations, not a literal port of
 upstream Mathematica routines. No Mathematica setup is needed or planned as a
 prerequisite.
 
-## Next work, in priority order
+## Port verification and further work
 
-1. Consolidate dispatch/regression coverage across all implemented kernels,
-   endpoint preprocessing and complete-expression pole budgets. Include mixed
-   families and cancellation-sensitive products, not only isolated functions.
-2. Complete exceptional-parameter and branch coverage within the supported
-   HypExp class patterns, including more unit-endpoint benchmarks. The exact
-   hypergeometric API supports the real interval and explicit principal
-   complex domains for exact numerical arguments.
-3. Expand independent exact coefficient benchmarks, higher-rank cases and
-   complexity/performance measurements. Optimize algebra without weakening
-   fail-closed checks or origin-limit verification.
-4. Extend the existing alternating endpoint, height-one MZV and symbolic-map
-   implementations with independently proved higher-weight reductions. The
-   current classical reduction covers all 27 ternary weight-three words.
-5. Extend continuation beyond the existing off-cut radial path and supported
-   real-cut boundary values. Explicit shuffle regularization covers the
-   real HPL endpoint at one.
+The [port audit](port-audit.md) records the source inventory, closed gaps,
+independent mathematical checks and live Wolfram comparisons. The optional
+external adapter has been exercised against the pinned packages. It remains
+a comparison tool; native computation does not require Wolfram.
 
-Full HypExp 2/HPL parity is incomplete. A future comparison oracle may help,
-but the retained external adapter is experimental, unvalidated and optional.
-Keep academic attribution and source-provenance records; upstream licence
-restrictions still apply to copying or redistributing upstream code/tables.
+Mixed at-i values of weights four through six now use the shipped primitive
+basis, derived by exact shuffle and argument-map equations. Their symbolic
+comparison is separate from the independent numerical checks recorded in
+the audit.
+
+Further extensions can raise explicit resource ceilings, improve performance
+or support arbitrary winding paths. These exceed the bounded operation
+contracts in the current [parity map](parity-map.md). New reductions should
+continue to use proved identities, exact regression checks and independent
+numerical evidence.
+
+Keep academic attribution and source-provenance records. Upstream licence
+restrictions apply to copying or redistributing upstream code and tables.

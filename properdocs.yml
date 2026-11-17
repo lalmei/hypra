@@ -69,6 +69,7 @@ nav:
       - Capabilities and limits: scope.md
       - Roadmap: roadmap.md
       - Native parity map: parity-map.md
+      - Port audit: port-audit.md
   - Mathematical Background:
       - Epsilon Expansions: latex-and-docs.md
       - Mathematical derivation: mathematics.md

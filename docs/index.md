@@ -6,8 +6,8 @@ Hypra expands hypergeometric expressions with SymPy, retaining exact rational,
 Gamma, zeta and harmonic-polylogarithm coefficients. Mathematica is **not**
 required for the native engine.
 
-!!! warning "Research software: partial native implementation"
-    Hypra is inspired by HypExp/HypExp 2, not yet a complete replacement.
+!!! note "Research software: explicit mathematical contracts"
+    Hypra implements the operations audited against HypExp 2 and HPL 2.
     Supported cases have explicit domain and resource checks. Unsupported
     cases fail rather than silently returning incomplete expansions.
 
@@ -29,11 +29,11 @@ required for the native engine.
 | Integer-base `pF(p-1)` and supported half-integer families | Native exact algorithms, with documented limits |
 | Laurent poles and Gamma prefactors | Pole-aware internal order planning |
 | [Unit endpoints](endpoints.md) | Convergent Gauss and supported higher-rank values, with opt-in meromorphic parameter continuation |
-| [Definite logarithmic integrals](python-api.md#definite-logarithmic-integrals) | Exact beta-log and real mixed-log moments within documented budgets |
+| [Definite logarithmic integrals](python-api.md#definite-logarithmic-integrals) | Exact beta-log moments and real or explicit principal nonreal mixed-log moments |
 | HPL algebra, endpoints and argument transformations | Exact operations with explicit scope and branch rules |
 | HPL numerical evaluation and radial continuation | Approximate high precision; no interval roundoff certification |
-| Optional Wolfram comparison bridge | Experimental and not validated as a real-backend oracle |
-| Full HypExp/HPL parity | Not claimed; see the [roadmap](roadmap.md) |
+| Optional Wolfram comparison bridge | Live regression coverage against pinned HypExp 2 and HPL 2 |
+| HypExp/HPL operation coverage | See the [port audit](port-audit.md), including symbolic normal-form distinctions |
 
 The default nonterminating interior domain is real `0 < z < 1`.
 Select a [principal complex domain](scope.md#principal-complex-arguments)
