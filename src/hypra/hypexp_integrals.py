@@ -1,13 +1,13 @@
 """Exact logarithmic moments for the native HypExp interface."""
 
-from functools import cache
+from functools import cache, lru_cache
+from typing import Literal
 
 import sympy as s
 
 from ._typing import ExactInteger, ExactScalar
 from .errors import UnsupportedExpressionError
-from .hpl.algebra import _linear_terms, integrate_from_zero, shuffle_expand
-from .hpl.regularization import hpl_endpoint_polynomial
+from .hpl.algebra import integrate_from_zero, shuffle_expand
 
 
 def _integers(*values: ExactInteger) -> tuple[int, ...]:
@@ -19,9 +19,10 @@ def _integers(*values: ExactInteger) -> tuple[int, ...]:
 def beta_log_moment(n: ExactInteger, m: ExactInteger, p: ExactInteger) -> s.Expr:
     r"""Return the integral of u**p log(u)**n log(1-u)**m from zero to one.
 
-    The origin requires p + m >= 0. The result uses exact HPL endpoint
-    constants. The implementation supports log weight through seven, negative
-    powers through -32, and polynomial degrees through 64.
+    The origin requires p + m >= 0. Coefficients of a beta-function generating
+    series give exact rational combinations of zeta values. Log weight through
+    32 and polynomial degrees through 4096 are supported; these are algebra
+    budgets, not restrictions of the beta-function identity.
 
     Args:
         n: Nonnegative power of the origin logarithm.
@@ -41,23 +42,92 @@ def beta_log_moment(n: ExactInteger, m: ExactInteger, p: ExactInteger) -> s.Expr
         raise ValueError("Logarithm powers must be nonnegative")
     if p + m < 0:
         raise UnsupportedExpressionError("The beta-log moment diverges at zero")
-    if n + m > 7 or not -32 <= p <= 64:
+    if n + m > 32 or p > 4096:
         raise UnsupportedExpressionError("Beta-log moment exceeds the weight or power budget")
-    u = s.Dummy("u", positive=True)
-    primitive = integrate_from_zero(u**p * s.log(u) ** n * s.log(1 - u) ** m, u)
-    # Integration by parts produces rational coefficients with poles only
-    # at zero. At one, replacing each coefficient by its value leaves an
-    # error O((1-u)*log(1-u)**weight), even for divergent HPL factors.
-    T = s.Symbol("_beta_endpoint_log")
-    endpoint = s.expand(
-        sum(
-            coefficient.subs(u, 1) * hpl_endpoint_polynomial(word, T)
-            for word, coefficient in _linear_terms(primitive, u).items()
-        )
-    )
-    if endpoint.has(T, s.nan, s.zoo, s.oo, -s.oo):
-        raise UnsupportedExpressionError("Could not establish a finite beta-log moment")
-    return endpoint
+    return _beta_log_moment(n, m, p)
+
+
+def _exp_bivariate(logarithm, n, m):
+    """Exponentiate a rectangular exact Taylor jet with zero constant term.
+
+    Euler's homogeneous-degree operator gives
+    (i+j) F[i,j] = sum (r+t) L[r,t] F[i-r,j-t] for F = exp(L).
+    This avoids differentiating large symbolic Gamma expressions.
+    """
+    coefficients = {(0, 0): s.S.One}
+    for i in range(n + 1):
+        for j in range(m + 1):
+            if i == j == 0:
+                continue
+            value = sum(
+                (
+                    (r + t) * coefficient * coefficients[i - r, j - t]
+                    for (r, t), coefficient in logarithm.items()
+                    if r <= i and t <= j
+                ),
+                s.S.Zero,
+            )
+            coefficients[i, j] = s.expand(value / (i + j))
+    return coefficients
+
+
+@lru_cache(maxsize=256)
+def _beta_log_moment(n, m, p):
+    r"""Extract n! m! [a^n b^m] B(p+1+a,1+b), including removable poles.
+
+    For p>=0 the logarithm of the beta function follows from the Taylor
+    expansion of log Gamma at positive integers. For p=-1 write B(a,1+b)
+    as E(a,b)/a, with E=Gamma(1+a)Gamma(1+b)/Gamma(1+a+b).
+
+    For p=-r-1, r>=1, Gamma recurrence gives
+
+        B(a-r,1+b) = -(1+b/a) F(a,b)/r,
+        F = E/(1-a/r) prod_{j=1}^{r-1} (1+b/(a-j)).
+
+    The residue in a is a polynomial in b of degree r. The convergence
+    condition m>=r+1 kills it before coefficient extraction. Therefore these
+    coefficients equal the convergent log moment, not a regularized divergent
+    integral. The finite products enter through generalized harmonic numbers;
+    no HPL tables, endpoint limits, or numerical fitting are used.
+    """
+    if m == 0:
+        return s.S.NegativeOne**n * s.factorial(n) / s.Integer(p + 1) ** (n + 1)
+    upper_n = n if p >= 0 else n + 1
+    harmonic_base = p + 1 if p >= 0 else max(0, -p - 2)
+    harmonics = {k: s.harmonic(harmonic_base, k) for k in range(1, upper_n + m + 1)}
+    logarithm = {}
+    for i in range(upper_n + 1):
+        for j in range(m + 1):
+            if i == j == 0:
+                continue
+            weight = i + j
+            if j == 0:
+                if p >= 0:
+                    value = s.S.NegativeOne**i / (i * s.Integer(p + 1) ** i)
+                elif p < -1:
+                    value = 1 / (i * s.Integer(-p - 1) ** i)
+                else:
+                    value = s.S.Zero
+            elif i == 0:
+                sign = s.S.NegativeOne**j if p >= 0 else -1
+                value = sign * harmonics[j] / j
+            else:
+                zeta_coefficient = s.S.NegativeOne ** (weight + 1) * s.zeta(weight)
+                harmonic_sign = s.S.NegativeOne**weight if p >= 0 else -1
+                value = (
+                    s.binomial(weight, i)
+                    * (zeta_coefficient + harmonic_sign * harmonics[weight])
+                    / weight
+                )
+            if value != 0:
+                logarithm[i, j] = value
+    coefficients = _exp_bivariate(logarithm, upper_n, m)
+    factorials = s.factorial(n) * s.factorial(m)
+    if p >= 0:
+        return s.expand(factorials * coefficients[n, m] / (p + 1))
+    if p == -1:
+        return s.expand(factorials * coefficients[n + 1, m])
+    return s.expand(-factorials * (coefficients[n, m] + coefficients[n + 1, m - 1]) / (-p - 1))
 
 
 def hypergeometric_log_moment(
@@ -67,12 +137,16 @@ def hypergeometric_log_moment(
     k: ExactInteger,
     q: ExactInteger,
     z: ExactScalar,
+    *,
+    argument_domain: Literal["real", "principal-cut-plane"] = "real",
 ) -> s.Expr:
     r"""Integrate u**p log(u)**n log(1-u)**m log(1-z*u)**k / (z*u-1)**q.
 
     Integration runs from zero to one. Powers are nonnegative integers.
     Endpoints z=0 and z=1 are handled exactly when convergent. Symbolic z
     is interpreted on the real interval 0<z<1 unless it is provably negative.
+    Select argument_domain="principal-cut-plane" for exact finite nonreal
+    points, using the principal logarithm continued from z=0.
 
     Args:
         p: Power of the integration variable.
@@ -81,6 +155,8 @@ def hypergeometric_log_moment(
         k: Power of the moving-argument logarithm.
         q: Power of the moving denominator.
         z: Exact real kernel argument, or a symbol with the stated domain.
+        argument_domain: Real kernels by default, or principal continuation
+            to exact numeric points off the cut [1,infinity).
 
     Returns:
         Exact value of the definite integral.
@@ -91,6 +167,8 @@ def hypergeometric_log_moment(
         UnsupportedExpressionError: The argument, powers, or convergence are unsupported.
     """
     p, n, m, k, q = _integers(p, n, m, k, q)
+    if argument_domain not in ("real", "principal-cut-plane"):
+        raise ValueError("argument_domain must be real or principal-cut-plane")
     if min(p, n, m, k, q) < 0:
         raise ValueError("Integral powers must be nonnegative")
     if p > 64 or q > 32 or n + m + k + int(q > 0) > 5:
@@ -99,6 +177,10 @@ def hypergeometric_log_moment(
     z = s.sympify(z, strict=True)
     if not isinstance(z, s.Expr) or z.has(s.Float, s.nan, s.zoo, s.oo, -s.oo):
         raise UnsupportedExpressionError("The integral argument must be exact and finite")
+    if argument_domain == "principal-cut-plane" and (z.free_symbols or z.is_finite is not True):
+        raise UnsupportedExpressionError(
+            "Principal-cut-plane moments require an exact finite numeric argument"
+        )
     if z.is_zero is True:
         return s.S.Zero if k else s.S.NegativeOne**q * beta_log_moment(n, m, p)
     if z == 1:
@@ -132,10 +214,15 @@ def hypergeometric_log_moment(
             )
             / (1 - z) ** q
         )
-    if z.is_real is False or z.is_positive is False or (1 - z).is_positive is False:
-        raise UnsupportedExpressionError("The moving-kernel formula requires 0 < z < 1")
-    if z.is_number and (z.is_positive is not True or (1 - z).is_positive is not True):
-        raise UnsupportedExpressionError("Could not establish 0 < z < 1")
+    if not (argument_domain == "principal-cut-plane" and z.is_real is False):
+        if z.is_real is False or z.is_positive is False or (1 - z).is_positive is False:
+            raise UnsupportedExpressionError("The moving-kernel formula requires 0 < z < 1")
+        if z.is_number and (z.is_positive is not True or (1 - z).is_positive is not True):
+            raise UnsupportedExpressionError("Could not establish 0 < z < 1")
+    # For nonreal z, the radial segment t=z*u crosses neither the principal
+    # log cut nor t=1. The real-interval germs below therefore continue to
+    # these points by analyticity. log(t)-log(z)=log(u) along this segment;
+    # log(1-z*u) is the principal branch since its segment avoids (-infinity,0].
     if m:
         coordinate = s.Dummy("argument", positive=True)
         moment = _mixed_log_moment(p, n, m, k, q, coordinate)
