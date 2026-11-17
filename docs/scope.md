@@ -71,10 +71,11 @@ round-trip serialization and selected numeric secondary checks. Finite tests
 are not proof of every high-order/rank performance claim. The J4 endpoint
 exchange proof applies to J4, not arbitrary integrals.
 
-Uncovered parameter patterns, nonterminating ranks other than `pF(p-1)`,
-complete special-value tables, general contour continuation and full upstream
-HPL simplification are not implemented. The optional Wolfram bridge remains
-optional comparison infrastructure with live coverage for selected cases.
+Uncovered parameter patterns, nonterminating ranks other than `pF(p-1)` and
+arbitrary contour winding remain outside the supported contracts. The
+[port audit](port-audit.md) records the shipped HPL special-value and
+simplification families now covered by derived identities. The optional
+Wolfram bridge supplies live comparison evidence within that documented scope.
 
 ## Mathematical sources
 

@@ -42,16 +42,24 @@ leading `1/(1-z)` singularity. Empty words give one and nonempty all-zero
 words give zero. This test rejects genuine divergences without pretending
 that every leading `1` word diverges: `H(1,0;1) = -zeta(2)` is finite.
 
-Opt-in reductions are deliberately small and derived, not copied tables:
+Opt-in reductions are derived from exact identities:
 
 - All-positive colors become ordinary MZVs, using existing proved reductions.
 - Depth-one negative colors use the Dirichlet eta identity
   `ES(n;-1)=-(1-2**(1-n))*zeta(n)` for `n>1`, and `-log(2)` for `n=1`.
 - The repeated `-1` HPL word gives `log(2)**d/d!` by repeated integration.
 
+Colored shuffle/stuffle equations, their regularized difference with one
+divergent factor, and even-index distribution reduce all convergent colored
+sums through weight six. Pulling back the iterated integral for `Li_n(1/2)`
+under `u=t/(1+t)` supplies the remaining low-weight relation. Weight six
+retains `ES((5,1),(-1,-1)) = HPLs6-zeta(6)` as an exact primitive. Depth-two
+weight-seven values also reduce. The all-unit family with colors
+`(-1,-1,1,...,1)` equals `-Li_d(1/2)` by its logarithmic integral.
+
 Other constants remain exact EulerSum objects. `reduced=False` retains even
-these elementary constants in their lossless sum representation. This is
-not a complete basis reduction for alternating multiple zeta values.
+elementary constants in their lossless sum representation. No upstream table
+is copied, and no algebraic independence of the selected constants is assumed.
 
 ## Repeated indices and colors: finite-cutoff Newton identities
 

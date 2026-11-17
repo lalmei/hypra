@@ -2,7 +2,7 @@
 
 ## Scope and provenance
 
-Hypra is a **partial native Python/SymPy implementation** for exact regulator
+Hypra is a **native Python/SymPy implementation** for exact regulator
 expansions. This chapter gives detailed proofs for three illustrative families
 and the P/Q/J4 acceptance calculation, followed by the general integer and
 half-integer kernels. These examples are not the package's full supported
@@ -12,10 +12,10 @@ or setup**. Unsupported cases must fail explicitly rather than be presented
 as complete expansions.
 
 HypExp [1] expands generalized hypergeometric functions around integer-valued
-parameters. HypExp 2 [2] adds certain half-integer classes. Hypra does not yet
-match their full coverage. An optional external HypExp adapter is retained as
-an experimental, **unverified** alternative; it is neither required by the
-native implementation nor evidence that a real Wolfram/HypExp run succeeded.
+parameters. HypExp 2 [2] adds certain half-integer classes. The optional
+external adapter has live HypExp/HPL regression coverage, including exact
+comparisons of the shipped minimal and at-i bases. The [port audit](port-audit.md)
+records the coverage and limits. The native implementation remains independent of it.
 
 The calculations below independently derive the requested example. Earlier
 private project material was context only: no private code or integral lookup

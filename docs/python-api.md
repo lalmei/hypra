@@ -93,6 +93,10 @@ See the [runnable examples](api-examples.md) for these settings.
 
 ::: hypra.nielsen.reduce_nielsen
 
+::: hypra.polylogs.transform_polylog_arguments
+
+::: hypra.polylog_reduction.reduce_polylogs
+
 ## Algebra and integration
 
 ::: hypra.hpl.algebra.shuffle_expand
@@ -104,6 +108,8 @@ See the [runnable examples](api-examples.md) for these settings.
 ::: hypra.hpl.algebra.hpl_series
 
 ::: hypra.hpl.classical.classical_hpl
+
+::: hypra.hpl.known_functions.reduce_hpl_to_known_functions
 
 ::: hypra.hpl.reduction.extract_hpl_logs
 
@@ -210,10 +216,10 @@ See the [runnable examples](api-examples.md) for these settings.
 ## Definite logarithmic integrals
 
 `beta_log_moment(n, m, p)` integrates
-\(u^p \log^n(u) \log^m(1-u)\) from zero to one. It normalizes the
-rational-HPL primitive at zero and combines its finite endpoint limit at
-one. The powers are explicit integers with `n, m >= 0`, `n + m <= 7`,
-and `-32 <= p <= 64`. Convergence at zero requires `p + m >= 0`.
+\(u^p \log^n(u) \log^m(1-u)\) from zero to one. It extracts exact
+coefficients of a Beta/Gamma generating series, including removable poles.
+The powers are explicit integers with `n, m >= 0`, `n + m <= 32`,
+and `p <= 4096`. Convergence at zero requires `p + m >= 0`.
 
 `hypergeometric_log_moment(p, n, m, k, q, z)` adds the factor
 \(\log^k(1-zu)/(zu-1)^q\). All five powers are nonnegative integers.
@@ -226,6 +232,9 @@ The logarithmic weight `n+m+k+int(q>0)` is at most five, with
 differentiates the Euler hypergeometric equation in the three log
 parameters and fixes the solution at the origin. Integration by parts
 raises the polynomial degree, and differentiation raises the pole order.
+Select `argument_domain="principal-cut-plane"` for exact finite nonreal
+arguments. This continues the origin germ along the principal branch;
+real arguments above one still require a separate cut prescription.
 Both APIs return exact SymPy expressions and raise
 `UnsupportedExpressionError` for unsupported cases or divergent integrals.
 

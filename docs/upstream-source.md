@@ -4,8 +4,9 @@
 
 On 12 November 2026, the official University of Zurich distribution archives were
 downloaded into local `reference/upstream/` and extracted with path/link checks.
-**No upstream installer or Mathematica source was executed.** Extracted files are
-read-only. They are excluded from Git and from the Python distribution.
+The acquisition step did not run an installer or execute the source. Subsequent
+opt-in regression tests execute the pinned packages in a licensed Wolfram
+kernel. Extracted files are read-only and excluded from Git and the Python distribution.
 The exact URLs, byte counts and SHA-256 hashes of every downloaded source file
 are in [the source manifest](upstream-source-manifest.json).
 
@@ -100,8 +101,8 @@ This audit uses the **standalone 03-Nov-2011 HPL.m**, the manifest-pinned
 archive, and the public abstract of
 [Extension of HPL to complex arguments](https://arxiv.org/abs/hep-ph/0703052).
 The bundled `HPL_README` ends with a September 2005 date, so it is not by
-itself a reliable description of the 2.0 additions. No source was executed,
-no table entries were copied and no installer was run.
+itself a reliable description of the 2.0 additions. The source audit and live
+comparisons are distinct checks; no table entries are copied into Hypra.
 
 | Evidence in pinned HPL.m | What it establishes | Native status / distinction |
 |---|---|---|
@@ -111,10 +112,14 @@ no table entries were copied and no installer was run.
 | Argument-transform declaration, lines 79–86 | Negation, reflection, square-root, fractional, Möbius and inversion transformations, with branch-side data | Native maps are separately proved and resource-bounded; no generic complex automatic rewrite is implied |
 | Plus/minus and HPLI declarations, lines 89–101 | Extended kernel notation and values at the imaginary unit | Native multilinear notation conversion; exact at-i reductions through weight six |
 | Minimal-set loaders, lines 685–697 | The archive ships ordinary and plus/minus minimal-set rules for weights two through six | Native shuffle elimination reproduces both shipped bases through weight six |
-| MZV/at-i table loaders, around 1804 and 1828–1833 | The archive ships `HPLatI1.m` through `HPLatI6.m`, numerical at-i tables for weights four through six, and the `nmzv.m` and `h6table.mat` constant data | Native exact reductions cover ordinary and plus/minus words through weight six using classical and multiple polylogarithms |
+| MZV/at-i table loaders, around 1804 and 1828–1833 | The archive ships `HPLatI1.m` through `HPLatI6.m`, numerical at-i tables for weights four through six, and the `nmzv.m` and `h6table.mat` constant data | Native exact reductions cover ordinary and plus/minus words through weight six in the shipped named-constant/primitive basis, with independently generated coefficients |
 
 The continuation interface specifies three real regions and a cut side.
-Arbitrary winding paths fall outside that shipped interface.
+Arbitrary winding paths fall outside that shipped interface. The standalone
+archive ships `h6table.mat` as its general signed-MZV table ceiling.
+`nmzv.m` assigns numerical values to seven named constants; it is not a
+higher-weight symbolic reduction table. General families defined in `HPL.m`
+are audited separately from those finite tables.
 
 The at-i work derives all weight-two ternary values from iterated integrals
 and shuffle identities, retaining classical dilogarithms when appropriate.
@@ -136,14 +141,14 @@ implementation and attribution; any direct source/table translation or
 redistribution requires a separate permissions review. No claim of legal
 clearance for an arbitrary literal port follows from this technical audit.
 
-## Important observation about the abandoned wrapper-first approach
+## External comparison contract
 
 The inspected public HypExp routines call `Normal[Series[...]]` in several paths
 (e.g. lines 1945, 1985, 2047 and 2056), discarding Mathematica's explicit O-term.
-A wrapper that insists on seeing `SeriesData` cannot validate those outputs and
-must reject them. Source inspection does **not** retroactively turn mock transport
-tests into a successful HypExp execution. The current user-directed goal is a
-native Python implementation, not installing Mathematica to work around this.
+The optional bridge accepts this documented inclusive-order output and checks
+the depth whenever `SeriesData` is present. Live integration tests exercise
+the real packages, including the parameter-class matrix, HPL minimal sets,
+at-i values and real-cut boundaries. Mock protocol tests remain separate.
 
 ## Citations
 

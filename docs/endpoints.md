@@ -37,9 +37,10 @@ For a nonterminating 2F1 at z=1, Gauss's summation theorem states
 \]
 
 The lower parameter must not be a fixed nonpositive integer. Parameters are
-required to be affine in the regulator. If the regulator-zero excess is a
-positive rational, fixed finite slopes admit an open neighborhood where
-its real part remains positive. If that base is zero, the implementation
+required to be affine in the regulator. If the regulator-zero excess has a
+provably positive real part, fixed finite slopes admit an open neighborhood
+where its real part remains positive. Exact irrational and complex bases,
+and symbolic bases with sufficient assumptions, are supported. If that base is zero, the implementation
 requires assumptions proving positive real excess on the selected punctured
 side. For example, 2F1(1,1;2-epsilon;1) is convergent for real epsilon<0 and
 its exact Gamma expression simplifies to (epsilon-1)/epsilon. Its pole is

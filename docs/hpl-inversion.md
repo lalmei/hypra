@@ -4,33 +4,27 @@
 returns an exact expression for `H_word(1/z + i0)` or `H_word(1/z - i0)`.
 The boundary is mandatory and refers to the final argument `1/z`. It is not
 inferred from a floating-point sign or from an arbitrary complex assumption.
-Ternary words through weight six are supported subject to the component
-transformations' resource bounds.
+Ternary words through weight eight are supported. Repeated-letter words
+extend to weight 24.
 
-## Composition and branch direction
+## Pulled-back differential equations
 
-Write `M(u)=(1-u)/(1+u)`, an involution. Then
-`M(-M(z))=1/z`. First express `H_word(M(u))` in HPLs at `u` using the exact
-Möbius transformation. Continue `u` from the positive interval through the
-upper half-plane to `-M(z)+i0`. Since
+Under `x=1/z`, the three kernel forms transform as
 
 \[
- \operatorname{Im} M(u)=\frac{-2\operatorname{Im}u}{|1+u|^2},
+ f_0(x)dx=-f_0(z)dz,\qquad
+ f_1(x)dx=(f_0(z)+f_1(z))dz,\qquad
+ f_{-1}(x)dx=(-f_0(z)+f_{-1}(z))dz.
 \]
 
-its image approaches `1/z` from **below**. The negation transformation's
-explicit `log(-v+i0)=log(v)+i*pi` therefore gives the lower final boundary.
-A second real Möbius transformation puts all remaining HPLs at `z`.
-
-This path avoids the singular points `0,+1,-1`; near the negative segment
-`(-1,0)` all other logarithms retain their real determinations. The original
-Möbius identity extends along that path by analytic continuation, with the
-constants fixed by its original real-interval endpoint construction.
-
-All final HPLs at `z`, alternating Euler sums, MZVs and elementary constants
-are real on the declared interval. Schwarz reflection therefore obtains the
-upper boundary by reversing explicit `i`. No conjugation of an unspecified
-complex variable or constant is assumed.
+Starting with the empty word, the implementation integrates the transformed
+suffix recursively by prepending these letters. At `z→1-`, the endpoint
+logarithm of `H_word(1/z±i0)` is `T±i*pi+log(z)`, where
+`T=-log(1-z)`. The last term vanishes. The exact endpoint polynomial fixes
+the integration constant by matching its constant term after this shift.
+This also handles divergent leading-one words without assigning them finite
+ordinary endpoint values. Repeated letters use powers of the weight-one
+formula divided by the word factorial.
 
 ## Independent low-weight checks
 
@@ -47,6 +41,6 @@ For `s=+1` on the upper boundary and `s=-1` on the lower boundary,
 
 These identities test both the integration constants and the branch signs.
 Additional mixed-word tests check the exact differentiated chain rule, not
-just numerical samples. Arbitrary variable-dependent functions in an
-intermediate expression are rejected rather than silently continued.
+just numerical samples. Classical inversions through weight eight are also
+checked against the Bernoulli-polynomial inversion identity.
 Unreduced higher-weight endpoint constants remain exact Euler sums.
