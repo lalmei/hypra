@@ -9,7 +9,7 @@ from ..errors import UnsupportedExpressionError
 from ..symbolic import HPL, reduce_known_hpl
 from .classical import classical_hpl
 from .multiple_polylog import MultiplePolylog
-from .notation import PMWord, pm_to_letters
+from .notation import HPLPM, PMWord, _pm_indices, letters_to_pm, pm_to_letters
 from .numeric import _word
 from .reduction import _extract
 
@@ -48,7 +48,18 @@ def _reduce_at_i_constants(expression):
         if order.is_Integer is not True or order < 2:
             continue
         order = int(order)
-        if order == 3 and argument == s.S.Half:
+        if order == 3 and argument == (1 + s.I) / 2:
+            # Compare the cubic antiderivative of H_011(i) with its exact
+            # shuffle/Möbius/square reduction. Both integration constants are
+            # fixed at the origin; their difference proves this conjugate
+            # relation without fitting numerical values or assuming a basis.
+            replacements[atom] = (
+                -s.polylog(3, (1 - s.I) / 2)
+                - 5 * s.pi**2 * s.log(2) / 96
+                + s.log(2) ** 3 / 24
+                + 35 * s.zeta(3) / 32
+            )
+        elif order == 3 and argument == s.S.Half:
             # The trilogarithm reflection identity at its midpoint.
             replacements[atom] = 7 * s.zeta(3) / 8 - s.pi**2 * s.log(2) / 12 + s.log(2) ** 3 / 6
         elif argument in (s.I, -s.I):
@@ -122,7 +133,7 @@ def _at_i_multiple_polylogs(word):
 
 
 @lru_cache(maxsize=1093)
-def _ordinary_at_i(word: tuple[int, ...]) -> s.Expr:
+def _ordinary_at_i_raw(word: tuple[int, ...]) -> s.Expr:
     """Exact H_word(i) on continuation from the origin through the upper quadrant.
 
     All ternary words through weight six reduce to exact logarithms and
@@ -155,17 +166,52 @@ def _ordinary_at_i(word: tuple[int, ...]) -> s.Expr:
     return _reduce_at_i_constants(value)
 
 
-def hpl_at_i(word: IntegerWord) -> s.Expr:
-    """Return the exact ordinary HPL at i through weight six.
+@lru_cache(maxsize=1093)
+def _ordinary_at_i_reduced(word: tuple[int, ...]) -> s.Expr:
+    if len(word) > 6:
+        return _ordinary_at_i_raw(word)
+    from .at_i_reduction import at_i_weight_reductions
 
-    Repeated single letters and simple classical words extend to weight 24.
+    basis = at_i_weight_reductions(len(word))
+    return s.expand(
+        s.Add(
+            *(
+                coefficient * basis[_pm_indices(pm_word)]
+                for pm_word, coefficient in letters_to_pm(word).items()
+            )
+        )
+    )
+
+
+def hpl_at_i(word: IntegerWord) -> s.Expr:
+    """Return the exact ordinary HPL at i in the HPL 2.0 constant basis.
+
+    Through weight six, generated identities leave one, nine and 23 chosen
+    HPLPM primitives at weights four, five and six. Their numerical evaluation
+    uses independent convergent MPL expressions. Repeated single letters and
+    simple classical words extend to weight 24.
     """
-    return _ordinary_at_i(_word(word))
+    return _ordinary_at_i_reduced(_word(word))
+
+
+@lru_cache(maxsize=1093)
+def _pm_at_i_raw(word: tuple[int, ...]) -> s.Expr:
+    """Cached independent exact MPL expression, bypassing the canonical reducer.
+
+    This private hook lets retained HPLPM at-i primitives evaluate numerically
+    without calling their own symbolic reduction again.
+    """
+    terms = pm_to_letters(HPLPM.from_indices(word, s.I).word)
+    return s.Add(
+        *(coefficient * _ordinary_at_i_raw(letters) for letters, coefficient in terms.items())
+    )
 
 
 def hpl_pm_at_i(word: PMWord) -> s.Expr:
-    """Return the exact plus/minus HPL at i through weight six."""
-    terms = pm_to_letters(word)
+    """Return the exact plus/minus HPL at i in the canonical weight-six basis."""
+    indices = _pm_indices(word)
     if len(word) > 6:
         raise UnsupportedExpressionError("At i, plus/minus words support weight at most six")
-    return s.Add(*(coefficient * _ordinary_at_i(letters) for letters, coefficient in terms.items()))
+    from .at_i_reduction import at_i_weight_reductions
+
+    return at_i_weight_reductions(len(indices))[indices]
