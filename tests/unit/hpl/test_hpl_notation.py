@@ -1,5 +1,6 @@
 from itertools import product
 
+import mpmath as mp
 import pytest
 import sympy as s
 
@@ -90,3 +91,45 @@ def test_pm_sympy_series_uses_kernel_germ_instead_of_differentiating_word():
     assert HPLPM((0, "plus"), z).series(z, 0, 5) == (2 * z + 2 * z**3 / 9 + s.Order(z**5, z))
     shifted = HPLPM(("plus", 0), s.Rational(1, 3) + z)
     assert shifted.series(z, 0, 3) == shifted.rewrite(HPL).series(z, 0, 3)
+
+
+@pytest.mark.parametrize("word", [(0, -1, 1, -1), (0, 1, 1, -1, 1), (0, 1, 1, 0, -1, -1)])
+def test_at_i_primitive_evalf_avoids_symbolic_reduction_recursion(word, monkeypatch):
+    from hypra.hpl import special
+    from hypra.hpl.radial_continuation import continue_hpl
+
+    def no_recursive_reduction(*args, **kwargs):
+        pytest.fail("Numerical primitives must bypass the canonical at-i reducer")
+
+    monkeypatch.setattr(special, "hpl_at_i", no_recursive_reduction)
+    monkeypatch.setattr(special, "hpl_pm_at_i", no_recursive_reduction)
+    expression = HPLPM.from_indices(word, s.I)
+    actual = expression.evalf(32)
+    assert not actual.has(HPL, HPLPM)
+
+    # Independent continuation integrates the ordinary-letter suffix ODE;
+    # it does not use the exact MPL representation behind the primitive.
+    ctx = mp.mp.clone()
+    ctx.dps = 45
+    expected = ctx.mpc(0)
+    for ordinary, coefficient in pm_to_letters(expression.word).items():
+        value = continue_hpl(
+            ordinary,
+            s.I,
+            domain="principal-cut-plane",
+            path="radial",
+            dps=32,
+        ).value
+        expected += int(coefficient) * ctx.mpc(value)
+    real, imag = actual.as_real_imag()
+    assert abs(ctx.mpc(str(real), str(imag)) - expected) < ctx.mpf("1e-30")
+
+
+def test_pm_primitive_is_preserved_as_native_expansion_coefficient():
+    from hypra import expand_epsilon
+
+    epsilon = s.Symbol("eps")
+    primitive = HPLPM((0, "minus", "plus", "minus"), s.I)
+    result = expand_epsilon((1 + epsilon) * primitive, epsilon, through=1)
+    assert result.coefficient(0) == primitive
+    assert result.coefficient(1) == primitive
