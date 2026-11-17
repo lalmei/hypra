@@ -61,3 +61,14 @@ def test_nonzero_or_unknown_germ_fails_clearly(argument):
 def test_mixed_log_germ_directed_to_explicit_series_api():
     with pytest.raises(UnsupportedExpressionError, match="hpl_series"):
         s.series(HPL((1, 0), s.sqrt(Z)), Z, 0, 3)
+
+
+@pytest.mark.parametrize("center", [s.sqrt(2) / 2, s.log(2)])
+def test_exact_nonrational_interior_center_matches_dilogarithm(center):
+    from hypra.symbolic import reduce_known_hpl
+
+    argument = center + Z**2
+    actual = HPL((0, 1), argument).series(Z, 0, 5)
+    expected = s.polylog(2, argument).series(Z, 0, 5)
+    assert s.simplify(reduce_known_hpl(actual.removeO()) - s.expand_func(expected.removeO())) == 0
+    assert actual.getO() == expected.getO()
