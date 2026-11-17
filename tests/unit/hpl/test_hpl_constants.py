@@ -58,7 +58,9 @@ def test_reject_limits_divergence_and_invalid_inputs():
     with pytest.raises(ValueError):
         evaluate_mzv((2,), dps=True)
     with pytest.raises(HPLNumericalConvergenceError):
-        evaluate_euler_sum((2, 1), (-1, -1), max_terms=1)
+        # An irreducible weight-eight constant still needs numerical series;
+        # low odd-weight depth-two sums now have exact reductions.
+        evaluate_mzv((5, 3), max_terms=1)
 
 
 def test_global_precision_unchanged():
