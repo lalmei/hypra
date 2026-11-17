@@ -11,6 +11,7 @@ from ..errors import UnsupportedExpressionError
 
 # SymPy's signature infers bool from the default, but accepts Boolean relations.
 _ask = cast(Callable[[s.Basic, Boolean], bool | None], s.ask)
+_refine = cast(Callable[[s.Basic, Boolean], s.Basic], s.refine)
 
 
 @dataclass(frozen=True)
@@ -40,6 +41,12 @@ def _facts(assumptions):
 
 def _positive(expr, assumptions):
     return _ask(s.Q.positive(expr), _facts(assumptions)) is True
+
+
+def _positive_real_part(expr, assumptions):
+    # ask(positive(re(a)), positive(a)) alone does not infer re(a)=a.
+    real_part = _refine(s.re(expr), _facts(assumptions))
+    return _positive(real_part, assumptions)
 
 
 def _affine_rational(expr, epsilon):
@@ -191,9 +198,14 @@ def plan_expansion(
                     negative_budget += m
                     return -m
                 return 0
-            if not _positive(c, assumptions):
+            numeric_nonpole = (
+                c.is_number
+                and c.is_finite is True
+                and (c.is_integer is False or c.is_real is False)
+            )
+            if not numeric_nonpole and not _positive_real_part(c, assumptions):
                 raise UnsupportedExpressionError(
-                    "Symbolic Gamma base requires a positive assumption"
+                    "Gamma base requires a positive real-part assumption or an exact nonpole value"
                 )
             return 0
         if node.func == s.hyper:
