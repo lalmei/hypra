@@ -61,3 +61,32 @@ def test_ast_latex_and_invalid_indices():
         decode_expr(ast)
     with pytest.raises(TypeError):
         nielsen_to_hpl("NielsenPolylog(1,1,z)")
+
+
+def test_exact_special_values():
+    assert reduce_nielsen(NielsenPolylog(2, 2, 0)) == 0
+    assert reduce_nielsen(NielsenPolylog(1, 2, 1)) == s.zeta(3)
+    assert (
+        reduce_nielsen(NielsenPolylog(3, 2, -1)) == s.pi**2 * s.zeta(3) / 12 - 29 * s.zeta(5) / 32
+    )
+    assert NielsenPolylog(2, 2, 0).evalf(30) == 0
+
+
+@pytest.mark.parametrize("argument", [s.Rational(1, 3), -s.S.Half, -2, -1, s.I / 2, 1])
+def test_evalf_matches_independent_nielsen_integral(argument):
+    argument = s.sympify(argument)
+    context = mp.mp.clone()
+    context.dps = 42
+    real, imag = argument.as_real_imag()
+    point = context.mpc(str(real.evalf(45)), str(imag.evalf(45)))
+    expected = -context.quad(
+        lambda t: context.log(t) * context.log(1 - point * t) ** 2 / (2 * t), [0, 1]
+    )
+    actual = NielsenPolylog(2, 2, argument).evalf(35)
+    real, imag = actual.as_real_imag()
+    assert abs(context.mpc(str(real), str(imag)) - expected) < context.mpf("1e-32")
+
+
+def test_evalf_retains_unspecified_positive_cut():
+    value = NielsenPolylog(2, 2, 2)
+    assert value.evalf(30) == value
