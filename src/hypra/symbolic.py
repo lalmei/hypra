@@ -20,7 +20,6 @@ from sympy import (
     Function,
     Integer,
     Order,
-    Rational,
     Tuple,
     ceiling,
     factorial,
@@ -200,7 +199,13 @@ class HPL(Function):
             exact = log(self.argument) ** len(self.word) / factorial(len(self.word))
             return exact._eval_nseries(x, n, logx, cdir=cdir)
         center = self.argument.subs(x, 0)
-        if isinstance(center, Rational) and 0 < center < 1:
+        if (
+            isinstance(center, Expr)
+            and center.is_number is True
+            and center.is_real is True
+            and center.is_positive is True
+            and (1 - center).is_positive is True
+        ):
             from .hpl.taylor import hpl_taylor
 
             delta = self.argument - center
