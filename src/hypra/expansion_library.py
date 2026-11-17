@@ -11,7 +11,7 @@ from typing import cast
 
 import sympy as s
 
-from .errors import IncompleteExpansionError
+from .errors import IncompleteExpansionError, UnsupportedExpressionError
 from .serialization import decode_expr, encode_expr
 
 
@@ -130,8 +130,16 @@ class ExpansionLibrary:
     def _lookup_atom(self, h: s.hyper, epsilon: s.Symbol, through: int) -> s.Expr | None:
         from .native.planning import _affine_rational, laurent_coefficient
 
-        upper = sorted((_affine_rational(p, epsilon) for p in h.ap), key=lambda pair: pair[0])
-        lower = sorted((_affine_rational(p, epsilon) for p in h.bq), key=lambda pair: pair[0])
+        # Templates are an optional optimization. Requests outside their domain
+        # must still reach the native dispatcher, which also handles elementary
+        # regulator-independent functions with other rational bases.
+        if len(h.ap) != len(h.bq) + 1:
+            return None
+        try:
+            upper = sorted((_affine_rational(p, epsilon) for p in h.ap), key=lambda pair: pair[0])
+            lower = sorted((_affine_rational(p, epsilon) for p in h.bq), key=lambda pair: pair[0])
+        except UnsupportedExpressionError:
+            return None
         if any(not base.is_Integer for base, _ in (*upper, *lower)):
             return None
         a, b = _family((base for base, _ in upper), (base for base, _ in lower))

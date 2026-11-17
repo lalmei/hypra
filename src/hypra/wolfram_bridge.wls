@@ -59,6 +59,10 @@ decode[n_Association] := Module[{h, a, name, s, facts, num, den},
       If[Length[a] != 3 || !ListQ[a[[1]]] || !ListQ[a[[2]]], fail["HypergeometricPFQ arity"]];
       HypergeometricPFQ @@ a,
     "HPL", a = argsOf[n]; If[Length[a] != 2 || !ListQ[a[[1]]] || !AllTrue[a[[1]], MemberQ[{-1, 0, 1}, #] &], fail["HPL requires expanded -1,0,1 alphabet"]]; HPL`HPL @@ a,
+    "HPLPM", a = argsOf[n];
+      If[Length[a] != 2 || !ListQ[a[[1]]] || !AllTrue[a[[1]], IntegerQ[#] && MemberQ[{-1, 0, 1}, #] &], fail["HPLPM requires integer codes -1,0,1"]];
+      If[ListQ[a[[2]]] || MemberQ[{True, False}, a[[2]]], fail["HPLPM argument must be scalar"]];
+      HPL`HPL[Replace[a[[1]], {-1 -> HPL`minus, 1 -> HPL`plus}, {1}], a[[2]]],
     "And", And @@ argsOf[n], "Or", Or @@ argsOf[n],
     "Not", a = argsOf[n]; If[Length[a] != 1, fail["Not arity"]]; Not @@ a,
     "Equal", Equal @@ argsOf[n], "Unequal", Unequal @@ argsOf[n],
@@ -87,6 +91,12 @@ encodeHPL[word_List, argument_] := Module[{choices, encodedArgument, terms},
   ]], Tuples[choices]];
   If[Length[terms] == 1, First[terms], node["Add", terms]]
 ];
+encodeHPLPM[word_List, argument_] := Module[{indices},
+  If[!AllTrue[word, MemberQ[{0, HPL`plus, HPL`minus}, #] &],
+    fail["Unsupported HPLPM alphabet"]];
+  indices = Replace[word, {HPL`minus -> -1, HPL`plus -> 1}, {1}];
+  node["HPLPM", {node["List", encode /@ indices], encode[argument]}]
+];
 encode[e_] := Module[{h = Head[e], a},
   Which[
     IntegerQ[e], <|"head" -> "Integer", "value" -> ToString[e, InputForm]|>,
@@ -109,6 +119,9 @@ encode[e_] := Module[{h = Head[e], a},
     h === HPL`HPL, a = List @@ e;
       If[Length[a] != 2 || !ListQ[a[[1]]], fail["Unsupported HPL shape"]];
       encodeHPL[a[[1]], a[[2]]],
+    h === HPL`HPLI, a = List @@ e;
+      If[Length[a] != 1 || !ListQ[a[[1]]], fail["Unsupported HPLI shape"]];
+      encodeHPLPM[a[[1]], I],
     True, fail["Unsupported or unevaluated output head: " <> ToString[h, InputForm]]
   ]
 ];

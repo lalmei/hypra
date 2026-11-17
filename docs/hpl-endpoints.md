@@ -71,11 +71,19 @@ Together with `zeta(2)^2 = 5 zeta(4)/2`, these give
 \zeta(2,2)=\tfrac34\zeta(4).
 \]
 
-No general MZV basis reduction, alternating endpoint sums, or transcendence
-claim is implemented. Endpoint/duality combinatorics are limited to weight 24;
-higher-weight MZVs remain exact symbolic objects. Depth-one reduction is not
-subject to that combinatorial limit. The optional Wolfram comparison bridge
-does not transport MZV heads; this is a native-port feature.
+The exact double-shuffle system now reduces all convergent MZVs through
+weight eight. It combines convergent shuffle/stuffle products, their
+regularized difference with one divergent `zeta(1)` factor, duality and the
+height-one identity below. Weight eight retains `MZV((5,3))` as a chosen
+primitive. This is a spanning representation, without a transcendence claim.
+Endpoint/duality combinatorics are limited to weight 24. Depth-one reduction
+is not subject to that combinatorial limit.
+
+General families through weight 24 also include `zeta(n,1)`, repeated
+indices via Newton's elementary-symmetric recurrence, `zeta({3,1}^n)` and
+`zeta(2,{1,3}^n)`. The last two use
+[Borwein et al., Examples 2.2–2.3](https://arxiv.org/abs/math/9910045).
+Uncovered higher-weight constants remain exact `MZV` objects.
 
 ## Height-one multiple zeta values
 

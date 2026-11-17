@@ -28,6 +28,7 @@ from .hpl.classical import classical_hpl
 from .hpl.constants import ConstantNumericResult, evaluate_euler_sum, evaluate_mzv
 from .hpl.endpoints import hpl_at_one, reduce_mzv
 from .hpl.inversion import invert_hpl
+from .hpl.known_functions import reduce_hpl_to_known_functions
 from .hpl.limits import hpl_limit_at_one
 from .hpl.maps import fractional_hpl, square_hpl
 from .hpl.minimal import reduce_hpl_to_minimal_set
@@ -63,6 +64,8 @@ from .hpl.transforms import negate_hpl, reflect_hpl
 from .hypexp_integrals import beta_log_moment, hypergeometric_log_moment
 from .native import NativeBackend, NativeConfig
 from .nielsen import NielsenPolylog, hpl_to_nielsen, nielsen_to_hpl, reduce_nielsen
+from .polylog_reduction import reduce_polylogs
+from .polylogs import transform_polylog_arguments
 from .serialization import SerializationError, decode_expr, encode_expr
 from .symbolic import HPL, MZV, EulerSum
 
@@ -164,13 +167,16 @@ __all__ = [
     "pm_to_letters",
     "primitive_hpl",
     "reduce_euler_sum",
+    "reduce_hpl_to_known_functions",
     "reduce_hpl_to_minimal_set",
     "reduce_mzv",
     "reduce_nielsen",
+    "reduce_polylogs",
     "reflect_hpl",
     "shuffle_expand",
     "shuffle_regularized_hpl_at_one",
     "square_hpl",
     "stuffle_expand_constants",
     "transform_hpl_arguments",
+    "transform_polylog_arguments",
 ]

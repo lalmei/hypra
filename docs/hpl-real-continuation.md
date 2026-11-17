@@ -29,8 +29,8 @@ variable-dependent functions or unmapped variable coefficients are rejected.
 Only real endpoint constants and explicit `i` appear in these compositions;
 no unspecified conjugation assumptions are introduced.
 
-Weight is bounded by 24 on the near intervals and six where inversion is
-needed. Component algorithms may impose further resource limits. The caller
+Weight is bounded by 24 on the near intervals and eight where general inversion
+is needed; repeated-letter inversion extends to 24. Component algorithms may impose further resource limits. The caller
 must not combine a region assertion with contradictory symbol assumptions.
 
 Tests independently check every weight-one function in all four regions on

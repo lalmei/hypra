@@ -67,7 +67,7 @@ def test_duality_and_derived_low_weight_reductions():
     assert reduce_mzv(MZV((2, 1, 1))) == s.zeta(4)
     assert reduce_mzv(MZV((3, 1))) == s.zeta(4) / 4
     assert reduce_mzv(MZV((2, 2))) == 3 * s.zeta(4) / 4
-    assert reduce_mzv(MZV((3, 2))) == MZV((3, 2))
+    assert reduce_mzv(MZV((3, 2))) == 3 * s.zeta(2) * s.zeta(3) - s.Rational(11, 2) * s.zeta(5)
     assert reduce_mzv(MZV((25, 2))) == MZV((25, 2))
     assert reduce_mzv(MZV((25,))) == s.zeta(25)
 

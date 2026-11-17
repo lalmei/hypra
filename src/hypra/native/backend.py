@@ -119,32 +119,11 @@ class NativeBackend:
     def _fingerprint(self) -> str:
         digest = hashlib.sha256()
         package = Path(__file__).resolve().parents[1]
-        for name in (
-            "native/backend.py",
-            "expansion_library.py",
-            "native/atom.py",
-            "native/planning.py",
-            "serialization.py",
-            "symbolic.py",
-            "native/integer.py",
-            "native/nested_sums.py",
-            "hpl/algebra.py",
-            "hpl/limits.py",
-            "hpl/transforms.py",
-            "hpl/endpoints.py",
-            "native/colored_sums.py",
-            "native/matched_half.py",
-            "native/half_system.py",
-            "native/twof1_shift.py",
-            "native/endpoints.py",
-            "native/unit_limit.py",
-            "hpl/series_one.py",
-            "hpl/inversion.py",
-            "hpl/mobius.py",
-            "native/canonical.py",
-            "native/contiguous.py",
-        ):
-            digest.update((package / name).read_bytes())
+        # New endpoint/reduction helpers can change exact expansion results.
+        # Discover package modules so they cannot be omitted from cache keys.
+        for source in sorted(package.rglob("*.py")):
+            digest.update(source.relative_to(package).as_posix().encode())
+            digest.update(source.read_bytes())
         return digest.hexdigest()
 
     def expand(self, request: dict[str, Any]) -> dict[str, Any]:

@@ -7,9 +7,9 @@
 **Native Python/SymPy hypergeometric epsilon expansions, inspired by HypExp 2.**
 
 Native HPL functionality is also informed by HPL 2.0.
-No Mathematica installation is required. Hypra is an academic **partial native
-implementation**, not yet a full replacement for HypExp/HPL. It computes exact symbolic
-coefficients using recurrence relations and preserves unevaluated HPL words.
+No Mathematica installation is required. Hypra is a native research implementation
+with explicit domain and resource limits. It computes exact symbolic coefficients
+using recurrence relations and preserves exact HPL expressions and primitive constants.
 Unsupported cases fail explicitly; there is no silent external fallback.
 
 ## What works now
@@ -30,7 +30,8 @@ list of hard-coded low-order answers:
   supported higher-rank integer and half-integer families. An explicit
   meromorphic mode continues supported unit endpoints in the parameters.
 - Exact definite logarithmic moments through `beta_log_moment` and
-  `hypergeometric_log_moment`, including supported real mixed-log kernels.
+  `hypergeometric_log_moment`, including real and explicit principal nonreal
+  mixed-log kernels.
 - HPL shuffle products, rational-HPL integration with a verified finite origin
   constant, exact local HPL series, shuffle logarithm extraction, convergent
   binary endpoints/MZVs, and branch-explicit negation/reflection transforms.
@@ -95,13 +96,14 @@ Expanded letters `{-1,0,1}` use kernels `1/(1+t)`, `1/t`, `1/(1-t)`;
 `H_1(z)=-log(1-z)`. Construction/serialization preserves words. Known-word
 reduction is explicit and does not claim arbitrary analytic continuation.
 
-Additional native HPL operations include exact at-i values for low weights,
+Additional native HPL operations include exact at-i reductions through weight six,
 explicit upper/lower real-cut numerical values, ordinary-point Taylor series,
 classical reduction of all 27 ternary cubic words, near-one power/log series,
 alternating endpoints, MZV/EulerSum stuffle products and explicitly named
 shuffle-regularization APIs. Each has documented domain/resource limits;
 regularized constants are never silently treated as ordinary finite limits.
-See the [HPL 2 capability map](docs/parity-map.md) for remaining gaps.
+See the [HPL 2 capability map](docs/parity-map.md) and
+[port audit](docs/port-audit.md) for the verified operations and remaining distinctions.
 
 ## Validate and produce LaTeX
 
@@ -146,9 +148,10 @@ and compiled [PDF](docs/mathematics.pdf). Runnable examples include
 - `NativeConfig(max_internal_order=12)` is the default complexity limit; it can
   be raised explicitly. HPL word counts can grow exponentially. There is no
   claim that arbitrary large requests will be fast.
-- The optional external Wolfram comparison bridge is **experimental, unverified
-  and not needed**. Its strict remainder checks reject upstream paths returning
-  bare polynomials; it is not advertised as a working comparison oracle.
+- The optional Wolfram comparison bridge has live HypExp 2/HPL 2 regression
+  coverage. It accepts upstream's inclusive-order polynomials and checks the
+  depth of explicit series remainders. The native implementation needs no
+  Wolfram installation; selected comparisons do not establish exhaustive parity.
 
 ## Upstream source and academic use
 
@@ -179,8 +182,9 @@ negate_hpl((1, 0), w, domain="0<z<1")
 config = NativeConfig(timeout_seconds=30)  # killable backend process
 ```
 
-Transformations use explicit domains and reject unsupported branches. General
-MZVs remain exact rather than being reduced with unverified tables. See
+Transformations use explicit domains and reject unsupported branches. Exact
+shuffle/stuffle identities reduce ordinary MZVs through weight eight and
+colored sums through weight six, retaining the required primitive constants. See
 [HPL endpoints](docs/hpl-endpoints.md), [log extraction](docs/hpl-reduction.md),
 and [argument transformations](docs/hpl-transforms.md).
 

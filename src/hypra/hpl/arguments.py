@@ -25,6 +25,7 @@ def transform_hpl_arguments(
     Requires domain='0<z<1'. Supported arguments: z, -z, 1-z, z²,
     (1-z)/(1+z), z/(z-1), 1/z. Cut-valued arguments require explicit
     boundary='upper' or 'lower'. Constant-argument HPLs remain unchanged.
+    Plus/minus notation is first expanded into ordinary HPL letters.
     Unknown variable-dependent arguments fail rather than pretending to unify.
 
     Args:
@@ -44,6 +45,7 @@ def transform_hpl_arguments(
         raise ValueError("boundary must be upper, lower, or omitted")
     if expression.has(s.Float, s.nan, s.zoo, s.oo, -s.oo):
         raise UnsupportedExpressionError("Argument transformation requires exact finite input")
+    expression = expression.rewrite(HPL)
     changes = {}
     for atom in expression.atoms(HPL):
         arg = atom.argument

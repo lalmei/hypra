@@ -87,6 +87,39 @@ class NielsenPolylog(s.Function):
             return s.polylog(n + 1, argument)
         return self
 
+    def _eval_evalf(self, prec):
+        """Evaluate using the principal HPL germ, retaining ambiguous cut values."""
+        import mpmath as mp
+        from sympy.core.evalf import prec_to_dps
+
+        argument = self.argument
+        if argument.is_number is not True or argument.is_finite is not True or self.n + self.p > 24:
+            return self
+        if argument == 0:
+            return s.S.Zero
+        if argument == 1:
+            from .hpl.endpoints import hpl_at_one
+
+            return hpl_at_one(self.as_hpl().word).evalf(prec_to_dps(prec) + 4)
+        if argument.is_negative is True and argument != -1:
+            from .hpl.boundary_numeric import evaluate_hpl_boundary
+
+            digits = max(2, prec_to_dps(prec) + 8)
+            if digits > 800:
+                return self
+            region = "-1<x<0" if (argument + 1).is_positive is True else "x<-1"
+            result = evaluate_hpl_boundary(
+                self.as_hpl().word, argument, region=region, boundary="upper", dps=digits
+            )
+            # Binary words ending in 1 are regular at zero; the negative ray
+            # is not a cut for Nielsen functions. Their exact value is real.
+            return s.Float(mp.nstr(result.value.real, n=digits), precision=prec)
+        if argument == -1:
+            reduced = reduce_nielsen(self)
+            return reduced.evalf(prec_to_dps(prec) + 4) if reduced != self else self
+        result = self.as_hpl()._eval_evalf(prec)
+        return self if result.has(HPL) else result
+
     def _latex(self, printer):
         return (
             rf"S_{{{printer._print(self.n)},{printer._print(self.p)}}}"
@@ -135,19 +168,28 @@ def hpl_to_nielsen(expression: ExactScalar) -> s.Expr:
 
 
 def reduce_nielsen(expression: ExactScalar) -> s.Expr:
-    """Opt-in p=1 reduction S_{n,1}(z)=Li_{n+1}(z); no other claims.
+    """Reduce p=1 to Li_{n+1}, and exact constants at zero and +/-1.
+
+    Endpoint constants use proved MZV/Euler-sum reductions, retaining exact
+    irreducible constants. Special-value reductions are bounded at weight 24.
 
     Args:
         expression: Exact symbolic expression containing Nielsen atoms.
     """
     expression = _expression(expression)
-    return cast(
-        s.Expr,
-        expression.xreplace(
-            {
-                atom: s.polylog(atom.n + 1, atom.argument)
-                for atom in expression.atoms(NielsenPolylog)
-                if atom.p == 1
-            }
-        ),
-    )
+    from .hpl.alternating import hpl_alternating_at_one, reduce_euler_sum
+    from .hpl.endpoints import hpl_at_one
+
+    replacements = {}
+    for atom in expression.atoms(NielsenPolylog):
+        if atom.p == 1:
+            replacements[atom] = s.polylog(atom.n + 1, atom.argument)
+        elif atom.argument == 0:
+            replacements[atom] = s.S.Zero
+        elif atom.n + atom.p <= 24:
+            if atom.argument == 1:
+                replacements[atom] = hpl_at_one(atom.as_hpl().word)
+            elif atom.argument == -1:
+                word = (0,) * int(atom.n) + (-1,) * int(atom.p)
+                replacements[atom] = (-1) ** atom.p * reduce_euler_sum(hpl_alternating_at_one(word))
+    return cast(s.Expr, expression.xreplace(replacements))

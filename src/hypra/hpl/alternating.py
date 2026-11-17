@@ -14,7 +14,12 @@ from .numeric import _word
 
 
 def reduce_euler_sum(expression: ExactScalar) -> s.Expr:
-    """Proved eta, MZV, repeated-letter and finite-cutoff Newton identities.
+    """Proved eta, MZV, repeated-letter, Newton and colored double-shuffle identities.
+
+    All convergent colored sums reduce through weight six, retaining the
+    exact primitive ES((5,1),(-1,-1))=HPLs6-zeta(6). Depth-two sums
+    also reduce at weight seven. Other sums remain exact when the supported
+    identities do not reduce them.
 
     Args:
         expression: Exact symbolic expression containing Euler-sum atoms.
@@ -50,6 +55,34 @@ def reduce_euler_sum(expression: ExactScalar) -> s.Expr:
         # H((-1)^d;1) = log(2)^d/d!, while its series carries (-1)^d.
         if all(n == 1 for n in indices) and colors == (-1,) + (1,) * (len(indices) - 1):
             return (-1) ** len(indices) * s.log(2) ** len(indices) / s.factorial(len(indices))
+        if (
+            2 <= len(indices) <= 24
+            and all(n == 1 for n in indices)
+            and colors == (-1, -1) + (1,) * (len(indices) - 2)
+        ):
+            # ES=-H_{-1,1,...,1}(1). With u=1-t its defining integral is
+            # -1/(d-1)! integral_0^1 (-log u)^(d-1)/(2-u) du=-Li_d(1/2).
+            if len(indices) == 3:
+                return -7 * s.zeta(3) / 8 + s.pi**2 * s.log(2) / 12 - s.log(2) ** 3 / 6
+            return -s.polylog(len(indices), s.S.Half)
+        if indices == (5, 1) and colors == (-1, -1):
+            return atom
+        if sum(indices) <= 6:
+            from .euler_reduction import euler_weight_reductions
+
+            return euler_weight_reductions(int(sum(indices)))[
+                tuple(
+                    (int(index), int(color)) for index, color in zip(indices, colors, strict=True)
+                )
+            ]
+        if len(indices) == 2 and sum(indices) in (3, 5, 7):
+            from .euler_reduction import euler_depth_two_reductions
+
+            return euler_depth_two_reductions(int(sum(indices)))[
+                tuple(
+                    (int(index), int(color)) for index, color in zip(indices, colors, strict=True)
+                )
+            ]
         return atom
 
     if type(expression) is int:

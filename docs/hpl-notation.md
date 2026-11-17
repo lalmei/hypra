@@ -17,6 +17,9 @@ through weight four.
 
 Use `HPLPM(("plus", 0, "minus"), z)` to keep the kernel labels in a
 symbolic expression. Calling `.rewrite(HPL)` converts it to ordinary HPLs.
+These atoms have a distinct exact JSON AST head, so PM labels cannot be
+confused with ordinary signed letters. The at-i primitive constants returned
+by the canonical reducer support `.evalf()` and optional Wolfram transport.
 
 ## HPL 2.0 minimal sets
 

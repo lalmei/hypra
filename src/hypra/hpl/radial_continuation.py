@@ -62,13 +62,21 @@ def _target(value, ctx):
     return z
 
 
-def _run(word, argument, dps, working, max_steps, max_degree, max_terms):
+def _transport(word, initial, targets, dps, working, max_steps, max_degree, max_terms):
+    """Transport the suffix ODE along nonsingular segments supplied by the caller.
+
+    The initial point must be in the principal slit disk. This internal helper
+    does not select a branch: its caller supplies a path with the required
+    homotopy. Each step stays in a disk excluding all three kernel poles.
+    """
     ctx = mp.mp.clone()
     ctx.dps = working
-    target = _target(argument, ctx)
-    c = target * min(ctx.one, ctx.mpf("0.25") / abs(target))
-    # Exact decimal data avoids cross-context mpc type/coercion limitations.
-    initial = s.Rational(str(ctx.re(c))) + s.I * s.Rational(str(ctx.im(c)))
+
+    def point(value):
+        real, imag = value.as_real_imag()
+        return ctx.mpc(str(s.N(real, working + 10)), str(s.N(imag, working + 10)))
+
+    c = point(initial)
     values = []
     error = ctx.zero
     for j in range(len(word)):
@@ -80,44 +88,59 @@ def _run(word, argument, dps, working, max_steps, max_degree, max_terms):
     values.append(ctx.one)
     steps = degree_used = 0
     local_tolerance = ctx.power(10, -dps - 15) / max_steps
-    while c != target:
-        if steps >= max_steps:
-            raise HPLNumericalConvergenceError("Radial continuation exceeded max_steps")
-        distance = min(abs(c), abs(c - 1), abs(c + 1))
-        h = target - c
-        if abs(h) > distance / 4:
-            h = h * (distance / (4 * abs(h)))
-        radius = distance / 2
-        ratio = abs(h) / radius
-        majorant = max(map(abs, values)) * ctx.exp(radius / (distance - radius))
-        degree = max(
-            1, int(ctx.ceil(ctx.log(local_tolerance * (1 - ratio) / majorant) / ctx.log(ratio))) - 1
-        )
-        if degree > max_degree:
-            raise HPLNumericalConvergenceError("Radial continuation exceeded max_degree")
-        coefficients = [[v] + [ctx.zero] * degree for v in values]
-        for j in range(len(word) - 1, -1, -1):
-            letter = word[j]
-            denominator = c if letter == 0 else (1 - c if letter == 1 else 1 + c)
-            sign = 1 if letter == 1 else -1
-            kernels = [ctx.one / denominator]
-            for _ in range(degree - 1):
-                kernels.append(kernels[-1] * sign / denominator)
-            for n in range(degree):
-                coefficients[j][n + 1] = sum(
-                    kernels[k] * coefficients[j + 1][n - k] for k in range(n + 1)
-                ) / (n + 1)
-        values = [ctx.polyval(list(reversed(row)), h) for row in coefficients]
-        local_error = majorant * ratio ** (degree + 1) / (1 - ratio)
-        error = error * ctx.exp(abs(h) / (distance - abs(h))) + local_error
-        c = target if h == target - c else c + h
-        steps += 1
-        degree_used = max(degree_used, degree)
+    for endpoint in targets:
+        target = point(endpoint)
+        while c != target:
+            if steps >= max_steps:
+                raise HPLNumericalConvergenceError("HPL continuation exceeded max_steps")
+            distance = min(abs(c), abs(c - 1), abs(c + 1))
+            h = target - c
+            if abs(h) > distance / 4:
+                h = h * (distance / (4 * abs(h)))
+            radius = distance / 2
+            ratio = abs(h) / radius
+            majorant = max(map(abs, values)) * ctx.exp(radius / (distance - radius))
+            degree = max(
+                1,
+                int(ctx.ceil(ctx.log(local_tolerance * (1 - ratio) / majorant) / ctx.log(ratio)))
+                - 1,
+            )
+            if degree > max_degree:
+                raise HPLNumericalConvergenceError("HPL continuation exceeded max_degree")
+            coefficients = [[v] + [ctx.zero] * degree for v in values]
+            for j in range(len(word) - 1, -1, -1):
+                letter = word[j]
+                denominator = c if letter == 0 else (1 - c if letter == 1 else 1 + c)
+                sign = 1 if letter == 1 else -1
+                # Kernel Taylor coefficients form a geometric sequence. Its
+                # convolution with the suffix series obeys this first-order
+                # recurrence, costing O(degree), not O(degree**2).
+                convolution = ctx.zero
+                for n in range(degree):
+                    convolution = (coefficients[j + 1][n] + sign * convolution) / denominator
+                    coefficients[j][n + 1] = convolution / (n + 1)
+            values = [ctx.polyval(list(reversed(row)), h) for row in coefficients]
+            local_error = majorant * ratio ** (degree + 1) / (1 - ratio)
+            error = error * ctx.exp(abs(h) / (distance - abs(h))) + local_error
+            c = target if h == target - c else c + h
+            steps += 1
+            degree_used = max(degree_used, degree)
     if error > ctx.power(10, -dps) * max(ctx.one, abs(values[0])):
         raise HPLNumericalConvergenceError(
             "Propagated truncation bound exceeds requested tolerance"
         )
     return values[0], error, steps, degree_used
+
+
+def _run(word, argument, dps, working, max_steps, max_degree, max_terms):
+    ctx = mp.mp.clone()
+    ctx.dps = working
+    target = _target(argument, ctx)
+    c = target * min(ctx.one, ctx.mpf("0.25") / abs(target))
+    # Exact decimal data avoids cross-context mpc type/coercion limitations.
+    initial = s.Rational(str(ctx.re(c))) + s.I * s.Rational(str(ctx.im(c)))
+    endpoint = s.Rational(str(ctx.re(target))) + s.I * s.Rational(str(ctx.im(target)))
+    return _transport(word, initial, [endpoint], dps, working, max_steps, max_degree, max_terms)
 
 
 def continue_hpl(

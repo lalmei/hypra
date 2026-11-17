@@ -3,6 +3,7 @@ import json
 import pytest
 import sympy as sp
 
+from hypra.hpl.notation import HPLPM
 from hypra.serialization import SerializationError, decode_expr, encode_expr
 from hypra.symbolic import HPL
 
@@ -30,6 +31,10 @@ EPS, Z = sp.symbols("eps z")
         HPL((0, 1, -1), Z),
         HPL((), Z),
         HPL((0, 0), 1 - Z),
+        HPLPM((0, "minus", "plus", "minus"), sp.I),
+        HPLPM(("plus", 0, "minus"), (1 - Z) / (1 + Z)),
+        HPLPM((), Z),
+        HPLPM((0, "plus"), sp.I) ** 2 + sp.pi * HPLPM(("minus",), Z),
         sp.And(Z > 0, Z < 1),
         sp.Or(Z < 0, Z > 1),
         sp.Not(sp.Eq(Z, 0)),
@@ -49,6 +54,44 @@ def test_preserves_uncancelled_hypergeometric_parameters():
     result = decode_expr(encode_expr(expr))
     assert result.ap == (1, EPS)
     assert result.bq == (EPS,)
+
+
+def test_plus_minus_word_has_distinct_data_only_ast():
+    expression = HPLPM(("plus", 0, "minus"), Z)
+    ast = encode_expr(expression)
+    assert ast["head"] == "HPLPM"
+    assert ast["args"][0] == {
+        "head": "List",
+        "args": [
+            {"head": "Integer", "value": "1"},
+            {"head": "Integer", "value": "0"},
+            {"head": "Integer", "value": "-1"},
+        ],
+    }
+    assert decode_expr(ast) == expression
+    assert decode_expr(ast) != HPL((1, 0, -1), Z)
+
+
+@pytest.mark.parametrize(
+    "word",
+    [
+        {"head": "Integer", "value": "0"},
+        {"head": "List", "args": [{"head": "Integer", "value": "2"}]},
+        {"head": "List", "args": [{"head": "True"}]},
+        {"head": "List", "args": [{"head": "Rational", "numerator": "1", "denominator": "2"}]},
+        {"head": "List", "args": [{"head": "Symbol", "name": "plus"}]},
+        {"head": "List", "args": ["plus"]},
+    ],
+)
+def test_invalid_plus_minus_word_ast_fails_closed(word):
+    with pytest.raises(SerializationError):
+        decode_expr({"head": "HPLPM", "args": [word, {"head": "Symbol", "name": "z"}]})
+
+
+@pytest.mark.parametrize("argument", [{"head": "True"}, {"head": "List", "args": []}])
+def test_plus_minus_ast_requires_scalar_argument(argument):
+    with pytest.raises(SerializationError):
+        decode_expr({"head": "HPLPM", "args": [{"head": "List", "args": []}, argument]})
 
 
 @pytest.mark.parametrize(

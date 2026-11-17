@@ -38,3 +38,22 @@ def test_sympy_interior_trailing_zero_is_analytic():
     actual = HPL((1, 0), c + h).series(h, 0, 4).removeO()
     expected = hpl_taylor((1, 0), c, z, through=3).removeO().subs(z, c + h)
     assert s.expand(actual - expected) == 0
+
+
+@pytest.mark.parametrize("center", [s.sqrt(2) / 2, s.pi / 4, s.I, 2 - s.I])
+@pytest.mark.parametrize("word", [(0, 1), (1, 0, -1)])
+def test_exact_nonsingular_centers_match_derivatives(center, word):
+    domain = "real" if center.is_real else "principal-cut-plane"
+    actual = hpl_taylor(word, center, z, through=3, domain=domain)
+    polynomial = actual.removeO().subs(z, center + h).expand()
+    function = HPL(word, z)
+    for n in range(4):
+        assert s.simplify(polynomial.coeff(h, n) - function.subs(z, center) / s.factorial(n)) == 0
+        function = s.diff(function, z)
+    assert actual.getO() == s.Order((z - center) ** 4, (z, center))
+
+
+@pytest.mark.parametrize("center", [-2, -1, 0, 1, 2, s.Float("0.25") + s.I])
+def test_complex_mode_still_rejects_cuts_endpoints_and_inexact_centers(center):
+    with pytest.raises(UnsupportedExpressionError):
+        hpl_taylor((1, 0), center, z, domain="principal-cut-plane")

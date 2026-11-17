@@ -62,7 +62,21 @@ class HPLPM(s.Function):
         return hpl_pm(word, argument)
 
     def _eval_evalf(self, prec):
+        if self.argument == s.I and len(self.word) <= 6:
+            from sympy.core.evalf import prec_to_dps
+
+            from .special import _pm_at_i_raw
+
+            # Exact reduction retains a small HPLPM basis at i. Evaluate its
+            # convergent raw representation directly, without invoking that
+            # reducer again and recursing back to the same basis atom.
+            return _pm_at_i_raw(_pm_indices(self.word)).evalf(prec_to_dps(prec) + 10)
         return self.rewrite(HPL)._eval_evalf(prec)
+
+    def _eval_nseries(self, x, n, logx, cdir=0):
+        # The word is discrete notation, not a differentiable Function
+        # argument. Reuse the ordinary-letter germ and its remainder checks.
+        return self.rewrite(HPL)._eval_nseries(x, n, logx, cdir=cdir)
 
     def _eval_derivative(self, s):
         return self.fdiff() * self.argument.diff(s)
