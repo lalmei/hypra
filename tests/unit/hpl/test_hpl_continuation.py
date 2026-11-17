@@ -51,4 +51,4 @@ def test_region_contract_and_rejections():
         with pytest.raises(UnsupportedExpressionError):
             analytic_continue_hpl((0,), X, region=region, boundary=boundary)
     with pytest.raises(UnsupportedExpressionError):
-        analytic_continue_hpl((0,) * 7, X, region="x>1", boundary="upper")
+        analytic_continue_hpl((0,) * 8 + (1,), X, region="x>1", boundary="upper")

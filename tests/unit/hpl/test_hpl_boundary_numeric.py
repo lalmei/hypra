@@ -57,7 +57,43 @@ def test_explicit_side_and_weight_limits():
     with pytest.raises(UnsupportedExpressionError):
         evaluate_hpl_boundary((0,), 2, region="x>1", boundary="automatic")
     with pytest.raises(UnsupportedExpressionError):
-        evaluate_hpl_boundary((0,) * 7, 2, region="x>1", boundary="upper")
+        evaluate_hpl_boundary((0,) * 25, 2, region="x>1", boundary="upper")
+
+
+@pytest.mark.parametrize("point,region", [(2, "x>1"), (-2, "x<-1")])
+@pytest.mark.parametrize("side", ["upper", "lower"])
+def test_weight_seven_classical_boundary(point, region, side):
+    result = evaluate_hpl_boundary((0,) * 6 + (1,), point, region=region, boundary=side, dps=20)
+    with mp.workdps(50):
+        expected = mp.polylog(7, point)
+        if point > 1 and side == "upper":
+            expected = mp.conj(expected)
+        assert abs(result.value - expected) < mp.mpf("1e-20")
+        assert result.tail_bound is not None
+        assert result.tail_bound < mp.mpf("1e-20")
+    assert result.method == "triangular-suffix-ODE-Taylor-boundary"
+    assert result.component_tail_bounds == ()
+
+
+def test_high_weight_logarithm_monodromy():
+    result = evaluate_hpl_boundary((0,) * 8, -2, region="x<-1", boundary="lower", dps=20)
+    with mp.workdps(50):
+        expected = (mp.log(2) - mp.pi * mp.j) ** 8 / mp.factorial(8)
+        assert abs(result.value - expected) < mp.mpf("1e-20")
+
+
+def test_near_endpoint_series_budget_uses_exact_boundary_transport():
+    # Direct interior expansion at 1-10^-4 needs far more than 200 terms.
+    # The suffix ODE starts at 1/4 and reaches the exact point geometrically.
+    point = s.Rational(9999, 10000)
+    result = evaluate_hpl_boundary(
+        (1, 0), point, region="0<x<1", boundary="upper", dps=18, max_terms=200
+    )
+    with mp.workdps(50):
+        x = mp.mpf(9999) / 10000
+        expected = -mp.log(1 - x) * mp.log(x) - mp.polylog(2, x)
+        assert abs(result.value - expected) < mp.mpf("1e-18")
+    assert result.method == "triangular-suffix-ODE-Taylor-boundary"
 
 
 def test_general_mixed_weight_three_conjugate_boundaries():

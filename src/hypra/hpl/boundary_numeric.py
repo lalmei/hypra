@@ -10,6 +10,7 @@ from ..errors import UnsupportedExpressionError
 from ..symbolic import HPL, MZV, EulerSum
 from .constants import evaluate_euler_sum, evaluate_mzv
 from .numeric import HPLNumericalConvergenceError, MPComplex, MPReal, _word, evaluate_hpl
+from .radial_continuation import _transport
 from .real_continuation import analytic_continue_hpl
 
 
@@ -18,7 +19,8 @@ class HPLBoundaryNumericResult:
     """Boundary value and non-certified precision diagnostics.
 
     component_tail_bounds are individual interior-HPL series truncation bounds,
-    NOT a bound on the transformed result. Stability excludes no roundoff risk.
+    NOT a bound on the transformed result. For Taylor transport, tail_bound
+    instead bounds propagated truncation. Neither includes roundoff error.
     """
 
     value: MPComplex
@@ -30,6 +32,7 @@ class HPLBoundaryNumericResult:
     boundary: Boundary
     method: str = "exact-real-boundary-map-to-interior"
     path: str = "principal boundary limit; no extra winding"
+    tail_bound: MPReal | None = None
 
 
 def _point(argument, region):
@@ -87,6 +90,47 @@ def _evaluate(expression, digits, max_terms):
     return ctx.mpc(str(real.evalf(digits)), str(imag.evalf(digits))), tuple(tails)
 
 
+def _boundary_transport(word, argument, region, boundary, dps, max_terms):
+    """Continue along a finite detour ending exactly on the specified cut.
+
+    Starting at 1/4, the three-segment path lies in the chosen open half
+    plane until it reaches the target. It avoids 0, +/-1 and is homotopic
+    to the requested principal boundary approach. The target has no small
+    imaginary displacement. Interior real targets use a straight segment.
+    """
+    initial = s.Rational(1, 4)
+    if region == "0<x<1":
+        targets = [argument]
+    else:
+        height = s.I / 2 if boundary == "upper" else -s.I / 2
+        targets = [initial + height, argument + height, argument]
+    first = _transport(word, initial, targets, dps, dps + 25, 4096, 4096, max_terms)
+    second = _transport(word, initial, targets, dps, dps + 45, 4096, 4096, max_terms)
+    ctx = mp.mp.clone()
+    ctx.dps = dps + 45
+    gap = abs(ctx.mpc(first[0]) - ctx.mpc(second[0]))
+    if gap > ctx.power(10, -dps - 4) * max(ctx.one, abs(second[0])):
+        raise HPLNumericalConvergenceError(
+            "Boundary transport unstable under increased working precision"
+        )
+    return HPLBoundaryNumericResult(
+        ctx.mpc(second[0]),
+        gap,
+        (),
+        dps,
+        dps + 45,
+        region,
+        boundary,
+        method="triangular-suffix-ODE-Taylor-boundary",
+        path=(
+            "real interior straight path"
+            if region == "0<x<1"
+            else "principal boundary limit via finite half-plane detour; no extra winding"
+        ),
+        tail_bound=second[1],
+    )
+
+
 def evaluate_hpl_boundary(
     word: IntegerWord,
     argument: ExactScalar,
@@ -101,12 +145,16 @@ def evaluate_hpl_boundary(
     Both region and boundary are mandatory. Regions: '0<x<1', '-1<x<0',
     'x>1', 'x<-1'. Boundaries: 'upper' (+i0), 'lower' (-i0). The real
     argument must satisfy the declared open region exactly. Singular endpoints
-    and extra winding paths are excluded. Outside [-1,1], weight <=6;
-    inside, the symbolic continuation's weight limit is 24.
+    and extra winding paths are excluded. All ternary words through weight
+    24 are supported. Above weight six, a finite
+    half-plane detour transports the defining ODE to the exact real target.
+    Taylor transport also supplies a fallback if interior series do not
+    converge within their term budget.
 
     The reported component bounds cover interior series tails individually,
-    not propagation/cancellation/roundoff in the final boundary value. Two
-    guarded precision calculations must agree; this is not interval proof.
+    not propagation/cancellation/roundoff in the final boundary value. For
+    Taylor transport, tail_bound gives the propagated truncation bound.
+    Two guarded precision calculations must agree; this is not interval proof.
 
     Args:
         word: Expanded HPL letters.
@@ -125,14 +173,21 @@ def evaluate_hpl_boundary(
         raise ValueError("max_terms must be an integer between 1 and 1000000")
     argument = _point(argument, region)
     word = _word(word)
+    if boundary not in ("upper", "lower"):
+        raise UnsupportedExpressionError("Continuation boundary must be 'upper' or 'lower'")
+    if len(word) > 6 and region in ("x>1", "x<-1"):
+        return _boundary_transport(word, argument, region, boundary, dps, max_terms)
     x = s.Symbol("boundary_argument", real=True)
     expression = analytic_continue_hpl(word, x, region=region, boundary=boundary).subs(x, argument)
-    first, _ = _evaluate(expression, dps + 20, max_terms)
-    second, tails = _evaluate(expression, dps + 40, max_terms)
+    try:
+        first, _ = _evaluate(expression, dps + 20, max_terms)
+        second, tails = _evaluate(expression, dps + 40, max_terms)
+    except HPLNumericalConvergenceError:
+        return _boundary_transport(word, argument, region, boundary, dps, max_terms)
     ctx = mp.mp.clone()
     ctx.dps = dps + 40
     gap = abs(ctx.convert(first) - ctx.convert(second))
-    if gap > ctx.power(10, -dps - 4) * abs(second):
+    if gap > ctx.power(10, -dps - 4) * max(ctx.one, abs(second)):
         raise HPLNumericalConvergenceError(
             "Boundary value unstable under increased working precision"
         )

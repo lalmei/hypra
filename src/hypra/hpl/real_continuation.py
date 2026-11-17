@@ -42,7 +42,7 @@ def analytic_continue_hpl(
         raise UnsupportedExpressionError("Unrecognized open real continuation region")
     if boundary not in ("upper", "lower"):
         raise UnsupportedExpressionError("Continuation boundary must be 'upper' or 'lower'")
-    if len(word) > 24 or (region in ("x>1", "x<-1") and len(word) > 6):
+    if len(word) > 24 or (region in ("x>1", "x<-1") and len(word) > 8 and len(set(word)) > 1):
         raise UnsupportedExpressionError("Continuation exceeds its supported weight limit")
     if not word:
         return s.S.One
