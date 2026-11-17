@@ -47,6 +47,7 @@ def extract_hpl_logs(
 
     Products of log(z) and -log(1-z) remain explicit; other HPL words retain
     their original arguments. No complex branch or endpoint limit is chosen.
+    Plus/minus notation is expanded into ordinary HPL letters first.
     This is not a minimal-basis reduction or an endpoint evaluator.
 
     Args:
@@ -60,6 +61,7 @@ def extract_hpl_logs(
         raise TypeError("Log extraction flags must be booleans")
     if expression.has(s.Float, s.nan, s.zoo, s.oo, -s.oo):
         raise UnsupportedExpressionError("Log extraction requires exact finite input")
+    expression = expression.rewrite(HPL)
     replacements = {}
     for atom in expression.atoms(HPL):
         word = _word(atom.word)
@@ -129,6 +131,7 @@ def lyndon_reduce(expression: s.Expr) -> s.Expr:
         raise TypeError("expression must be a SymPy expression")
     if expression.has(s.Float, s.nan, s.zoo, s.oo, -s.oo):
         raise UnsupportedExpressionError("Lyndon reduction requires exact finite input")
+    expression = expression.rewrite(HPL)
     replacements = {}
     for atom in expression.atoms(HPL):
         word = _word(atom.word)

@@ -64,6 +64,11 @@ class HPLPM(s.Function):
     def _eval_evalf(self, prec):
         return self.rewrite(HPL)._eval_evalf(prec)
 
+    def _eval_nseries(self, x, n, logx, cdir=0):
+        # The word is discrete notation, not a differentiable Function
+        # argument. Reuse the ordinary-letter germ and its remainder checks.
+        return self.rewrite(HPL)._eval_nseries(x, n, logx, cdir=cdir)
+
     def _eval_derivative(self, s):
         return self.fdiff() * self.argument.diff(s)
 
