@@ -23,6 +23,16 @@ dependencies = [
 [project.scripts]
 hypra = "hypra.cli:main"
 
+[tool.hatch.build.targets.sdist]
+exclude = [
+    "/reference",
+    "/docs/*.aux",
+    "/docs/*.fdb_latexmk",
+    "/docs/*.fls",
+    "/docs/*.log",
+    "/docs/*.synctex.gz",
+]
+
 [dependency-groups]
 dev = [
     "pytest>=8",
