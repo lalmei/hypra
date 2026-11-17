@@ -18,6 +18,7 @@ from sympy.core.assumptions import _assume_defined
 from sympy.core.relational import Relational
 from sympy.logic.boolalg import Boolean
 
+from .hpl.notation import HPLPM, _pm_indices
 from .nielsen import NielsenPolylog
 from .symbolic import HPL, MZV, EulerSum
 
@@ -81,6 +82,7 @@ _ARITY = {
     "GreaterEqual": (2,),
     "HypergeometricPFQ": (3,),
     "HPL": (2,),
+    "HPLPM": (2,),
     "MZV": (1,),
     "EulerSum": (2,),
 }
@@ -155,6 +157,18 @@ def encode_expr(expression: sp.Basic | int | bool) -> dict[str, Any]:
             return {"head": "Symbol", "name": _name(expr.name), "assumptions": _assumptions(facts)}
         if expr in _CONSTANTS:
             return {"head": _CONSTANTS[expr]}
+        if isinstance(expr, HPLPM) and expr.func == HPLPM:
+            # The distinct head makes integer codes unambiguous: 1 denotes
+            # plus, -1 minus, and 0 the zero kernel. No string AST head or
+            # executable symbolic-name parsing is needed for discrete words.
+            _scalar(expr.argument)
+            return {
+                "head": "HPLPM",
+                "args": [
+                    encode(sp.Tuple(*_pm_indices(expr.word)), depth + 1),
+                    encode(expr.argument, depth + 1),
+                ],
+            }
         if isinstance(expr, sp.Tuple):
             head = "List"
         elif expr.func == sp.hyper:
@@ -223,6 +237,7 @@ def decode_expr(payload: object) -> sp.Basic:
             "List",
             "HypergeometricPFQ",
             "HPL",
+            "HPLPM",
             "MZV",
             "EulerSum",
         }:
@@ -252,6 +267,18 @@ def decode_expr(payload: object) -> sp.Basic:
                 raise SerializationError(
                     "HPL word must contain expanded letters -1, 0, or 1"
                 ) from exc
+        if head == "HPLPM":
+            if not isinstance(args[0], sp.Tuple):
+                raise SerializationError("HPLPM word must be a List of integer codes -1, 0, or 1")
+            indices = []
+            for letter in args[0]:
+                if not isinstance(letter, sp.Integer) or letter not in (-1, 0, 1):
+                    raise SerializationError(
+                        "HPLPM word must be a List of integer codes -1, 0, or 1"
+                    )
+                indices.append(int(letter))
+            _scalar(args[1])
+            return HPLPM.from_indices(tuple(indices), args[1])
         if head == "EulerSum":
             try:
                 return EulerSum(*args)
