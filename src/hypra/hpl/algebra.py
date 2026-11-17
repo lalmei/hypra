@@ -95,6 +95,9 @@ def _input(expression, z):
 
 def _as_hpl(expression, z):
     """Convert only identities with matching principal real branch conventions."""
+    # HPLPM's multilinear kernel conversion is exact on every branch. Calling
+    # SymPy's rewrite hook avoids a module cycle with the notation layer.
+    expression = expression.rewrite(HPL)
     replacements = {}
     for atom in expression.atoms(s.log):
         if not atom.has(z):
