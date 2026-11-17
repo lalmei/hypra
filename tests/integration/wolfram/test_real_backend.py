@@ -16,13 +16,23 @@ from hypra import (
     HPL,
     HPLPM,
     BackendConfig,
+    EulerSum,
+    HPLs6,
+    NativeConfig,
+    NielsenPolylog,
     backend_info,
+    evaluate_hpl_boundary,
     expand_epsilon,
     hpl_at_i,
     hpl_pm_at_i,
+    reduce_euler_sum,
     reduce_hpl_to_minimal_set,
+    reduce_polylogs,
+    transform_polylog_arguments,
 )
+from hypra.hpl.at_i_reduction import _PRIMITIVES
 from hypra.hpl.multiple_polylog import MultiplePolylog
+from hypra.hpl.special import _reduce_at_i_constants
 
 pytestmark = pytest.mark.real_backend
 E, W = s.symbols("eps w")
@@ -177,6 +187,7 @@ Exit[0];
     assert len({tuple(word) for word, _, _ in ordinary}) == 1093
     assert len(pm) == 6
     constants = {}
+    primitives = {HPLPM.from_indices(word, s.I) for words in _PRIMITIVES.values() for word in words}
     for items, evaluate in [
         (ordinary, lambda word: hpl_at_i(tuple(word))),
         (pm, lambda word: hpl_pm_at_i(_pm_word(word))),
@@ -184,8 +195,9 @@ Exit[0];
         for word, real, imag in items:
             upstream = (s.Integer(real) + s.I * s.Integer(imag)) / 10**42
             actual = evaluate(word)
-            assert not actual.has(HPL, HPLPM, s.Float), word
-            for constant in actual.atoms(MultiplePolylog, s.polylog):
+            assert not actual.has(HPL, MultiplePolylog, s.Float), word
+            assert actual.atoms(HPLPM) <= primitives, word
+            for constant in actual.atoms(HPLPM, s.polylog):
                 if constant not in constants:
                     constants[constant] = constant.evalf(55)
             numerical = actual.xreplace(constants).evalf(40)
@@ -243,3 +255,260 @@ Exit[0];
                 ).expand()
                 == expected
             ), word
+
+
+@pytest.mark.parametrize(
+    "upper,lower,through",
+    [
+        ([1 + E, 1 - 2 * E], [E], 0),
+        ([2 + E, 1 - E], [3 + 2 * E], 1),
+        ([E, 2 * E], [s.S.Half + 3 * E], 2),
+        ([1, E, 2 * E], [s.S.Half + 3 * E, 1 + 4 * E], 2),
+        ([s.S.Half + E, 2 * E], [1 + 3 * E], 1),
+        ([s.S.Half + E, 2 * E, 3 * E], [1 + 4 * E, 1 + 5 * E], 2),
+        ([1 + E, s.S.Half + 2 * E], [s.S.Half + 3 * E], 1),
+        ([1 + E, 1 + 2 * E, s.S.Half + 3 * E], [1 + 4 * E, s.S.Half + 5 * E], 1),
+        ([1 + E, s.S.Half + 2 * E, s.S.Half + 3 * E], [s.S.Half + 4 * E, s.S.Half + 5 * E], 1),
+        ([s.S.Half + E, s.S.Half + 2 * E], [s.S.Half + 3 * E], 1),
+        (
+            [s.S.Half + E, s.S.Half + 2 * E, s.S.Half + 3 * E],
+            [s.S.Half + 4 * E, s.S.Half + 5 * E],
+            1,
+        ),
+        (
+            [1 + E, 1 + 2 * E, 1 + 3 * E, s.S.Half + 4 * E],
+            [1 + 5 * E, 1 + 6 * E, s.S.Half + 7 * E],
+            1,
+        ),
+        (
+            [1 + E, s.S.Half + 2 * E, s.S.Half + 3 * E, s.S.Half + 4 * E],
+            [s.S.Half + 5 * E, s.S.Half + 6 * E, s.S.Half + 7 * E],
+            1,
+        ),
+    ],
+    ids=[
+        "integer-pole",
+        "integer-offset",
+        "A-rank2",
+        "A-rank3",
+        "B-rank2",
+        "B-rank3",
+        "matched-rank2",
+        "matched-one-rank3",
+        "matched-rank3",
+        "all-half-rank2",
+        "all-half-rank3",
+        "matched-one-rank4",
+        "matched-three-rank4",
+    ],
+)
+def test_hypexp_dispatch_classes_live(upper, lower, through):
+    expression = s.hyper(upper, lower, W, evaluate=False)
+    native = expand_epsilon(expression, E, through, DOMAIN, config=NativeConfig(use_cache=False))
+    upstream = expand_epsilon(expression, E, through, DOMAIN, backend="wolfram")
+    first = -native.provenance["plan"]["pole_bound"]
+    for power in range(first, through + 1):
+        difference = native.coefficient(power) - upstream.coefficient(power)
+        for point in (s.Rational(1, 4), s.Rational(4, 9)):
+            assert abs(difference.subs(W, point).evalf(40)) < s.Rational(1, 10**32)
+
+
+def test_polylog_argument_relations_live(tmp_path):
+    rows = _hpl_reference(
+        tmp_path,
+        r"""
+indices = {{1,1},{2,1},{3,1},{4,1},{1,2},{2,2},{1,3},{2,3},{3,2}};
+z = 2/5;
+arguments = {z,1-z,z/(z-1),1-1/z,1/z,1/(1-z)};
+rows = Flatten[Table[
+  value = N[If[np[[2]] == 1, PolyLog[np[[1]]+1, arguments[[j]]],
+                              PolyLog[np[[1]],np[[2]],arguments[[j]]]], 48];
+  If[!NumberQ[value], Exit[2]];
+  {np[[1]],np[[2]],j,ToString[Round[10^40 Re[value]], InputForm],
+                       ToString[Round[10^40 Im[value]], InputForm]},
+  {np,indices},{j,Length[arguments]}], 1];
+Export[Last[argv], rows, "RawJSON"];
+Exit[0];
+""",
+    )
+    assert len(rows) == 54
+    arguments = [W, 1 - W, W / (W - 1), 1 - 1 / W, 1 / W, 1 / (1 - W)]
+    for n, p, index, real, imag in rows:
+        source = (
+            s.polylog(n + 1, arguments[index - 1])
+            if p == 1
+            else NielsenPolylog(n, p, arguments[index - 1])
+        )
+        actual = transform_polylog_arguments(source, W, domain="0<z<1", boundary="lower")
+        expected = (s.Integer(real) + s.I * s.Integer(imag)) / 10**40
+        assert abs((actual.subs(W, s.Rational(2, 5)) - expected).evalf(36)) < s.Rational(1, 10**30)
+        named = reduce_polylogs(source, W, domain="0<z<1", boundary="lower")
+        assert abs((named.subs(W, s.Rational(2, 5)) - expected).evalf(36)) < s.Rational(1, 10**30)
+
+
+def test_mixed_weight_seven_real_boundaries_live(tmp_path):
+    rows = _hpl_reference(
+        tmp_path,
+        r"""
+word = {1,0,-1,0,1,0,-1};
+rows = Flatten[Table[
+  value = N[HPL`HPL[word,x,HPL`AnalyticContinuationSign->side],48];
+  If[!NumberQ[value], Exit[2]];
+  {x,side,ToString[Round[10^40 Re[value]],InputForm],
+          ToString[Round[10^40 Im[value]],InputForm]},
+  {x,{-2,2}},{side,{-1,1}}],1];
+Export[Last[argv], rows, "RawJSON"];
+Exit[0];
+""",
+    )
+    assert len(rows) == 4
+    for point, side, real, imag in rows:
+        result = evaluate_hpl_boundary(
+            (1, 0, -1, 0, 1, 0, -1),
+            point,
+            region="x>1" if point > 0 else "x<-1",
+            boundary="upper" if side > 0 else "lower",
+            dps=35,
+        )
+        expected = (s.Integer(real) + s.I * s.Integer(imag)) / 10**40
+        actual = s.Float(str(result.value.real), 40) + s.I * s.Float(str(result.value.imag), 40)
+        assert abs((actual - expected).evalf(35)) < s.Rational(1, 10**30)
+
+
+def test_all_colored_endpoint_constants_through_weight_six_live(tmp_path):
+    rows = _hpl_reference(
+        tmp_path,
+        r"""
+compositions[0] = {{}};
+compositions[n_] := compositions[n] = Join @@ Table[
+  Prepend[#, k]& /@ compositions[n-k], {k,1,n}];
+rows = {};
+Do[
+  Do[
+    Do[
+      If[First[indices] > 1 || First[colors] == -1,
+        (* HPL 2's generic one-index MZV rule is indeterminate at {-1};
+           use the equivalent convergent HPL endpoint for that one value. *)
+        value = N[If[indices == {1}, -HPL`HPL[{-1},1],
+                     HPL`MZV[indices*colors]],48];
+        If[!NumberQ[value], Print[{indices,colors,value}]; Exit[2]];
+        AppendTo[rows,{indices,colors,ToString[Round[10^40 value],InputForm]}]],
+      {colors,Tuples[{-1,1},Length[indices]]}],
+    {indices,compositions[weight]}],
+  {weight,1,6}];
+Export[Last[argv],rows,"RawJSON"];
+Exit[0];
+""",
+    )
+    assert len(rows) == 485
+    evaluated = {}
+    for indices, colors, value in rows:
+        expression = reduce_euler_sum(EulerSum(tuple(indices), tuple(colors)))
+        for constant in expression.atoms(EulerSum, s.polylog):
+            if constant not in evaluated:
+                evaluated[constant] = constant.evalf(55)
+        actual = expression.xreplace(evaluated).evalf(40)
+        expected = s.Integer(value) / 10**40
+        assert abs(actual - expected) < s.Rational(1, 10**32), (indices, colors)
+
+
+def _decode_at_i_constant(tree):
+    """Decode a restricted exact constant AST, never source-language code."""
+    kind, *arguments = tree
+    if kind == "integer":
+        return s.Integer(arguments[0])
+    if kind == "rational":
+        return s.Rational(*arguments)
+    if kind == "symbol":
+        return {"Pi": s.pi, "Catalan": s.Catalan, "HPLs6": HPLs6}[arguments[0]]
+    if kind == "hpli":
+        word = tuple(arguments[0])
+        return (
+            hpl_pm_at_i(word) if any(isinstance(letter, str) for letter in word) else hpl_at_i(word)
+        )
+    decoded = [_decode_at_i_constant(argument) for argument in arguments]
+    if kind == "complex":
+        return decoded[0] + s.I * decoded[1]
+    if kind == "Zeta" and len(decoded) == 2:
+        order, offset = decoded
+        if (
+            isinstance(order, s.Integer)
+            and order >= 2
+            and offset in (s.Rational(1, 4), s.Rational(3, 4))
+        ):
+            # Separate odd residue classes: A+B=(4^n-2^n)*zeta(n),
+            # A-B=4^n*beta(n). This changes only the constant coordinates.
+            total = (4**order - 2**order) * s.zeta(order)
+            if order == 2:
+                quarter = s.pi**2 + 8 * s.Catalan
+            elif order % 2:
+                half = (order - 1) // 2
+                beta = (
+                    (-1) ** half
+                    * s.euler(2 * half)
+                    * s.pi**order
+                    / (4 ** (half + 1) * s.factorial(2 * half))
+                )
+                quarter = (total + 4**order * beta) / 2
+            else:
+                quarter = s.polygamma(order - 1, s.Rational(1, 4)) / s.factorial(order - 1)
+            return quarter if offset == s.Rational(1, 4) else total - quarter
+    if kind == "PolyGamma" and len(decoded) == 2:
+        order, offset = decoded
+        if isinstance(order, s.Integer) and order >= 1 and offset == s.Rational(3, 4):
+            # The same residue-class sum in polygamma coordinates.
+            total = (
+                (-1) ** (order + 1)
+                * s.factorial(order)
+                * (4 ** (order + 1) - 2 ** (order + 1))
+                * s.zeta(order + 1)
+            )
+            return total - s.polygamma(order, s.Rational(1, 4))
+    functions = {
+        "Plus": s.Add,
+        "Times": s.Mul,
+        "Power": s.Pow,
+        "Log": s.log,
+        "PolyLog": s.polylog,
+        "PolyGamma": s.polygamma,
+        "Zeta": s.zeta,
+    }
+    return functions[kind](*decoded)
+
+
+def test_at_i_named_constant_reductions_match_live_tables_exactly(tmp_path):
+    rows = _hpl_reference(
+        tmp_path,
+        r"""
+encode[x_Integer] := {"integer",ToString[x,InputForm]};
+encode[x_Rational] := {"rational",ToString[Numerator[x],InputForm],
+                                  ToString[Denominator[x],InputForm]};
+encode[x_Complex] := {"complex",encode[Re[x]],encode[Im[x]]};
+encode[x_Symbol] := If[MemberQ[{"Pi","Catalan","HPLs6"},SymbolName[x]],
+                      {"symbol",SymbolName[x]},Print[x];Exit[2]];
+encode[HPL`HPLI[word_]] := {"hpli",word /. {HPL`plus->"plus",HPL`minus->"minus"}};
+encode[x_] := Module[{head=SymbolName[Head[x]]},
+  If[!MemberQ[{"Plus","Times","Power","Log","PolyLog","PolyGamma","Zeta"},head],
+     Print[InputForm[x]];Exit[2]];
+  Prepend[encode /@ (List @@ x),head]];
+selected = Select[words,Length[#]>=4&];
+rows = Table[{word,encode[HPL`HPL[toPM[word],I]]},{word,selected}];
+Export[Last[argv],rows,"RawJSON"];
+Exit[0];
+""",
+    )
+    assert len(rows) == 1053
+    for word, tree in rows:
+        expected = _reduce_at_i_constants(_decode_at_i_constant(tree))
+        actual = hpl_pm_at_i(_pm_word(word))
+        assert s.expand(actual - expected) == 0, word
+
+
+@pytest.mark.parametrize("weight", [4, 5, 6])
+def test_at_i_primitive_round_trip_through_real_bridge(weight):
+    primitive = HPLPM.from_indices(_PRIMITIVES[weight][0], s.I)
+    expression = (1 + E) * primitive
+    native = expand_epsilon(expression, E, 1, config=NativeConfig(use_cache=False))
+    upstream = expand_epsilon(expression, E, 1, backend="wolfram")
+    assert upstream.polynomial == native.polynomial
+    assert upstream.coefficient(0) == upstream.coefficient(1) == primitive
