@@ -52,14 +52,15 @@ def test_simple_higher_words_and_rejections():
         hpl_at_i((0,) * 25)
 
 
-def test_mixed_quartic_is_an_exact_multiple_polylog_expression():
+def test_mixed_quartic_uses_the_canonical_at_i_primitive():
     from hypra.hpl.multiple_polylog import MultiplePolylog
+    from hypra.hpl.notation import HPLPM
 
-    value = hpl_at_i((0, 1, 0, -1))
-    assert value.has(MultiplePolylog)
-    assert not value.has(HPL, s.Float)
+    value = hpl_at_i((1, -1, 0, 1))
+    assert value.has(HPLPM)
+    assert value.atoms(HPLPM) == {HPLPM((0, "minus", "plus", "minus"), s.I)}
+    assert not value.has(HPL, MultiplePolylog, s.Float)
     assert not value.free_symbols
-    assert value.rewrite(s.Sum).has(s.Sum)
 
 
 @pytest.mark.parametrize("word", list(product((-1, 0, 1), repeat=3)))
