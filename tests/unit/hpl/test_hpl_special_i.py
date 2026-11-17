@@ -43,8 +43,8 @@ def test_principal_logs_and_catalan_constants():
 
 
 def test_simple_higher_words_and_rejections():
-    assert hpl_at_i((0, 0, 1)) == s.polylog(3, s.I)
-    assert hpl_at_i((0, 0, -1)) == -s.polylog(3, -s.I)
+    assert hpl_at_i((0, 0, 1)) == -3 * s.zeta(3) / 32 + s.I * s.pi**3 / 32
+    assert hpl_at_i((0, 0, -1)) == 3 * s.zeta(3) / 32 + s.I * s.pi**3 / 32
     assert s.simplify(hpl_at_i((1,) * 4) - hpl_at_i((1,)) ** 4 / 24) == 0
     with pytest.raises(UnsupportedExpressionError):
         hpl_at_i((1, 0, -1, 0, 1, 0, 1))
@@ -60,3 +60,35 @@ def test_mixed_quartic_is_an_exact_multiple_polylog_expression():
     assert not value.has(HPL, s.Float)
     assert not value.free_symbols
     assert value.rewrite(s.Sum).has(s.Sum)
+
+
+@pytest.mark.parametrize("word", list(product((-1, 0, 1), repeat=3)))
+def test_cubic_at_i_named_constants_against_radial_continuation(word):
+    from hypra.hpl.multiple_polylog import MultiplePolylog
+    from hypra.hpl.radial_continuation import continue_hpl
+
+    result = hpl_at_i(word)
+    assert not result.has(HPL, MultiplePolylog, s.Float)
+    assert all(
+        atom.args[0] == 3 and atom.args[1] in ((1 + s.I) / 2, (1 - s.I) / 2)
+        for atom in result.atoms(s.polylog)
+    )
+    context = mp.mp.clone()
+    context.dps = 40
+    real, imag = result.evalf(38).as_real_imag()
+    actual = context.mpc(str(real), str(imag))
+    reference = continue_hpl(word, s.I, domain="principal-cut-plane", path="radial", dps=32).value
+    assert abs(actual - reference) < context.mpf("1e-31")
+
+
+@pytest.mark.parametrize("order", range(2, 13))
+def test_classical_quarter_period_constants(order):
+    context = mp.mp.clone()
+    context.dps = 40
+    for sign in (-1, 1):
+        value = hpl_at_i((0,) * (order - 1) + (sign,))
+        assert not value.has(s.polylog)
+        real, imag = value.evalf(38).as_real_imag()
+        actual = context.mpc(str(real), str(imag))
+        reference = sign * context.polylog(order, sign * context.j)
+        assert abs(actual - reference) < context.mpf("1e-35")
