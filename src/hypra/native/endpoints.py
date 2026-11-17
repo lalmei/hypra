@@ -13,7 +13,7 @@ import sympy as s
 from sympy.logic.boolalg import Boolean
 
 from ..errors import UnsupportedExpressionError
-from .planning import _positive
+from .planning import _positive, _positive_real_part
 
 
 def _fixed_nonpositive_integer(value, epsilon):
@@ -34,10 +34,15 @@ def _affine(value, epsilon):
 
 def _convergent(excess, epsilon, assumptions):
     base, slope = _affine(excess, epsilon)
-    # A positive rational base gives an open neighborhood of convergence,
-    # irrespective of the direction of a fixed finite complex slope.
-    if isinstance(base, s.Rational) and base > 0:
-        return True
+    # A strictly positive real part gives an open neighborhood of convergence,
+    # irrespective of the direction of a fixed finite complex slope. Gauss's
+    # identity also applies to irrational and symbolic bases; restricting this
+    # proof to rational values unnecessarily excluded exact Gamma expansions.
+    try:
+        if _positive_real_part(base, assumptions):
+            return True
+    except (ValueError, TypeError):
+        pass
     if base != 0 or slope == 0:
         return False
     # At the boundary, require an explicit punctured-side domain. Do not

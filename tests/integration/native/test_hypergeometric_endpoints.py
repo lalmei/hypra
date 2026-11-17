@@ -51,3 +51,37 @@ def test_public_endpoint_rewrites_before_pole_planning():
     assert s.expand(result.polynomial - (1 - 1 / eps)) == 0
     assert result.provenance["plan"]["pole_bound"] == 1
     assert result.provenance["input"] != result.provenance["planned_input"]
+
+
+@pytest.mark.parametrize("base", [s.sqrt(2), s.Symbol("a", positive=True), 1 + s.I])
+def test_gauss_endpoint_uses_positive_real_part_for_exact_bases(base):
+    h = s.hyper([e, 2 * e], [base], 1)
+    result = expand_epsilon(h, e, through=2, config=NativeConfig(use_cache=False))
+    # The linear terms in log Gamma cancel. The quadratic term is
+    # ((1+2)**2-1**2-2**2)/2 * trigamma(base).
+    expected = 1 + 2 * e**2 * s.polygamma(1, base)
+    assert s.simplify(result.polynomial - expected) == 0
+
+
+def test_gauss_symbolic_base_uses_explicit_convergence_assumption():
+    base = s.Symbol("a")
+    h = s.hyper([e, 2 * e], [base], 1)
+    with pytest.raises(UnsupportedExpressionError, match="convergence"):
+        expand_epsilon(h, e, through=2, config=NativeConfig(use_cache=False))
+    result = expand_epsilon(
+        h, e, through=2, assumptions=base > 0, config=NativeConfig(use_cache=False)
+    )
+    assert s.simplify(result.polynomial - 1 - 2 * e**2 * s.polygamma(1, base)) == 0
+
+
+@pytest.mark.parametrize("base", [s.I, s.sqrt(2) - 3])
+def test_gamma_planning_accepts_exact_nonpole_bases(base):
+    result = expand_epsilon(s.gamma(base + e), e, through=1, config=NativeConfig(use_cache=False))
+    expected = s.gamma(base) * (1 + e * s.polygamma(0, base))
+    assert s.simplify(result.polynomial - expected) == 0
+
+
+def test_gauss_nonpositive_real_excess_still_requires_meromorphic_mode():
+    for base in (s.I, -s.sqrt(2)):
+        with pytest.raises(UnsupportedExpressionError, match="convergence"):
+            expand_epsilon(s.hyper([e, 2 * e], [base], 1), e, through=1)
