@@ -15,12 +15,6 @@ _ALPHABET = (-1, 0, 1)
 _ARGUMENT = s.Dummy("argument")
 
 
-class _FormalHPL(HPL):
-    """Commuting polynomial generators for the shuffle calculation."""
-
-    is_commutative = True
-
-
 def _pivot_key(word):
     # Extract endpoint logarithms first. In the plus/minus alphabet, the same
     # ordering eliminates leading plus and trailing zero.
@@ -36,7 +30,7 @@ def _shuffle_pivots(weight):
         right_words = product(_ALPHABET, repeat=weight - split)
         for left, right in product(left_words, right_words):
             row = {word: Fraction(count) for word, count in shuffle_words(left, right).items()}
-            rhs = _FormalHPL(left, _ARGUMENT) * _FormalHPL(right, _ARGUMENT)
+            rhs = HPL(left, _ARGUMENT) * HPL(right, _ARGUMENT)
             while row:
                 pivot = min(row, key=_pivot_key)
                 scale = row.pop(pivot)
@@ -62,12 +56,12 @@ def _minimal_word(word):
     if not word:
         return s.S.One
     if len(word) == 1:
-        return _FormalHPL(word, _ARGUMENT)
+        return HPL(word, _ARGUMENT)
     pivots = _shuffle_pivots(len(word))
     if word not in pivots:
-        return _FormalHPL(word, _ARGUMENT)
+        return HPL(word, _ARGUMENT)
     terms, rhs = pivots[word]
-    lower = rhs.xreplace({atom: _minimal_word(_word(atom.word)) for atom in rhs.atoms(_FormalHPL)})
+    lower = rhs.xreplace({atom: _minimal_word(_word(atom.word)) for atom in rhs.atoms(HPL)})
     return s.expand(
         lower - sum(s.Rational(count) * _minimal_word(other) for other, count in terms.items())
     )
@@ -93,7 +87,7 @@ def reduce_hpl_to_minimal_set(expression: s.Expr) -> s.Expr:
         replacements[atom] = template.xreplace(
             {
                 component: constructor(_word(component.word), atom.argument)
-                for component in template.atoms(_FormalHPL)
+                for component in template.atoms(HPL)
             }
         )
     return s.expand(expression.xreplace(replacements))

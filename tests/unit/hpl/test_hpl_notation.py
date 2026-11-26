@@ -15,6 +15,19 @@ from hypra.hpl.notation import (
 from hypra.symbolic import HPL
 
 
+def test_scalar_hpl_products_commute_across_notations():
+    x = s.Symbol("x", real=True)
+    h = HPL((1, -1), x)
+    k = HPL((0, 1), x)
+    p = HPLPM(("plus", "minus"), x)
+    assert h * k - k * h == 0
+    assert h * p - p * h == 0
+    assert s.expand((h + p) ** 2) == h**2 + 2 * h * p + p**2
+    noncommuting = s.Symbol("A", commutative=False)
+    assert HPL((1,), noncommuting).is_commutative is False
+    assert HPLPM(("plus",), noncommuting).is_commutative is False
+
+
 def test_all_short_word_roundtrips():
     for n in range(5):
         for word in product((-1, 0, 1), repeat=n):

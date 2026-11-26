@@ -5,7 +5,7 @@ from typing import cast
 
 import sympy as s
 
-from .._typing import ExactScalar, IntegerWord
+from .._typing import Boundary, ExactScalar, IntegerWord
 from ..errors import UnsupportedExpressionError
 from ..symbolic import MZV, EulerSum
 from .algebra import shuffle_words
@@ -136,3 +136,46 @@ def hpl_alternating_at_one(word: IntegerWord, *, reduced: bool = True) -> s.Expr
         raise TypeError("reduced must be Boolean")
     result = _endpoint(_word(word))
     return reduce_euler_sum(result) if reduced else result
+
+
+def hpl_at_minus_one(word: IntegerWord, *, boundary: Boundary | None = None) -> s.Expr:
+    """Evaluate the finite endpoint at -1 from the upper or lower half plane.
+
+    Words use expanded ternary letters, through weight 24. The side may be
+    omitted when both boundary values agree. A singular leading -1 with
+    trailing zeros uses the weight-12 endpoint polynomial to check finiteness.
+    """
+    letters = _word(word)
+    if boundary not in (None, "upper", "lower"):
+        raise ValueError("boundary must be upper, lower, or omitted")
+    reflected = tuple(-letter for letter in letters)
+    sign = (-1) ** sum(letter != 0 for letter in letters)
+    if not letters or letters[-1] != 0:
+        return sign * hpl_alternating_at_one(reflected)
+
+    # Negation interchanges the nonzero kernels with a minus sign. Moving
+    # the tangential basepoint adds +i*pi to the upper-side origin log.
+    # Path composition deconcatenates only suffixes made entirely of zeros.
+    endpoint_log = s.Symbol("_negative_endpoint_log", real=True)
+    upper = s.S.Zero
+    for count in range(len(letters) + 1):
+        prefix = reflected[: len(letters) - count]
+        if prefix and prefix[0] == 1:
+            from .regularization import hpl_endpoint_polynomial
+
+            coefficient = hpl_endpoint_polynomial(prefix, endpoint_log)
+        else:
+            coefficient = hpl_alternating_at_one(prefix)
+        upper += coefficient * (s.I * s.pi) ** count / s.factorial(count)
+        if not prefix or prefix[-1] != 0:
+            break
+
+    upper = s.expand(sign * upper)
+    if upper.has(endpoint_log):
+        raise UnsupportedExpressionError("No finite HPL endpoint established at -1")
+    lower = cast(s.Expr, upper.xreplace({s.I: -s.I}))
+    if boundary is None and lower != upper:
+        raise UnsupportedExpressionError(
+            "Endpoint at -1 requires an explicit upper or lower boundary"
+        )
+    return lower if boundary == "lower" else upper

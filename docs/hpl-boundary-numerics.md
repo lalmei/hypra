@@ -20,6 +20,8 @@ The exact finite real input must satisfy the declared region; integers and
 exact SymPy numbers are accepted, floats, strings, unknown inequalities and
 symbolic free parameters are rejected. The singular endpoints `-1,0,1` are
 excluded even for words with individually finite limits there.
+For a finite value at exactly `-1`, use
+[`hpl_at_minus_one`](hpl-alternating-endpoints.md) with the desired side.
 
 ## Method and branch checks
 

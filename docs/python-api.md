@@ -135,6 +135,8 @@ See the [runnable examples](api-examples.md) for these settings.
 
 ::: hypra.hpl.endpoints.hpl_at_one
 
+::: hypra.hpl.alternating.hpl_at_minus_one
+
 ::: hypra.hpl.endpoints.reduce_mzv
 
 ::: hypra.hpl.alternating.hpl_alternating_at_one

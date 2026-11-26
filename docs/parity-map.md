@@ -26,6 +26,7 @@ The [port audit](port-audit.md) records fixes, independent review, and live chec
 | Near-one series and combined limits | `hpl_series_at_one`, `hpl_limit_at_one` | Explicit logarithmic remainders; bounded weight/order/poles; no divergent-limit assignment |
 | Series around zero | `hpl_series`, supported SymPy `.series()` | Explicit logarithmic local-series conventions |
 | Values at one | `hpl_at_one`, `hpl_alternating_at_one`, `reduce_mzv`, `reduce_euler_sum` | All convergent MZVs through weight eight; colored Euler sums through weight six; proved general families; exact primitive remainders |
+| Values at minus one | `hpl_at_minus_one`, SymPy `.evalf()` | Finite ordinary-letter endpoints through weight 24; singular leading-letter polynomial checks through weight 12; explicit cut side when boundary values differ |
 | Explicit shuffle regularization | `hpl_endpoint_polynomial`, `hpl_expression_endpoint_polynomial`, `shuffle_regularized_hpl_at_one` | Real endpoint polynomial in T=−log(1−z); not an ordinary finite limit |
 | Named HPL constants | `HPLs6`, `HPLs7a`–`HPLs8d` | Exact weak harmonic sums expressed in the strict Euler-sum convention |
 | Numerical endpoint constants | `evaluate_mzv`, `evaluate_euler_sum`, `.evalf()` | Through weight eight; guarded precision evidence, not interval certification |

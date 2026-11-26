@@ -5,6 +5,30 @@ expanded HPL word over `{0,1,-1}` as its real argument increases to one.
 It accepts weight up to 24, including mixed trailing zeros. It does not
 assign finite parts or regularized values to divergent words.
 
+## Finite values at minus one
+
+`hpl_at_minus_one(word)` evaluates ordinary HPLs at the negative endpoint.
+For example, `hpl_at_minus_one((0, 1, -1))` returns
+\(13\zeta(3)/8 - \pi^2\log(2)/4\). For side-independent values,
+`HPL(word, -1).evalf()` evaluates the resulting exact constants to the
+available numerical precision. Higher-weight unresolved Euler sums stay symbolic.
+
+Trailing zeros carry the branch of the origin logarithm. For the word
+`(1, 0)`, the upper boundary gives \(\pi^2/12-i\pi\log(2)\), and the
+lower boundary gives its conjugate. Supply `boundary="upper"` or
+`boundary="lower"` whenever the values differ. The empty word gives one,
+and `(0, 0)` gives \(-\pi^2/2\) on either side.
+
+Under \(z=-t\), each nonzero integration letter changes sign and switches
+between \(1\) and \(-1\). The origin logarithm acquires \(\pm i\pi\).
+Path composition assigns a factor \((\pm i\pi)^j/j!\) to each suffix of
+\(j\) trailing zeros. The remaining prefixes are evaluated at one. For a
+leading \(-1\) and trailing zeros, the evaluator combines the logarithmic
+endpoint polynomials before checking finiteness. This check supports weight
+through 12. Other endpoint evaluations support weight through 24.
+
+## Euler sums
+
 The exact symbolic `EulerSum(indices, colors)` uses the explicit convention
 
 \[
