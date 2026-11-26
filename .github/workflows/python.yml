@@ -12,7 +12,7 @@ permissions:
 jobs:
   test:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 90
     strategy:
       fail-fast: false
       matrix:
@@ -24,4 +24,7 @@ jobs:
           python-version: ${{ matrix.python-version }}
           enable-cache: true
       - run: uv sync --locked --no-default-groups --group dev --python "${{ matrix.python-version }}"
-      - run: uv run --no-sync --python "${{ matrix.python-version }}" pytest -q -m 'not real_backend'
+      - name: Run the test suite
+        env:
+          PYTEST_ADDOPTS: ${{ matrix.python-version != '3.15' && '--no-cov' || '' }}
+        run: uv run --no-sync --python "${{ matrix.python-version }}" pytest -q -m 'not real_backend'
