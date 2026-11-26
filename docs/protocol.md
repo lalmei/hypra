@@ -29,3 +29,7 @@ output with `plus` and `minus` letters expands exactly into the ordinary
 alphabet. Retained at-i `HPLI` primitives instead cross the boundary as
 `HPLPM(word,I)`, preserving the canonical constant basis. The same exact
 atoms can be sent back through the bridge and evaluated numerically in Python.
+
+The bridge maps `NielsenPolylog(n, p, z)` to Wolfram's three-argument
+`PolyLog[n, p, z]`. A two-argument `PolyLog[s, z]` represents the classical
+polylogarithm. Both forms can occur in the same expression.

@@ -115,10 +115,15 @@ def test_stub_roundtrip_and_cache(stub_backend):
     assert stub_backend.expand(request(assumptions={"head": "False"}))["cache_hit"] is False
 
 
-def test_source_change_invalidates_cache(stub_backend):
-    stub_backend.expand(request())
-    sibling = Path(stub_backend.config.hypexp_path).with_name("helper.m")
-    sibling.write_text("(* different helper *)")
+@pytest.mark.parametrize(
+    "filename", ["helper.m", "h6table.mat", "collectedfunctions.out", "rrlpnHPL_private.out2"]
+)
+def test_package_file_change_invalidates_cache(stub_backend, filename):
+    sibling = Path(stub_backend.config.hpl_path).with_name(filename)
+    sibling.write_text("(* first version *)")
+    assert stub_backend.expand(request())["cache_hit"] is False
+    assert stub_backend.expand(request())["cache_hit"] is True
+    sibling.write_text("(* second version *)")
     assert stub_backend.expand(request())["cache_hit"] is False
 
 

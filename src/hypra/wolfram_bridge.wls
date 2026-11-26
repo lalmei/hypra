@@ -53,6 +53,11 @@ decode[n_Association] := Module[{h, a, name, s, facts, num, den},
     "Log", a = argsOf[n]; If[Length[a] != 1, fail["Log arity"]]; Log @@ a,
     "Exp", a = argsOf[n]; If[Length[a] != 1, fail["Exp arity"]]; Exp @@ a,
     "PolyLog", a = argsOf[n]; If[Length[a] != 2, fail["PolyLog arity"]]; PolyLog @@ a,
+    "NielsenPolylog", a = argsOf[n];
+      If[!MatchQ[a, {_Integer?Positive, _Integer?Positive, _}] || a[[1]] + a[[2]] > 10000,
+        fail["Invalid Nielsen polylogarithm indices"]];
+      If[ListQ[a[[3]]] || MemberQ[{True, False}, a[[3]]], fail["NielsenPolylog argument must be scalar"]];
+      PolyLog @@ a,
     "PolyGamma", a = argsOf[n]; If[Length[a] != 2, fail["PolyGamma arity"]]; PolyGamma @@ a,
     "Zeta", a = argsOf[n]; If[!MemberQ[{1, 2}, Length[a]], fail["Zeta arity"]]; Zeta @@ a,
     "HypergeometricPFQ", a = argsOf[n];
@@ -113,7 +118,9 @@ encode[e_] := Module[{h = Head[e], a},
     h === List, node["List", encode /@ e],
     h === Gamma, node["Gamma", encode /@ (List @@ e)],
     h === Log, node["Log", encode /@ (List @@ e)],
-    h === PolyLog, node["PolyLog", encode /@ (List @@ e)],
+    h === PolyLog && Length[e] == 2, node["PolyLog", encode /@ (List @@ e)],
+    MatchQ[e, PolyLog[_Integer?Positive, _Integer?Positive, _]],
+      node["NielsenPolylog", encode /@ (List @@ e)],
     h === PolyGamma, node["PolyGamma", encode /@ (List @@ e)],
     h === Zeta, node["Zeta", encode /@ (List @@ e)],
     h === HPL`HPL, a = List @@ e;
