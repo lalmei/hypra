@@ -61,7 +61,7 @@ def _half_even(a, z, eps, order):
 
 
 def expand_atom(h, eps, order, assumptions: Boolean = s.true, argument_domain="real-interval"):
-    """Exact coefficient recursion in the explicit real domain 0<z<1."""
+    """Expand an origin-regular germ on the selected argument domain."""
     if h.argument == 0:
         return s.S.One
     z = h.argument
@@ -92,32 +92,69 @@ def expand_atom(h, eps, order, assumptions: Boolean = s.true, argument_domain="r
                 for k in range(-poles, order + 1)
             )
         )
-    if argument_domain == "principal-disk":
-        # This increment admits exact numerical complex points only. Symbolic
-        # disk constraints require a separate assumption proof, not a guess.
-        if (
-            z.free_symbols
-            or not _positive(1 - s.Abs(z), s.true)
-            or not (z.is_real is False or _positive(z, s.true))
-        ):
-            raise UnsupportedExpressionError(
-                "Principal-disk expansion requires an exact numeric argument with "
-                "0 < |z| < 1 off the negative real axis"
-            )
-    elif argument_domain == "principal-cut-plane":
-        if (
-            z.free_symbols
-            or z.is_finite is not True
-            or not (z.is_real is False or _inside_interval(z, s.true))
-        ):
-            raise UnsupportedExpressionError(
-                "Principal-cut-plane expansion requires an exact finite numeric "
-                "point off (-infinity,0] and [1,infinity)"
-            )
-    elif not _inside_interval(z, assumptions):
+    if argument_domain == "principal-disk" and (
+        z.free_symbols or not _positive(1 - s.Abs(z), s.true) or z.is_zero is not False
+    ):
         raise UnsupportedExpressionError(
-            "Native hypergeometric expansion requires 0 < argument < 1"
+            "Principal-disk expansion requires an exact numeric argument with 0 < |z| < 1"
         )
+    if argument_domain == "principal-cut-plane" and (
+        z.free_symbols
+        or z.is_finite is not True
+        or not (z.is_real is False or _positive(1 - z, s.true))
+    ):
+        raise UnsupportedExpressionError(
+            "Principal-cut-plane expansion requires an exact finite numeric point off [1,infinity)"
+        )
+    if z.is_negative or (z.is_negative is None and _positive(-z, assumptions)):
+        return _expand_negative(h, eps, order, assumptions)
+    if (argument_domain == "real-interval" or z.is_real is not False) and not _inside_interval(
+        z, assumptions
+    ):
+        raise UnsupportedExpressionError(
+            "Native hypergeometric expansion requires argument < 0 or 0 < argument < 1"
+        )
+    return _expand_interior(h, eps, order, assumptions)
+
+
+def _expand_negative(h, eps, order, assumptions):
+    """Continue from above to z=-x (x>0) using the kernels' exact pullbacks."""
+    from ..hpl.maps import fractional_hpl
+    from ..hpl.transforms import negate_hpl
+
+    t = s.Dummy("interior_argument", positive=True)
+    x = s.Dummy("magnitude", positive=True)
+    germ = _expand_interior(s.hyper(h.ap, h.bq, t, evaluate=False), eps, order, assumptions)
+    root = s.sqrt(1 + x)
+    negative_coordinates = (-s.sqrt(x) / root, (1 - root) / (1 + root))
+    changes = {}
+    for atom in germ.atoms(HPL):
+        if atom.argument == t:
+            # Integer kernel: z=y/(y-1), where 0<y=x/(1+x)<1 even for x>=1.
+            mapped = fractional_hpl(atom.word, t, boundary="upper", domain="0<z<1")
+            changes[atom] = mapped.xreplace({t: x / (1 + x)})
+        else:
+            at_negative = atom.argument.xreplace({t: -x})
+            # The matched-half coordinate +i*sqrt(x) is already off-cut.
+            if at_negative == s.I * s.sqrt(x):
+                continue
+            # The A/D and B coordinates approach (-1,0) from above. Algebraic
+            # expansion in the contiguous engine can distribute their quotients.
+            for coordinate in negative_coordinates:
+                if s.cancel(at_negative - coordinate) == 0:
+                    mapped = negate_hpl(atom.word, t, domain="0<z<1")
+                    changes[atom] = mapped.xreplace({t: -coordinate})
+                    break
+            else:
+                raise UnsupportedExpressionError(
+                    "Unrecognized HPL coordinate on the negative real axis"
+                )
+    result = germ.xreplace(changes).xreplace({t: -x})
+    return reduce_known_hpl(result).xreplace({x: -h.argument})
+
+
+def _expand_interior(h, eps, order, assumptions):
+    z = h.argument
     if len(h.ap) == 1 and not h.bq:
         return s.series((1 - z) ** (-h.ap[0]), eps, 0, order + 1).removeO()
     # Preserve compact classical forms for two common half-integer subfamilies.

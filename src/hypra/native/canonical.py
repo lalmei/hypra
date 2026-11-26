@@ -49,6 +49,8 @@ def build_canonical(bases, slopes, z, eps, order):
 
 def use_contiguous(upper, lower):
     """Select algebraic shifts where integral/tail reduction is expensive."""
+    if len(upper) < 2:
+        return False  # The binomial kernel for 1F0 never needs parameter shifts.
     r = sum(base.q == 2 for base, _ in upper)
     q = sum(base.q == 2 for base, _ in lower)
     supported = r == q or (r, q) in ((0, 1), (1, 0)) or (r == len(upper) and q == len(lower))

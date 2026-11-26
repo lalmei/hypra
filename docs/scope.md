@@ -48,8 +48,10 @@ claim that every upstream special-value table has been reproduced.
 
 ## Exactness, branches and failure behavior
 
-The default nonterminating interior domain is real `0<z<1` with
-regulator-independent argument and affine exact parameter data. In case A,
+The default nonterminating domain accepts provably negative real arguments
+and `0<z<1`, with regulator-independent argument and affine exact parameter
+data. For a symbolic real argument, give assumptions establishing the chosen
+interval. In case A on the positive interval,
 the internal HPL variable is imaginary; this is a documented analytic
 continuation of the regular origin germ, not permission for arbitrary
 complex input branches. Matched-half functions use principal `sqrt(z)`.
@@ -117,24 +119,43 @@ recorded in provenance.
 
 ### Exact complex points inside the disk
 
-`NativeConfig(argument_domain="principal-disk")` explicitly permits exact
-numerical complex hypergeometric arguments with `0<|z|<1`, off the negative
-real axis. Both the radius bound and non-cut condition must be provable.
-The identities are analytic continuations of their regular origin germs;
-principal square roots/logarithms are used consistently on this slit disk.
-The default remains the real interval. Symbolic complex-domain assertions,
-unit-circle endpoints and points outside the disk are still rejected by this
-mode.
+`NativeConfig(argument_domain="principal-disk")` permits exact numerical
+hypergeometric arguments with provable `0<|z|<1`, including negative real
+points. These identities continue the regular origin germ. Zero and the
+unit endpoint at one have their own rules. Other unit-circle points and
+symbolic complex-domain assertions fall outside this mode.
 
 ### Exact points on the principal cut plane
 
 For exact numerical points outside the unit disk, explicitly select
 `NativeConfig(argument_domain="principal-cut-plane")`. The supported domain is
-C minus the real rays `(−∞,0]` and `[1,∞)`; zero itself is handled separately.
-Arguments must be provably finite and either nonreal or in the real interval.
+C minus the real ray `[1,∞)`, with the endpoint at one handled separately.
+Arguments must be provably finite and either nonreal or real below one.
 The canonical maps remain on compatible branches: case A maps to the upper
 half-plane, case B to the unit disk, and matched-half maps to the right
 half-plane off its positive cut. The identity theorem extends the same
 origin-germ identities, without exchanging integrals and regulator limits.
 This is not acceptance of general symbolic complex-domain assertions or
 unspecified cut boundary values.
+
+### Negative real arguments
+
+For `z=-x` with `x>0`, the hypergeometric germ continued from zero has
+no singularity on the integration path. The indicial powers and logarithms
+in an intermediate HPL representation can still depend on the side used for
+each term. Hypra approaches the negative ray from the upper half-plane
+throughout the calculation.
+
+Integer kernels have binary HPL words. With `y=x/(1+x)`, the exact map
+`z=y/(y-1)` expresses their mixed HPLs at `0<y<1`, including `z=-1`.
+The matched-half coordinate is `+i sqrt(x)`. The single-half-lower and
+all-half coordinate is `-sqrt(x/(1+x))`, and the single-half-upper
+coordinate is `(1-sqrt(1+x))/(1+sqrt(1+x))`. Both negative coordinates
+lie in `(-1,0)` and approach it from above. Negating the HPL letters maps
+their values into the positive interval, with the upper-side logarithm
+constant for any trailing zeros. The fractional map supports mixed binary
+HPLs through weight ten, and the negation map supports weight 24.
+Contiguous shifts operate on the same
+analytic germs before substitution. Rank-one families, including equal
+parameter cancellations, use the binomial identity
+`1F0(a;;z)=(1-z)^(-a)` directly.
