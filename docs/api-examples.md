@@ -22,6 +22,16 @@ negative powers. For `gamma(eps)*P`, the planner requests a deeper expansion of
 `P` before multiplying and truncating; do not expand factors independently at
 insufficient depth.
 
+At a negative real argument the default domain gives the real continuation
+from the origin. For example, the linear coefficient of
+`hyper([1, eps], [1 + eps], -1/2)` is `-log(3/2)`.
+
+```python
+argument = -s.Rational(1, 2)
+result = expand_epsilon(s.hyper([1, eps], [1 + eps], argument), eps, through=1)
+assert s.simplify(result.coefficient(1) + s.log(s.Rational(3, 2))) == 0
+```
+
 ## Hypergeometric unit endpoints
 
 ```python

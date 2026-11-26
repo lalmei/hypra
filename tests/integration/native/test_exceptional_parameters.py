@@ -79,3 +79,13 @@ def test_degenerate_contiguous_pair_limit_recovers_exact_binomial():
     )
     assert s.simplify(reduce_known_hpl(result) - 1 / (1 - z)) == 0
     assert result.free_symbols <= {z}
+
+
+@pytest.mark.parametrize("parameter", [s.S.Half, s.S.Half + e, -1 + e])
+@pytest.mark.parametrize("cancel_pair", [False, True])
+def test_binomial_kernel_after_parameter_cancellation(parameter, cancel_pair):
+    common = [1 + 2 * e] if cancel_pair else []
+    f = s.hyper([parameter, *common], common, s.S.Half, evaluate=False)
+    result = expand_epsilon(f, e, 2, config=NativeConfig(use_cache=False))
+    expected = s.series(2**parameter, e, 0, 3).removeO()
+    assert s.simplify(result.polynomial - expected) == 0
