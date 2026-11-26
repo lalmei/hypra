@@ -69,7 +69,7 @@ from .polylogs import transform_polylog_arguments
 from .serialization import SerializationError, decode_expr, encode_expr
 from .symbolic import HPL, MZV, EulerSum
 
-__version__ = "0.2.0"
+__version__ = "0.3.0"
 
 
 def hypergeometric(

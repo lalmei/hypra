@@ -305,7 +305,7 @@ def expand_epsilon(
     if not isinstance(backend_record, dict):
         raise IncompleteExpansionError("Backend provenance must be a structured object")
     provenance = {
-        "hypra_version": "0.2.0",
+        "hypra_version": "0.3.0",
         "sympy_version": s.__version__,
         "input": original_ast,
         "planned_input": expression_ast,
