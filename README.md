@@ -36,7 +36,7 @@ list of hard-coded low-order answers:
   constant, exact local HPL series, shuffle logarithm extraction, convergent
   binary endpoints/MZVs, and branch-explicit negation/reflection transforms.
 
-The default nonterminating interior domain is real `0 < z < 1`. Use exact
+The default nonterminating interior domains are real `z < 0` and `0 < z < 1`. Use exact
 affine parameters and explicit nonzero assumptions for singular symbolic
 lower slopes. See the [capability map](docs/scope.md) for parameter families,
 principal complex domains and resource limits.
@@ -136,8 +136,9 @@ and compiled [PDF](docs/mathematics.pdf). Runnable examples include
 - Nonterminating expansion kernels cover supported `pF(p-1)` families.
   General HPL reduction, unrestricted continuation and generic integration
   remain open. See the [roadmap](docs/roadmap.md).
-- Hypergeometric arguments must be regulator-independent. The native engine
-  handles `z=0` directly and applies the documented
+- Hypergeometric arguments must be regulator-independent. At negative real
+  arguments, the engine continues the solution regular at the origin along
+  the real axis. It handles `z=0` directly and applies the documented
   [convergence or continuation rules at `z=1`](docs/endpoints.md).
   For finite exact off-cut complex points, select
   `NativeConfig(argument_domain="principal-cut-plane")`.
@@ -172,11 +173,12 @@ References: [HypExp](https://arxiv.org/abs/hep-ph/0507094),
 ## HPL tools and bounded jobs
 
 ```python
-from hypra import (HPL, hpl_at_one, extract_hpl_logs, negate_hpl, reflect_hpl,
+from hypra import (HPL, hpl_at_one, hpl_at_minus_one, extract_hpl_logs, negate_hpl, reflect_hpl,
                    NativeConfig)
 
 extract_hpl_logs(HPL((1, 0), w))
 hpl_at_one((0, 0, 1))  # zeta(3)
+hpl_at_minus_one((0, 1, -1))  # 13*zeta(3)/8 - pi**2*log(2)/4
 reflect_hpl((0, 1), w, domain="0<z<1")
 negate_hpl((1, 0), w, domain="0<z<1")
 config = NativeConfig(timeout_seconds=30)  # killable backend process
