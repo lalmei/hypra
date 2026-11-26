@@ -21,7 +21,7 @@ from .config import BackendConfig
 from .errors import HypraError, IncompleteExpansionError, UnsupportedExpressionError
 from .expansion_library import ExpansionLibrary
 from .hpl.algebra import hpl_series, integrate_from_zero, primitive_hpl, shuffle_expand
-from .hpl.alternating import hpl_alternating_at_one, reduce_euler_sum
+from .hpl.alternating import hpl_alternating_at_one, hpl_at_minus_one, reduce_euler_sum
 from .hpl.arguments import transform_hpl_arguments
 from .hpl.boundary_numeric import HPLBoundaryNumericResult, evaluate_hpl_boundary
 from .hpl.classical import classical_hpl
@@ -143,6 +143,7 @@ __all__ = [
     "fractional_hpl",
     "hpl_alternating_at_one",
     "hpl_at_i",
+    "hpl_at_minus_one",
     "hpl_at_one",
     "hpl_endpoint_polynomial",
     "hpl_evalf",

@@ -42,6 +42,10 @@ class HPL(Function):
 
     nargs = 2
 
+    def _eval_is_commutative(self):
+        # The index tuple labels this scalar function and is not a factor.
+        return self.argument.is_commutative
+
     def __new__(cls, word: IntegerWord, argument: ExactScalar, **options: object) -> Self:
         """Construct the exact SymPy function.
 
@@ -132,7 +136,7 @@ class HPL(Function):
         return self.fdiff(2) * self.argument.diff(s)
 
     def _eval_evalf(self, prec):
-        """Evaluate interior real and off-cut complex principal values."""
+        """Evaluate principal values and side-independent finite values at -1."""
         import mpmath as mp
         from sympy import Float, I
         from sympy.core.evalf import prec_to_dps
@@ -142,6 +146,15 @@ class HPL(Function):
             return self
         digits = max(2, prec_to_dps(prec) + 8)
         word = self.word
+        if z == -1:
+            from .errors import UnsupportedExpressionError
+            from .hpl.alternating import hpl_at_minus_one
+
+            try:
+                value_at_endpoint = hpl_at_minus_one(word)
+            except UnsupportedExpressionError:
+                return self
+            return value_at_endpoint.evalf(digits)
         if z.is_real is False and digits <= 500:
             from .hpl.radial_continuation import continue_hpl
 

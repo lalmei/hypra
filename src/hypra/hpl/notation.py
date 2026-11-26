@@ -40,6 +40,9 @@ class HPLPM(s.Function):
 
     nargs = 2
 
+    def _eval_is_commutative(self):
+        return self.argument.is_commutative
+
     def __new__(cls, word: PMWord, argument: s.Expr, **options: object) -> Self:
         letters = _pm_indices(word)
         encoded = s.Tuple(*(Str(str(_PM_LETTERS[i])) if i else s.S.Zero for i in letters))

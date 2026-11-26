@@ -91,8 +91,8 @@ majorant; it still makes no claim of rigorous interval-rounded arithmetic.
 - Weight at most 24; requested `dps` from 2 to 1000.
 - Default `max_terms=100000`; configurable up to one million.
 - General words near the unit circle may need many terms and can exhaust that budget.
-- Endpoints and other branches are rejected. The default mode rejects complex
-  arguments. Use `hpl_at_one` for supported exact endpoint cases.
+- Use `hpl_at_one`, `hpl_alternating_at_one`, or `hpl_at_minus_one` for
+  exact endpoint values. The default numerical mode requires a real interior argument.
 - No continuation outside the selected domain is performed.
 
 ## Explicit principal complex disk
@@ -134,5 +134,6 @@ substitute for the recurrence and majorant derivation.
 For a finite nonreal argument, SymPy `HPL(word, z).evalf()` uses the
 principal radial continuation. This covers mixed words at `z=i` and
 off-cut points outside the unit disk. Exact construction still preserves
-the HPL object. Real cut points remain symbolic in `.evalf()` and can be
-evaluated with an explicit side through `evaluate_hpl_boundary`.
+the HPL object. At `z=-1`, `.evalf()` also evaluates finite ordinary-letter
+words whose upper and lower values agree. Use `hpl_at_minus_one` for a
+specified side at this endpoint and `evaluate_hpl_boundary` for the open real cuts.
