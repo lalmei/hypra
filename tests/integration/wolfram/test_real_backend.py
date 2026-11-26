@@ -3,10 +3,9 @@
 Opt in with HYPRA_RUN_REAL=1 after configuring external dependencies.
 """
 
-import json
-import os
 import shutil
-import subprocess
+import stat
+from dataclasses import replace
 from pathlib import Path
 
 import pytest
@@ -20,7 +19,6 @@ from hypra import (
     HPLs6,
     NativeConfig,
     NielsenPolylog,
-    backend_info,
     evaluate_hpl_boundary,
     expand_epsilon,
     hpl_at_i,
@@ -34,32 +32,9 @@ from hypra.hpl.at_i_reduction import _PRIMITIVES
 from hypra.hpl.multiple_polylog import MultiplePolylog
 from hypra.hpl.special import _reduce_at_i_constants
 
-pytestmark = pytest.mark.real_backend
+pytestmark = [pytest.mark.real_backend, pytest.mark.usefixtures("require_real_backend")]
 E, W = s.symbols("eps w")
 DOMAIN = s.And(W > 0, W < 1)
-
-
-@pytest.fixture(scope="module", autouse=True)
-def require_real_backend(tmp_path_factory):
-    if os.environ.get("HYPRA_RUN_REAL") != "1":
-        pytest.skip("Real backend is opt-in: HYPRA_RUN_REAL=1")
-    with pytest.MonkeyPatch.context() as env:
-        env.setenv("HYPRA_CACHE", "0")
-        if not (os.environ.get("HYPRA_HYPEXP_PATH") or os.environ.get("HYPRA_HPL_PATH")):
-            upstream = Path(__file__).resolve().parents[3] / "reference" / "upstream"
-            hpl = upstream / "HPL-2.0" / "HPL.m"
-            hypexp = upstream / "HypExp-2.0"
-            if hpl.is_file() and (hypexp / "HypExp.m").is_file():
-                workspace = tmp_path_factory.mktemp("upstream-hypexp") / "HypExp-2.0"
-                shutil.copytree(hypexp, workspace)
-                known = workspace / ("known.m" if os.name == "nt" else ".known.m")
-                if not known.exists():
-                    known.write_text("{KnownToOrder1}\n", encoding="utf-8")
-                env.setenv("HYPRA_HPL_PATH", str(hpl))
-                env.setenv("HYPRA_HYPEXP_PATH", str(workspace / "HypExp.m"))
-        info = backend_info(backend="wolfram")
-        assert info["available"], info["error"]
-        yield
 
 
 def elementary_hpl(expr):
@@ -136,39 +111,8 @@ def test_hpl_weight_four_at_i():
     assert abs(upstream.polynomial.evalf(36) - expression.evalf(36)) < s.Float("1e-30")
 
 
-def _hpl_reference(tmp_path, source):
-    config = BackendConfig.from_env()
-    info = backend_info(backend="wolfram")
-    executable = config.resolved_executable()
-    assert executable is not None
-    script = tmp_path / "compare_hpl.wls"
-    output = tmp_path / "values.json"
-    script.write_text(
-        r"""argv = If[$ScriptCommandLine === {}, $CommandLine, $ScriptCommandLine];
-Global`$HPLPath = DirectoryName[argv[[-2]]];
-Get[argv[[-2]]];
-words = Flatten[Table[Tuples[{-1, 0, 1}, n], {n, 1, 6}], 1];
-toPM[word_] := Replace[word, {-1 -> HPL`minus, 1 -> HPL`plus}, {1}];
-fromPM[word_] := Replace[word, {HPL`minus -> -1, HPL`plus -> 1}, {1}];
-"""
-        + source,
-        encoding="utf-8",
-    )
-    mode = "-file" if "wolframscript" in Path(executable).name.lower() else "-script"
-    run = subprocess.run(
-        [executable, mode, str(script), info["hpl_path"], str(output)],
-        capture_output=True,
-        text=True,
-        timeout=max(config.timeout, 180),
-        check=False,
-    )
-    assert run.returncode == 0 and output.is_file(), run.stdout + run.stderr
-    return json.loads(output.read_text())
-
-
-def test_all_hpl_words_through_weight_six_at_i(tmp_path):
-    rows = _hpl_reference(
-        tmp_path,
+def test_all_hpl_words_through_weight_six_at_i(hpl_reference):
+    rows = hpl_reference(
         r"""
 pack[value_] := {ToString[Round[10^42 Re[value]], InputForm],
                  ToString[Round[10^42 Im[value]], InputForm]};
@@ -209,9 +153,8 @@ def _pm_word(indices):
     return tuple(letters[index] for index in indices)
 
 
-def test_hpl_minimal_sets_match_live_tables(tmp_path):
-    rows = _hpl_reference(
-        tmp_path,
+def test_hpl_minimal_sets_match_live_tables(hpl_reference):
+    rows = hpl_reference(
         r"""
 HPL`$HPLAutoConvertToKnownFunctions = False;
 HPL`$HPLAutoConvertToSimplerArgument = False;
@@ -313,9 +256,8 @@ def test_hypexp_dispatch_classes_live(upper, lower, through):
             assert abs(difference.subs(W, point).evalf(40)) < s.Rational(1, 10**32)
 
 
-def test_polylog_argument_relations_live(tmp_path):
-    rows = _hpl_reference(
-        tmp_path,
+def test_polylog_argument_relations_live(hpl_reference):
+    rows = hpl_reference(
         r"""
 indices = {{1,1},{2,1},{3,1},{4,1},{1,2},{2,2},{1,3},{2,3},{3,2}};
 z = 2/5;
@@ -346,9 +288,8 @@ Exit[0];
         assert abs((named.subs(W, s.Rational(2, 5)) - expected).evalf(36)) < s.Rational(1, 10**30)
 
 
-def test_mixed_weight_seven_real_boundaries_live(tmp_path):
-    rows = _hpl_reference(
-        tmp_path,
+def test_mixed_weight_seven_real_boundaries_live(hpl_reference):
+    rows = hpl_reference(
         r"""
 word = {1,0,-1,0,1,0,-1};
 rows = Flatten[Table[
@@ -375,9 +316,8 @@ Exit[0];
         assert abs((actual - expected).evalf(35)) < s.Rational(1, 10**30)
 
 
-def test_all_colored_endpoint_constants_through_weight_six_live(tmp_path):
-    rows = _hpl_reference(
-        tmp_path,
+def test_all_colored_endpoint_constants_through_weight_six_live(hpl_reference):
+    rows = hpl_reference(
         r"""
 compositions[0] = {{}};
 compositions[n_] := compositions[n] = Join @@ Table[
@@ -476,9 +416,8 @@ def _decode_at_i_constant(tree):
     return functions[kind](*decoded)
 
 
-def test_at_i_named_constant_reductions_match_live_tables_exactly(tmp_path):
-    rows = _hpl_reference(
-        tmp_path,
+def test_at_i_named_constant_reductions_match_live_tables_exactly(hpl_reference):
+    rows = hpl_reference(
         r"""
 encode[x_Integer] := {"integer",ToString[x,InputForm]};
 encode[x_Rational] := {"rational",ToString[Numerator[x],InputForm],
@@ -512,3 +451,41 @@ def test_at_i_primitive_round_trip_through_real_bridge(weight):
     upstream = expand_epsilon(expression, E, 1, backend="wolfram")
     assert upstream.polynomial == native.polynomial
     assert upstream.coefficient(0) == upstream.coefficient(1) == primitive
+
+
+def test_nielsen_and_classical_polylogs_round_trip_through_real_bridge():
+    nielsen = NielsenPolylog(3, 2, W)
+    classical = s.polylog(3, W)
+    expression = nielsen + E * classical
+    result = expand_epsilon(expression, E, 1, DOMAIN, backend="wolfram")
+    assert result.coefficient(0) == nielsen
+    assert result.coefficient(1) == classical
+
+
+def test_endpoint_table_change_invalidates_real_wolfram_cache(tmp_path, require_real_backend):
+    source = Path(require_real_backend["hpl_path"])
+    package = tmp_path / "HPL"
+    shutil.copytree(source.parent, package)
+    config = replace(
+        BackendConfig.from_env(),
+        hpl_path=str(package / source.name),
+        cache_dir=str(tmp_path / "cache"),
+        use_cache=True,
+    )
+
+    def expand_endpoint():
+        return expand_epsilon(HPL((-1, 1), 1), E, 0, backend="wolfram", config=config)
+
+    first = expand_endpoint()
+    cached = expand_endpoint()
+    assert first.provenance["cache_hit"] is False
+    assert cached.provenance["cache_hit"] is True
+
+    table = package / "h6table.mat"
+    table.chmod(table.stat().st_mode | stat.S_IWUSR)
+    with table.open("ab") as stream:
+        stream.write(b"\n(* Cache invalidation test. *)\n")
+    refreshed = expand_endpoint()
+    assert refreshed.provenance["cache_hit"] is False
+    expected = s.pi**2 / 12 - s.log(2) ** 2 / 2
+    assert first.polynomial == cached.polynomial == refreshed.polynomial == expected

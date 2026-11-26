@@ -68,7 +68,7 @@ def _file_hash(path: Path) -> str:
 
 
 def _package_fingerprint(path: str | None) -> str | None:
-    """Hash package source siblings too, so helper-file changes invalidate cache."""
+    """Hash Wolfram sources and reduction tables used by the package."""
     if not path:
         return None
     root = Path(path).expanduser()
@@ -79,9 +79,10 @@ def _package_fingerprint(path: str | None) -> str | None:
         if root.name == "Kernel":
             root = root.parent
     digest = hashlib.sha256()
-    files = sorted(
-        p for p in root.rglob("*") if p.is_file() and p.suffix in {".m", ".wl", ".mx", ".wls"}
-    )
+    # HPL loads endpoint tables from .mat files. HypExp also loads its
+    # argument and integral reduction rules from .out and .out2 files.
+    package_suffixes = {".m", ".mat", ".mx", ".out", ".out2", ".wl", ".wls"}
+    files = sorted(p for p in root.rglob("*") if p.is_file() and p.suffix in package_suffixes)
     for file in files:
         digest.update(str(file.relative_to(root)).encode())
         digest.update(bytes.fromhex(_file_hash(file)))
